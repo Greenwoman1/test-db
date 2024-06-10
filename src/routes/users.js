@@ -3,16 +3,14 @@ var router = express.Router();
 
 const controller = require('../controllers/userController');
 
-router.get('/', async function (req, res) {
-
-
-    const data =  await controller.getUsers();
-
-    console.log(data);
-    res.render('users', { title: 'Users', users: data });
-
-});
+router.get('/', controller.getUsers);
 
 router.post('/add', controller.createUser);
+
+router.delete('/delete/:id', controller.deleteUser);
+
+router.get('/:id', controller.getUserById);
+
+router.post('/update/:id', controller.updateUser);
 
 module.exports = router;

@@ -1,16 +1,31 @@
-const { DataTypes, Model } = require('sequelize');
-const sequelize = require('../../sequelize'); // Pobrini se da je putanja tačna
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../sequelize'); 
 
-class User extends Model {}
+const Product = require('./Product');
+class User extends Model { }
 
 User.init(
     {
+        id: {
+            type: DataTypes.UUID,
+            defaultValue: UUIDV4,
+            primaryKey: true,
+            allowNull: false,
+        },
         firstName: {
             type: DataTypes.STRING,
             allowNull: false,
+            unique: true
+
         },
         lastName: {
             type: DataTypes.STRING,
+            allowNull: false,
+            validate: {
+                notEmpty: {
+                    msg: 'Last name cannot be empty',
+                },
+            },
         },
     },
     {
@@ -21,5 +36,7 @@ User.init(
         updatedAt: 'updateTimestamp',
     },
 );
+
+
 
 module.exports = User;

@@ -1,15 +1,21 @@
-const { DataTypes, Model } = require('sequelize');
-const sequelize = require('../../sequelize'); // Pobrini se da je putanja tačna
+const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
+const sequelize = require('../../sequelize');
 
 class Product extends Model {}
 
 Product.init(
     {
+        id: {
+            type: DataTypes.UUID,
+            defaultValue: UUIDV4,
+            primaryKey: true,
+            allowNull: false,
+        },
         name: {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        desc: {
+        description: {
             type: DataTypes.STRING,
         },
         category:{
@@ -17,6 +23,10 @@ Product.init(
         },
         price: {
             type: DataTypes.FLOAT,
+        },
+        owner: {
+            type: DataTypes.UUID,
+            allowNull: false,
         },
     },
     {
@@ -27,5 +37,7 @@ Product.init(
         updatedAt: 'updateTimestamp',
     },
 );
+
+
 
 module.exports = Product;

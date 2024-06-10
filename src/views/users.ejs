@@ -13,9 +13,9 @@
     <h1>Add New User</h1>
     <form id="addUserForm" action="/users/add" method="POST">
         <label for="firstName">firstName:</label><br>
-        <input type="text" id="firstName" name="firstName" required><br>
+        <input type="text" id="firstName" name="firstName" ><br>
         <label for="lastName">lastName:</label><br>
-        <input type="text" id="lastName" name="lastName" required><br>
+        <input type="text" id="lastName" name="lastName" ><br>
         <button type="submit">Add User</button>
     </form>
 
@@ -36,6 +36,12 @@
                     </td>
                     <td>
                         <%= user.lastName %>
+                    </td>
+                    <td>
+                        <a href="/users/<%= user.id %>">Delete</a>
+                    </td>
+                    <td>
+                        <a href="/users/<%= user.id %>">Update</a>
                     </td>
                 </tr>
                 <% }); %>
