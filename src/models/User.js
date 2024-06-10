@@ -1,7 +1,6 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize'); 
-
-const Product = require('./Product');
+const bcrypt = require('bcrypt');
 class User extends Model { }
 
 User.init(
@@ -27,6 +26,10 @@ User.init(
                 },
             },
         },
+        password: {
+            type: DataTypes.STRING, 
+            allowNull: false,
+        },
     },
     {
         sequelize,
@@ -37,6 +40,9 @@ User.init(
     },
 );
 
-
+User.beforeCreate(async (user) => {
+    const hashedPassword = await bcrypt.hash(user.password, 10); 
+    user.password = hashedPassword;
+});
 
 module.exports = User;

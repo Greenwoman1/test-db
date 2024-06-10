@@ -7,6 +7,7 @@ const Product = require('./src/routes/product');
 const categoryRoutes = require('./src/routes/category');
 const orderItemRoutes = require('./src/routes/orderItems');
 const orderDetailsRoutes = require('./src/routes/orderDetails');
+const authRoutes = require('./src/routes/auth');
 // const Category = require('./src/models/Category'); // Correct this line
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/products', Product);
 app.use('/categories', categoryRoutes);
 app.use('/orderItems', orderItemRoutes);
 app.use('/orderDetails', orderDetailsRoutes);
+app.use('/auth', authRoutes)
 // app.use('/categories', Category);
 
 const PORT = process.env.PORT || 3000;
@@ -37,7 +39,7 @@ app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     try {
         // Database synchronization
-        await sequelize.sync();
+        await sequelize.sync({force: true});
         console.log('Database synchronized.');
     } catch (error) {
         console.error('Error while working with the database:', error);
