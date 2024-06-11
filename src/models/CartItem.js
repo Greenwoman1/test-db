@@ -1,26 +1,32 @@
 const { DataTypes, Model } = require('sequelize');
 const sequelize = require('../../sequelize'); // Pobrini se da je putanja tačna
-
-class Category extends Model { }
-Category.init(
+const { UUIDV4 } = require('sequelize');
+class CartItem extends Model { }
+CartItem.init(
   {
     id: {
       type: DataTypes.UUID,
+      defaultValue: UUIDV4,
       primaryKey: true,
       allowNull: false,
     },
-    name: {
-      type: DataTypes.STRING,
+    user_id: {
+      type: DataTypes.UUID,
       allowNull: false,
     },
+    product_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+   
   },
   {
     sequelize,
-    modelName: 'Category',
+    modelName: 'CartItem',
     timestamps: true,
     createdAt: false,
     updatedAt: 'updateTimestamp',
   },
 );
 
-module.exports = Category;
+module.exports = CartItem;

@@ -8,6 +8,7 @@ const categoryRoutes = require('./src/routes/category');
 const orderItemRoutes = require('./src/routes/orderItems');
 const orderDetailsRoutes = require('./src/routes/orderDetails');
 const authRoutes = require('./src/routes/auth');
+const cartItem = require('./src/routes/cartItem');
 // const Category = require('./src/models/Category'); // Correct this line
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/products', Product);
 app.use('/categories', categoryRoutes);
 app.use('/orderItems', orderItemRoutes);
 app.use('/orderDetails', orderDetailsRoutes);
+app.use('/cartItem', cartItem);
 app.use('/auth', authRoutes)
 // app.use('/categories', Category);
 

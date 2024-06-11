@@ -18,16 +18,13 @@ Product.init(
         description: {
             type: DataTypes.STRING,
         },
-        category:{
-            type: DataTypes.INTEGER,
+        category_id:{
+            type: DataTypes.UUID,
         },
         price: {
             type: DataTypes.FLOAT,
         },
-        owner: {
-            type: DataTypes.UUID,
-            allowNull: false,
-        },
+    
     },
     {
         sequelize,

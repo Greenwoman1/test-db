@@ -1,4 +1,4 @@
-const OrderDetails = require('../models/OrderDetail');
+const {OrderDetails} = require('../models/associations');
 
 const createOrderDetails = async (req, res) => {
     try {

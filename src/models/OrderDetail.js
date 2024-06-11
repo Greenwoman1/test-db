@@ -1,8 +1,8 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize'); // Pobrini se da je putanja tačna
 
-class OrderDetails extends Model {}
-OrderDetails.init(
+class OrderDetail extends Model {}
+OrderDetail.init(
   {
     id: {
       type: DataTypes.UUID,
@@ -10,7 +10,7 @@ OrderDetails.init(
       primaryKey: true,
       allowNull: false,
     },
-    userId: {
+    user_id: {
       type: DataTypes.UUID,
       allowNull: false,
     },
@@ -18,7 +18,7 @@ OrderDetails.init(
       type: DataTypes.FLOAT,
       allowNull: false,
     },
-    paymentId: {
+    payment_id: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -38,4 +38,4 @@ OrderDetails.init(
   },
 );
 
-module.exports = OrderDetails;
+module.exports = OrderDetail;

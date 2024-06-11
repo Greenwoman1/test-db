@@ -9,11 +9,11 @@ OrderItem.init(
       primaryKey: true,
       allowNull: false,
     },
-    orderId: {
+    order_id: {
       type: DataTypes.UUID,
       allowNull: false,
     },
-    productId: {
+    product_id: {
       type: DataTypes.UUID,
       allowNull: false,
     },
@@ -33,4 +33,4 @@ OrderItem.init(
   },
 );
 
-module.exports = { OrderItem };
+module.exports =  OrderItem ;
