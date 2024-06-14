@@ -1,28 +1,36 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class ProductVariant extends Model {
+class GroupRule extends Model {
     static associateModel(models) {
-    
     }
 
     static initModel() {
-        ProductVariant.init(
+        GroupRule.init(
             {
                 id: {
                     type: DataTypes.UUID,
                     defaultValue: UUIDV4,
                     primaryKey: true,
                     allowNull: false,
-                }
+                },
+                name: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
+                rule: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
             },
             {
                 sequelize,
-                modelName: 'ProductVariant',
+                modelName: 'GroupRule',
                 timestamps: true,
+                createdAt: false,
             },
         );
     }
 }
 
-module.exports = ProductVariant;
+module.exports = GroupRule;

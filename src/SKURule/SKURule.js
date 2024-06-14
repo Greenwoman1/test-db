@@ -1,39 +1,31 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class SKURule extends Model {}
+class SKURule extends Model {
+    static initModel() {
+        SKURule.init(
+            {
+                id: {
+                    type: DataTypes.UUID,
+                    defaultValue: UUIDV4,
+                    primaryKey: true,
+                    allowNull: false,
+                },
+           
+            },
+            {
+                sequelize,
+                modelName: 'SKURule',
+                timestamps: true,
+                createdAt: false,
+            }
+        );
+    }
 
-SKURule.init(
-    {
-        id: {
-            type: DataTypes.UUID,
-            defaultValue: UUIDV4,
-            primaryKey: true,
-            allowNull: false,
-        },
-        name: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        stock: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        price: {
-            type: DataTypes.DECIMAL,
-            allowNull: false,
-        },
+    static associateModel(models) {
+        SKURule.hasOne(models.SKU);
         
-    
-    },
-    {
-        sequelize,
-        modelName: 'SKURule',
-        timestamps: true,
-        createdAt: false,
-    },
-);
-
-
+    }
+}
 
 module.exports = SKURule;

@@ -1,21 +1,11 @@
-const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
+const Variant = require('../Variant/Variant');
+const Option = require('../Option/Option');
 
-
-class Variant extends Model {
-   
-
-    static associateModel(models) {
-        Variant.hasOne(models.SKURule);
-        Variant.belongsTo(models.Product);
-        Variant.belongsToMany(models.Combo, { through: 'ComboItems' });
-        Variant.belongsToMany(models.Topons, { through: 'VariantTopons' });
-        Variant.hasMany(models.GroupOption);
-    }
-
-
+class GroupOption extends Model {
     static initModel() {
-        Variant.init(
+        GroupOption.init(
             {
                 id: {
                     type: DataTypes.UUID,
@@ -27,16 +17,25 @@ class Variant extends Model {
                     type: DataTypes.STRING,
                     allowNull: false,
                 },
+                rule: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
             },
             {
                 sequelize,
-                modelName: 'Variant',
+                modelName: 'GroupOption',
                 timestamps: true,
                 createdAt: false,
-                updatedAt: 'updateTimestamp',
             }
         );
     }
+
+    static associateModel(models) {
+        GroupOption.belongsTo(models.Variant);
+        GroupOption.hasMany(models.Option);
+
+    }
 }
 
-module.exports = Variant;
+module.exports = GroupOption;

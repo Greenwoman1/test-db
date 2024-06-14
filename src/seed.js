@@ -1,5 +1,4 @@
-const { Product, Variant, GroupOptions, Options, Topons, Combo } = require('./models/associations');
-
+const { Product, Variant, GroupOption, Option, Topons, Combo } = require('./index');
 async function createProduct(name) {
     return await Product.create({ name, type : 'single' });
 }
@@ -21,20 +20,32 @@ async function addGroupOptions(variantId, groupOptionsData) {
         throw new Error(`Variant with ID ${variantId} not found`);
     }
     const groupOptions = await Promise.all(
-        groupOptionsData.map(groupOptionData => GroupOptions.create({ ...groupOptionData, VariantId: variantId , rule: 'any' }))
+        groupOptionsData.map(groupOptionData => GroupOption.create({ ...groupOptionData, VariantId: variantId , rule: 'any' }))
     );
     return groupOptions;
+    
 }
 
-async function addOptionsToGroup(groupOptionId, optionsData) {
-    const groupOption = await GroupOptions.findByPk(groupOptionId);
+async function addOptions(groupOptionId, optionsData) {
+    const groupOption = await GroupOption.findByPk(groupOptionId);
     if (!groupOption) {
         throw new Error(`GroupOption with ID ${groupOptionId} not found`);
     }
     const options = await Promise.all(
-        optionsData.map(optionData => Options.create(optionData))
+        optionsData.map(optionData => Option.create({ ...optionData, GroupOptionId: groupOptionId }))
     );
-    await groupOption.addOptions(options);
+    return options;
+}
+
+async function addOptionsToGroup(groupOptionId, optionsData) {
+    const groupOption = await GroupOption.findByPk(groupOptionId);
+    if (!groupOption) {
+        throw new Error(`GroupOption with ID ${groupOptionId} not found`);
+    }
+    const options = await Promise.all(
+        optionsData.map(optionData => Option.create(optionData))
+    );
+    await groupOption.addOptionsToGroup(options);
     return options;
 }
 
@@ -86,7 +97,6 @@ async function getComboDetails(comboId) {
     }
 }
 
-module.exports = getComboDetails;
 
 async function getVariantDetails(variantId) {
     try {
@@ -94,11 +104,11 @@ async function getVariantDetails(variantId) {
             attributes: ['id', 'name'], 
             include: [
                 {
-                    model: GroupOptions,
+                    model: GroupOption,
                     attributes: ['id', 'name'],
                     include: [
                         {
-                            model: Options,
+                            model: Option,
                             attributes: ['id', 'name'] 
                         }
                     ]
