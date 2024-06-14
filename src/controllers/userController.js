@@ -3,7 +3,7 @@ const {User} = require('../models/associations');
 const createUser = async (req, res) => {
     try {
         const { firstName, lastName , password} = req.body;
-        const newUser = await User.create({ firstName, lastName , password});
+        const newUser = await User.create({ firstName, lastName , pa});
         res.status(201).json(newUser);
     } catch (error) {
         res.status(500).json({ message: error.message });

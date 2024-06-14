@@ -1,9 +1,9 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class Product extends Model {}
+class GroupOptions extends Model {}
 
-Product.init(
+GroupOptions.init(
     {
         id: {
             type: DataTypes.UUID,
@@ -15,26 +15,21 @@ Product.init(
             type: DataTypes.STRING,
             allowNull: false,
         },
-        description: {
+        rule: {
             type: DataTypes.STRING,
+            allowNull: false,
         },
-        category_id:{
-            type: DataTypes.UUID,
-        },
-        price: {
-            type: DataTypes.FLOAT,
-        },
+        
     
     },
     {
         sequelize,
-        modelName: 'Product',
+        modelName: 'GroupOptions',
         timestamps: true,
         createdAt: false,
-        updatedAt: 'updateTimestamp',
     },
 );
 
 
 
-module.exports = Product;
+module.exports = GroupOptions;
