@@ -14,14 +14,14 @@ class Product extends Model {
         Product.belongsToMany(model.Product, {
             through: 'ComboItems',
             as: 'comboItems',
-            foreignKey: 'comboId',
+            foreignKey: 'productId',
             otherKey: 'itemId'
         });
 
         Product.belongsToMany(model.Product, {
             through: 'ComboItems',
             as: 'itemCombos',
-            foreignKey: 'itemId',
+            foreignKey: 'productId',
             otherKey: 'comboId'
         });
     }

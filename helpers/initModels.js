@@ -13,13 +13,13 @@ async function initModels() {
         GroupOption,
         Option,
         Topons,
-        Combo,
+        // Combo,
         SKURule,
         GroupRule,
         VariantTopons,
         User,
         SKU,
-        ComboItemProduct
+        // ComboItemProduct
 
     ];
 
@@ -37,14 +37,14 @@ async function associateModels() {
         'GroupOption': GroupOption,
         'Option': Option,
         'Topons': Topons,
-        "Combo": Combo,
+        // "Combo": Combo,
         'ComboItem': ComboItem,
         'SKURule': SKURule,
         'GroupRule': GroupRule,
         'VariantTopons': VariantTopons,
         'User': User,
         'SKU': SKU,
-        'ComboItemProduct': ComboItemProduct
+        // 'ComboItemProduct': ComboItemProduct
     }
 
     for (const [key, model] of Object.entries(models)) {

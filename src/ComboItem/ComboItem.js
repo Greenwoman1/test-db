@@ -5,12 +5,16 @@ class ComboItem extends Model {
     static initModel() {
         ComboItem.init(
             {
+                id: {
+                    type: DataTypes.UUID,
+                    primaryKey: true,
+                },
             },
             {
                 sequelize,
                 modelName: 'ComboItem',
                 timestamps: true,
-            }
+            } 
         );
     }
 
