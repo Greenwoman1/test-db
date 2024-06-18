@@ -11,6 +11,7 @@ const Variant = require('./Variant/Variant');
 const VariantTopons = require('./VariantTopons/VariantTopons');
 const VariantOptions = require('./VariantOptions/VariantOptions');
 const SKU = require('./SKU/SKU');
+const ComboItemProduct = require('./comboItemProduct/ComboItemProduct');
 
 module.exports = {
     User,
@@ -26,4 +27,5 @@ module.exports = {
     VariantTopons,
     VariantOptions,
     SKU,
+    ComboItemProduct
 }

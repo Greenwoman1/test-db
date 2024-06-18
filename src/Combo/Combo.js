@@ -31,8 +31,8 @@ class Combo extends Model {
   }
 
   static associateModel(models) {
-    Combo.belongsToMany(models.Variant, { through: 'ComboItems' });
-    Combo.belongsTo(models.Product);
+    // Combo.belongsTo(models.Product);
+    // Combo.hasMany(models.ComboItem);
   }
 }
 

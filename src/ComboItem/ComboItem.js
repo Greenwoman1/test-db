@@ -15,6 +15,8 @@ class ComboItem extends Model {
     }
 
     static associateModel(models) {
+        // ComboItem.belongsTo(models.Combo);
+        // ComboItem.belongsToMany(models.Product, { through: 'ComboItemProduct' });
     }
 }
 

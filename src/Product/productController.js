@@ -69,47 +69,65 @@ const saveProductFromJson = async (req, res) => {
                 type: productJson.type
             });
 
-            for (const variantData of productJson.variants) {
-                const variant = await Variant.create({
-                    name: variantData.name,
-                    ProductId: product.id
-                });
+            if (productJson.type === 'combo') {
+                for (const itemId of productJson.items) {
+                    const item = await Product.findOne({
+                        where: { name: itemId }
+                    })
 
-                if (variantData?.topons) {
-                    for (const toponData of variantData.topons) {
-                        await Topons.create({
-                            name: toponData.name,
-                            quantity: toponData.quantity
-                        });
-                        const topon = await Topons.findOne({ where: { name: toponData.name } });
-                        if (topon) {
-                            await variant.addTopons(topon);
-                        } else {
-                            console.warn(`Topon '${toponData.name}' not found.`);
+                    if (item) {
+                        await product.addComboItem(item);
+                    } else {
+                        console.warn(`Item with ID '${itemId}' not found.`);
+                    }
+                }
+            } else {
+                for (const variantData of productJson.variants) {
+                    const variant = await Variant.create({
+                        name: variantData.name,
+                        ProductId: product.id
+                    });
+
+                    if (variantData.topons) {
+                        for (const toponData of variantData.topons) {
+                            await Topons.create({
+                                name: toponData.name,
+                                quantity: toponData.quantity
+                            });
+                            const topon = await Topons.findOne({ where: { name: toponData.name } });
+                            if (topon) {
+                                await variant.addTopons(topon);
+                            } else {
+                                console.warn(`Topon '${toponData.name}' not found.`);
+                            }
+                        }
+                    }
+
+                    if (variantData.groupOptions) {
+                        for (const groupOptionData of variantData.groupOptions) {
+                            const groupOption = await GroupOption.create({
+                                name: groupOptionData.name,
+                                type: groupOptionData.type,
+                                rule: groupOptionData.rule,
+                                VariantId: variant.id
+                            });
+
+                            if (groupOptionData.options) {
+                                for (const optionData of groupOptionData.options) {
+                                    await Option.create({
+                                        name: optionData.name,
+                                        GroupOptionId: groupOption.id
+                                    });
+                                }
+                            }
                         }
                     }
                 }
-
-                if(variantData.groupOptions ){for (const groupOptionData of variantData.groupOptions) {
-                    const groupOption = await GroupOption.create({
-                        name: groupOptionData.name,
-                        type: groupOptionData.type,
-                        rule: groupOptionData.rule,
-                        VariantId: variant.id
-                    });
-
-                    for (const optionData of groupOptionData.options) {
-                        await Option.create({
-                            name: optionData.name,
-                            GroupOptionId: groupOption.id
-                        });
-                    }
-                }}
             }
-
         }
         res.status(201).json({ message: 'Products created successfully' });
     } catch (error) {
+        console.error('Error during saveProductFromJson:', error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -128,13 +146,32 @@ const getProductSettings = async (req, res) => {
                             include: [Option]
                         },
                         Topons
+                    ],
+                    as: 'Variants'
+                },
+                {
+                    model: Product,
+                    as: 'comboItems',
+                    through: { attributes: [] }, 
+                    include: [
+                        {
+                            model: Variant,
+                            include: [
+                                {
+                                    model: GroupOption,
+                                    include: [Option]
+                                },
+                                Topons
+                            ],
+                            as: 'Variants'
+                        }
                     ]
                 }
             ]
         });
 
         if (!product) {
-            throw new Error(`Product "${id}" not found`);
+            return res.status(404).json({ message: `Product "${id}" not found` });
         }
 
         const result = {
@@ -142,24 +179,44 @@ const getProductSettings = async (req, res) => {
                 name: product.name,
                 description: product.description,
                 type: product.type,
-                variants: product.Variants.map(variant => ({
-                    name: variant.name,
-                    groupOptions: variant.GroupOptions.map(groupOption => ({
-                        name: groupOption.name,
-                        options: groupOption.Options.map(option => ({
-                            name: option.name
+                variants: product.type === 'combo'
+                    ? product.comboItems.map(comboItem => ({
+                        name: comboItem.name,
+                        description: comboItem.description,
+                        type: comboItem.type,
+                        variants: comboItem.Variants.map(variant => ({
+                            name: variant.name,
+                            groupOptions: variant.GroupOptions.map(groupOption => ({
+                                name: groupOption.name,
+                                options: groupOption.Options.map(option => ({
+                                    name: option.name
+                                }))
+                            })),
+                            topons: variant.Topons.map(topon => ({
+                                name: topon.name,
+                                quantity: topon.quantity
+                            }))
                         }))
-                    })),
-                    topons: variant.Topons.map(topon => ({
-                        name: topon.name,
-                        quantity: topon.quantity
                     }))
-                }))
+                    : product.Variants.map(variant => ({
+                        name: variant.name,
+                        groupOptions: variant.GroupOptions.map(groupOption => ({
+                            name: groupOption.name,
+                            options: groupOption.Options.map(option => ({
+                                name: option.name
+                            }))
+                        })),
+                        topons: variant.Topons.map(topon => ({
+                            name: topon.name,
+                            quantity: topon.quantity
+                        }))
+                    }))
             }
         };
 
         res.status(200).json(result);
     } catch (error) {
+        console.error('Error during getProductSettings:', error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -174,5 +231,5 @@ module.exports = {
     updateProduct,
     deleteProduct,
     saveProductFromJson,
-    getProductSettings
+    getProductSettings,
 };

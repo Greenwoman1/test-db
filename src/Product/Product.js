@@ -5,8 +5,25 @@ const Variant = require('../Variant/Variant');
 
 class Product extends Model {
     static associateModel(model) {
-        Product.hasMany(model.Combo);
+        // Product.hasOne(model.Combo);
+        // Product.belongsToMany(model.ComboItem, { through: 'ComboItemProduct' });
+
+
         Product.hasMany(model.Variant);
+
+        Product.belongsToMany(model.Product, {
+            through: 'ComboItems',
+            as: 'comboItems',
+            foreignKey: 'comboId',
+            otherKey: 'itemId'
+        });
+
+        Product.belongsToMany(model.Product, {
+            through: 'ComboItems',
+            as: 'itemCombos',
+            foreignKey: 'itemId',
+            otherKey: 'comboId'
+        });
     }
 
     static initModel() {
@@ -18,10 +35,10 @@ class Product extends Model {
                     primaryKey: true,
                     allowNull: false,
                 },
+
                 name: {
                     type: DataTypes.STRING,
                     allowNull: false,
-                    primaryKey: true
                 },
                 description: {
                     type: DataTypes.STRING,

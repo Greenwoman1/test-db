@@ -1,22 +1,25 @@
 const sequelize = require("../sequelize");
 const { Product, Variant, GroupOption, Option, Topons, Combo, ComboItem, SKURule, GroupRule, User, VariantOptions,
     VariantTopons,
-    SKU, } = require("../src");
+    SKU,
+    ComboItemProduct, } = require("../src");
 
 async function initModels() {
     const models = [
+        ComboItem,
+
         Product,
         Variant,
         GroupOption,
         Option,
         Topons,
         Combo,
-        ComboItem,
         SKURule,
         GroupRule,
         VariantTopons,
         User,
-        SKU
+        SKU,
+        ComboItemProduct
 
     ];
 
@@ -40,7 +43,8 @@ async function associateModels() {
         'GroupRule': GroupRule,
         'VariantTopons': VariantTopons,
         'User': User,
-        'SKU': SKU
+        'SKU': SKU,
+        'ComboItemProduct': ComboItemProduct
     }
 
     for (const [key, model] of Object.entries(models)) {
