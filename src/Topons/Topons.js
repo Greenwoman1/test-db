@@ -22,10 +22,16 @@ class Topons extends Model {
                     type: DataTypes.STRING,
                     allowNull: false,
                 },
-                quantity: {
+                minValue: {
                     type: DataTypes.INTEGER,
-                    allowNull: false,
                 },
+                maxValue: {
+                    type: DataTypes.INTEGER,
+                },
+                defaultValue: {
+                    type: DataTypes.INTEGER,
+                },
+          
             },
             {
                 sequelize,

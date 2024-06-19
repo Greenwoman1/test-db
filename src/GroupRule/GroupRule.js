@@ -3,6 +3,7 @@ const sequelize = require('../../sequelize');
 
 class GroupRule extends Model {
     static associateModel(models) {
+        GroupRule.belongsTo(models.GroupOption)
     }
 
     static initModel() {
@@ -10,17 +11,24 @@ class GroupRule extends Model {
             {
                 id: {
                     type: DataTypes.UUID,
-                    defaultValue: UUIDV4,
                     primaryKey: true,
-                    allowNull: false,
+                    defaultValue: DataTypes.UUIDV4
                 },
                 name: {
                     type: DataTypes.STRING,
-                    allowNull: false,
+                    allowNull: false
                 },
-                rule: {
+                description: {
                     type: DataTypes.STRING,
-                    allowNull: false,
+                    allowNull: true
+                },
+                ruleType: {
+                    type: DataTypes.STRING,
+                    allowNull: false
+                },
+                ruleValue: {
+                    type: DataTypes.STRING,
+                    allowNull: true
                 },
             },
             {

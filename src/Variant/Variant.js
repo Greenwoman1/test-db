@@ -7,7 +7,7 @@ class Variant extends Model {
 
     static associateModel(models) {
         Variant.hasOne(models.SKURule);
-        Variant.belongsTo(models.Product, {as: 'Variants'});
+        Variant.belongsTo(models.Product);
         Variant.belongsToMany(models.Topons, { through: 'VariantTopons' });
         Variant.hasMany(models.GroupOption);
     }

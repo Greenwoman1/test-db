@@ -17,10 +17,7 @@ class GroupOption extends Model {
                     type: DataTypes.STRING,
                     allowNull: false,
                 },
-                rule: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                },
+             
             },
             {
                 sequelize,
@@ -34,6 +31,7 @@ class GroupOption extends Model {
     static associateModel(models) {
         GroupOption.belongsTo(models.Variant);
         GroupOption.hasMany(models.Option);
+        GroupOption.hasMany(models.GroupRule);
 
     }
 }

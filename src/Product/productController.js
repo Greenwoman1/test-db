@@ -1,5 +1,5 @@
 const Product = require('./Product');
-const { Variant, Topons, GroupOption, Option } = require('../index');
+const { Variant, Topons, GroupOption, Option, GroupRule } = require('../index');
 const createProduct = async (req, res) => {
     try {
         const { name, description, type } = req.body;
@@ -71,14 +71,16 @@ const saveProductFromJson = async (req, res) => {
 
             if (productJson.type === 'combo') {
                 for (const itemId of productJson.items) {
+                    console.log(itemId);
                     const item = await Product.findOne({
                         where: { name: itemId }
                     })
-
                     if (item) {
                         await product.addComboItem(item);
                     } else {
+
                         console.warn(`Item with ID '${itemId}' not found.`);
+                        res.status(401).json({ message: `Item with ID '${itemId}' not found.` });
                     }
                 }
             } else {
@@ -87,13 +89,11 @@ const saveProductFromJson = async (req, res) => {
                         name: variantData.name,
                         ProductId: product.id
                     });
+                    console.log(variant);
 
                     if (variantData.topons) {
                         for (const toponData of variantData.topons) {
-                            await Topons.create({
-                                name: toponData.name,
-                                quantity: toponData.quantity
-                            });
+                           
                             const topon = await Topons.findOne({ where: { name: toponData.name } });
                             if (topon) {
                                 await variant.addTopons(topon);
@@ -108,9 +108,20 @@ const saveProductFromJson = async (req, res) => {
                             const groupOption = await GroupOption.create({
                                 name: groupOptionData.name,
                                 type: groupOptionData.type,
-                                rule: groupOptionData.rule,
                                 VariantId: variant.id
                             });
+
+                            if (groupOptionData.rules) {
+                                for (const ruleData of groupOptionData.rules) {
+                                    await GroupRule.create({
+                                        name: ruleData.name,
+                                        description: ruleData.description,
+                                        ruleType: ruleData.ruleType,
+                                        ruleValue: ruleData.ruleValue,
+                                        GroupOptionId: groupOption.id
+                                    });
+                                }
+                            }
 
                             if (groupOptionData.options) {
                                 for (const optionData of groupOptionData.options) {
@@ -136,30 +147,82 @@ const getProductSettings = async (req, res) => {
     const { id } = req.params;
     try {
         const product = await Product.findOne({
-            where: { name: id },
+            where: { id: id },
             include: [
                 {
                     model: Variant,
                     include: [
                         {
                             model: GroupOption,
-                            include: [Option]
+                            include: [Option, GroupRule]
                         },
                         Topons
                     ],
                     as: 'Variants'
                 },
+
+            ]
+        });
+
+        if (!product) {
+            return res.status(404).json({ message: `Product "${id}" not found` });
+        }
+        const result = {
+            product: {
+                name: product.name,
+                description: product.description,
+                type: product.type,
+                variants: product.Variants.map(variant => (
+                    {
+                        name: variant.name,
+                        groupOptions: variant.GroupOptions.map(groupOption => ({
+                            name: groupOption.name,
+                            options: groupOption.Options.map(option => ({
+                                name: option.name
+                            })),
+
+                            rules: groupOption.GroupRules ? groupOption.GroupRules.map(rule => ({
+                                name: rule.name,
+                                description: rule.description,
+                                ruleType: rule.ruleType,
+                                ruleValue: rule.ruleValue
+                            })) : []
+                        })),
+                        topons: variant.Topons.map(topon => ({
+                            name: topon.name,
+                            minValue: topon.minValue,
+                            maxValue: topon.maxValue,
+                            defaultValue: topon.defaultValue
+                        }))
+                    }))
+            }
+        };
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error during getProductSettings:', error);
+        res.status(500).json({ message: error.message });
+    }
+    
+};
+
+const getProductSettingsCombo = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const product = await Product.findOne({
+            where: { id: id },
+            include: [
                 {
                     model: Product,
                     as: 'comboItems',
-                    through: { attributes: [] }, 
+                    through: { attributes: [] },
                     include: [
                         {
                             model: Variant,
                             include: [
                                 {
                                     model: GroupOption,
-                                    include: [Option]
+                                    include: [Option, GroupRule]
                                 },
                                 Topons
                             ],
@@ -171,56 +234,42 @@ const getProductSettings = async (req, res) => {
         });
 
         if (!product) {
-            return res.status(404).json({ message: `Product "${id}" not found` });
+            return res.status(404).json({ message: `Product with ID     "${id}" not found` });
         }
 
-        const result = {
-            product: {
-                name: product.name,
-                description: product.description,
-                type: product.type,
-                variants: product.type === 'combo'
-                    ? product.comboItems.map(comboItem => ({
-                        name: comboItem.name,
-                        description: comboItem.description,
-                        type: comboItem.type,
-                        variants: comboItem.Variants.map(variant => ({
-                            name: variant.name,
-                            groupOptions: variant.GroupOptions.map(groupOption => ({
-                                name: groupOption.name,
-                                options: groupOption.Options.map(option => ({
-                                    name: option.name
-                                }))
-                            })),
-                            topons: variant.Topons.map(topon => ({
-                                name: topon.name,
-                                quantity: topon.quantity
-                            }))
-                        }))
-                    }))
-                    : product.Variants.map(variant => ({
-                        name: variant.name,
-                        groupOptions: variant.GroupOptions.map(groupOption => ({
-                            name: groupOption.name,
-                            options: groupOption.Options.map(option => ({
-                                name: option.name
-                            }))
-                        })),
-                        topons: variant.Topons.map(topon => ({
-                            name: topon.name,
-                            quantity: topon.quantity
-                        }))
-                    }))
-            }
+        const comboProductSettings = {
+            name: product.name,
+            description: product.description,
+            type: product.type,
+            variants: product.comboItems.map(comboItem => ({
+                name: comboItem.name,
+                description: comboItem.description,
+                type: comboItem.type,
+                groupOptions: comboItem.Variants.flatMap(variant => variant.GroupOptions.map(groupOption => ({
+                    name: groupOption.name,
+                    options: groupOption.Options.map(option => ({ name: option.name })),
+                    rules: groupOption.GroupRules ? groupOption.GroupRules.map(rule => ({
+                        name: rule.name,
+                        description: rule.description,
+                        ruleType: rule.ruleType,
+                        ruleValue: rule.ruleValue
+                    })) : []
+                }))),
+                topons: comboItem.Variants.flatMap(variant => variant.Topons.map(topon => ({
+                    name: topon.name,
+                    minValue: topon.minValue,
+                    maxValue: topon.maxValue,
+                    defaultValue: topon.defaultValue
+                })))
+            }))
         };
 
-        res.status(200).json(result);
+        res.status(200).json(comboProductSettings);
     } catch (error) {
-        console.error('Error during getProductSettings:', error);
+        console.error('Error during getProductSettingsCombo:', error);
         res.status(500).json({ message: error.message });
     }
 };
-
 
 
 
@@ -232,4 +281,5 @@ module.exports = {
     deleteProduct,
     saveProductFromJson,
     getProductSettings,
+    getProductSettingsCombo
 };
