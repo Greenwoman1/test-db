@@ -1,6 +1,5 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
-const Combo = require('../Combo/Combo');
 const Variant = require('../Variant/Variant');
 
 class Product extends Model {

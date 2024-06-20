@@ -1,33 +1,25 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
-const { getSKUById } = require('../SKU/skuController');
 
-class SKURule extends Model {
+class VariantLocation extends Model {
     static initModel() {
-        SKURule.init(
+        VariantLocation.init(
             {
                 id: {
                     type: DataTypes.UUID,
-                    defaultValue: UUIDV4,
                     primaryKey: true,
-                    allowNull: false,
                 },
-           
             },
             {
                 sequelize,
-                modelName: 'SKURule',
+                modelName: 'VariantLocation',
                 timestamps: true,
-                createdAt: false,
-            }
+            } 
         );
     }
 
     static associateModel(models) {
-        SKURule.hasOne(models.SKU);
-        SKURule.belongsTo(models.Location);
-        
     }
 }
 
-module.exports = SKURule;
+module.exports = VariantLocation;

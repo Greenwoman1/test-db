@@ -3,7 +3,6 @@ const path = require('path'); // Add this line
 const bodyParser = require('body-parser'); // Add this line
 const sequelize = require('./sequelize');
 const variantRoute = require('./src/Variant/variantRoute'); // Dodajte ovu liniju
-const comboRoute = require('./src/Combo/comboRoute');
 const comboItemRoute = require('./src/ComboItem/comboItemRoute');
 const productRoute = require('./src/Product/productRoute');
 const skuRoute = require('./src/SKU/SKURoute');
@@ -34,7 +33,6 @@ app.use(express.json());
 app.use('/user', userRoute);
 app.use('/product', productRoute);
 app.use('/variant', variantRoute);
-app.use('/combo', comboRoute);
 app.use('/comboItems', comboItemRoute);
 app.use('/groupRules', groupRuleRoute);
 app.use('/sku', skuRoute);

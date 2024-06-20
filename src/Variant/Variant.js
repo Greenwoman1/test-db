@@ -1,7 +1,7 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-
+    
 class Variant extends Model {
    
 
@@ -10,6 +10,7 @@ class Variant extends Model {
         Variant.belongsTo(models.Product);
         Variant.belongsToMany(models.Topons, { through: 'VariantTopons' });
         Variant.hasMany(models.GroupOption);
+        Variant.belongsToMany(models.Location, { through: 'VariantLocation' });
     }
 
 

@@ -9,6 +9,7 @@ const GroupRule = require('./GroupRule/GroupRule');
 const Variant = require('./Variant/Variant');
 const VariantTopons = require('./VariantTopons/VariantTopons');
 const SKU = require('./SKU/SKU');
+const Location = require('./Location/Location');
 
 module.exports = {
     User,
@@ -22,4 +23,5 @@ module.exports = {
     Option,
     VariantTopons,
     SKU,
+    Location
 }
