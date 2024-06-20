@@ -1,14 +1,6 @@
 const Product = require('./Product');
 const { Variant, Topons, GroupOption, Option, GroupRule } = require('../index');
-const createProduct = async (req, res) => {
-    try {
-        const { name, description, type } = req.body;
-        const newProduct = await Product.create({ name, description, type });
-        res.status(201).json(newProduct);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+
 const getProducts = async (req, res) => {
     try {
         const products = await Product.findAll();
@@ -58,82 +50,98 @@ const deleteProduct = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+}; 
+
+const createProduct = async (productJson) => {
+    return await Product.create({
+        name: productJson.name,
+        description: productJson.description,
+        type: productJson.type
+    });
 };
+
+const handleComboItems = async (product, items) => {
+    for (const itemId of items) {
+        const item = await Product.findOne({
+            where: { id: itemId }
+        });
+        if (item) {
+            await product.addComboItem(item);
+        }
+    }
+};
+
+const createVariant = async (variantData, productId) => {
+    return await Variant.create({
+        name: variantData.name,
+        ProductId: productId
+    });
+};
+
+const handleTopons = async (variant, topons) => {
+    for (const toponData of topons) {
+        const topon = await Topons.findOne({ where: { name: toponData.name } });
+        if (topon) {
+            await variant.addTopon(topon);
+        }
+    }
+};
+
+const createGroupOption = async (groupOptionData, variantId) => {
+    const groupOption = await GroupOption.create({
+        name: groupOptionData.name,
+        type: groupOptionData.type,
+        VariantId: variantId
+    });
+
+    if (groupOptionData.rules) {
+        for (const ruleData of groupOptionData.rules) {
+            await GroupRule.create({
+                name: ruleData.name,
+                description: ruleData.description,
+                ruleType: ruleData.ruleType,
+                ruleValue: ruleData.ruleValue,
+                GroupOptionId: groupOption.id
+            });
+        }
+    }
+
+    if (groupOptionData.options) {
+        for (const optionData of groupOptionData.options) {
+            await Option.create({
+                name: optionData.name,
+                GroupOptionId: groupOption.id
+            });
+        }
+    }
+};
+
+const handleVariants = async (variants, productId) => {
+    for (const variantData of variants) {
+        const variant = await createVariant(variantData, productId);
+
+        if (variantData.topons) {
+            await handleTopons(variant, variantData.topons);
+        }
+
+        if (variantData.groupOptions) {
+            for (const groupOptionData of variantData.groupOptions) {
+                await createGroupOption(groupOptionData, variant.id);
+            }
+        }
+    }
+};
+
 const saveProductFromJson = async (req, res) => {
     const productsJson = req.body;
     try {
         for (const productJson of productsJson) {
-            const product = await Product.create({
-                name: productJson.name,
-                description: productJson.description,
-                type: productJson.type
-            });
+            const product = await createProduct(productJson);
 
             if (productJson.type === 'combo') {
-                for (const itemId of productJson.items) {
-                    console.log(itemId);
-                    const item = await Product.findOne({
-                        where: { name: itemId }
-                    })
-                    if (item) {
-                        await product.addComboItem(item);
-                    } else {
-
-                        console.warn(`Item with ID '${itemId}' not found.`);
-                        res.status(401).json({ message: `Item with ID '${itemId}' not found.` });
-                    }
-                }
+                await handleComboItems(product, productJson.items);
             } else {
-                for (const variantData of productJson.variants) {
-                    const variant = await Variant.create({
-                        name: variantData.name,
-                        ProductId: product.id
-                    });
-                    console.log(variant);
-
-                    if (variantData.topons) {
-                        for (const toponData of variantData.topons) {
-                           
-                            const topon = await Topons.findOne({ where: { name: toponData.name } });
-                            if (topon) {
-                                await variant.addTopons(topon);
-                            } else {
-                                console.warn(`Topon '${toponData.name}' not found.`);
-                            }
-                        }
-                    }
-
-                    if (variantData.groupOptions) {
-                        for (const groupOptionData of variantData.groupOptions) {
-                            const groupOption = await GroupOption.create({
-                                name: groupOptionData.name,
-                                type: groupOptionData.type,
-                                VariantId: variant.id
-                            });
-
-                            if (groupOptionData.rules) {
-                                for (const ruleData of groupOptionData.rules) {
-                                    await GroupRule.create({
-                                        name: ruleData.name,
-                                        description: ruleData.description,
-                                        ruleType: ruleData.ruleType,
-                                        ruleValue: ruleData.ruleValue,
-                                        GroupOptionId: groupOption.id
-                                    });
-                                }
-                            }
-
-                            if (groupOptionData.options) {
-                                for (const optionData of groupOptionData.options) {
-                                    await Option.create({
-                                        name: optionData.name,
-                                        GroupOptionId: groupOption.id
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
+                await handleVariants(productJson.variants, product.id);
             }
         }
         res.status(201).json({ message: 'Products created successfully' });
@@ -142,7 +150,6 @@ const saveProductFromJson = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
 const getProductSettings = async (req, res) => {
     const { id } = req.params;
     try {
@@ -165,7 +172,7 @@ const getProductSettings = async (req, res) => {
         });
 
         if (!product) {
-            return res.status(404).json({ message: `Product "${id}" not found` });
+            return res.status(401).json({ message: `Product "${id}" not found` });
         }
         const result = {
             product: {
@@ -203,9 +210,9 @@ const getProductSettings = async (req, res) => {
         console.error('Error during getProductSettings:', error);
         res.status(500).json({ message: error.message });
     }
-    
-};
 
+};
+    
 const getProductSettingsCombo = async (req, res) => {
     const { id } = req.params;
     try {
@@ -232,10 +239,6 @@ const getProductSettingsCombo = async (req, res) => {
                 }
             ]
         });
-
-        if (!product) {
-            return res.status(404).json({ message: `Product with ID     "${id}" not found` });
-        }
 
         const comboProductSettings = {
             name: product.name,

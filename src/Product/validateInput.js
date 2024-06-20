@@ -8,13 +8,7 @@ const validateCreateProduct = [
     body('*.variants.*.name').isString().withMessage('Variant name must be a string').notEmpty().withMessage('Variant name must not be empty'),
     body('*.variants.*.description').optional().isString().withMessage('Variant description must be a string'),
     body('*.variants.*.topons').optional().isArray().withMessage('Topons must be an array'),
-    body('*.items').optional().isArray().withMessage('Items must be an array').custom(value => {
-        value.forEach(element => {
-            if (!element.match('[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}')) {
-                throw new Error('Item must be UUID!')
-            };
-        })
-    }),
+    body('*.items').optional().isArray().withMessage('Items must be an array'),
     body('*.variants.*.topons.*.name').optional().isString().withMessage('Topon name must be a string'),
     body('*.variants.*.topons.*.quantity').optional().isNumeric().withMessage('Topon quantity must be a number'),
     body('*.variants.*.groupOptions').optional().isArray().withMessage('Group options must be an array'),

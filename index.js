@@ -11,7 +11,7 @@ const skuRuleRoute = require('./src/SKURule/SKURuleRoute');
 const toponsRoute = require('./src/Topons/toponsRoute');
 const userRoute = require('./src/User/userRoute');
 const groupRuleRoute = require('./src/GroupRule/groupRoute');
-
+const { seed } = require('./src/seed');
 const init = require('./helpers/initModels');
 const { createProduct, addVariants, addGroupOptions, addOptionsToGroup, addTopons, createCombo, getVariantDetails, getComboDetails } = require('./src/seed');
 const { createPancakesProduct, getPancakesSettings, createProducts, getProductSettings } = require('./helpers/query');
@@ -50,7 +50,7 @@ app.listen(PORT, async () => {
         await init();
         await sequelize.sync({ force: true });
 
-       
+       await seed();
         console.log('Database synchronized.');
     } catch (error) {
         console.error('Error while working with the database:', error);

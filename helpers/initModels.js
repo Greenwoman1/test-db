@@ -1,25 +1,22 @@
 const sequelize = require("../sequelize");
-const { Product, Variant, GroupOption, Option, Topons, Combo, ComboItem, SKURule, GroupRule, User, VariantOptions,
+const { Product, Variant, GroupOption, Option, Topons, ComboItem, SKURule, GroupRule, User, 
     VariantTopons,
     SKU,
-    ComboItemProduct, } = require("../src");
+     } = require("../src");
 
 async function initModels() {
     const models = [
         ComboItem,
-
         Product,
         Variant,
         GroupOption,
         Option,
         Topons,
-        // Combo,
         SKURule,
         GroupRule,
         VariantTopons,
         User,
         SKU,
-        // ComboItemProduct
 
     ];
 
