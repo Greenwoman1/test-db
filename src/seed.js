@@ -1,5 +1,5 @@
 const { saveProductFromJson } = require('./Product/productController');
-const { Product, Variant, Topons, GroupOption, Option, GroupRule } = require('./index');
+const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule } = require('./index');
 
 const seed = async () => {
     const toponsData = [
@@ -20,8 +20,31 @@ const seed = async () => {
         { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', name: 'Cucumber', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 }
     ];
 
-    const topons = await Topons.bulkCreate(toponsData);
+    const createToponsWithSKUs = async (toponsData) => {
+        try {
+            for (const toponData of toponsData) {
+                const topon = await Topons.create(toponData);
 
+                const rule = await SKURule.create({
+                    name: topon.name,
+                    ToponId: topon.id
+                });
+
+                await SKU.create({
+                    name: topon.name,
+                    stock: toponData.stock,
+                    price: toponData.price,
+                    SKURuleId: rule.id
+                });
+            }
+
+            console.log('Topons and associated SKUs created successfully.');
+        } catch (error) {
+            console.error('Error creating topons and SKUs:', error);
+        }
+    };
+
+    await createToponsWithSKUs(toponsData);
     const productsData = [
         {
             name: 'Palačinke',
