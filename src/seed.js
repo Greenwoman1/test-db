@@ -64,8 +64,8 @@ const seed = async () => {
                         }
                     ],
                     topons: [
-                        { name: 'Banana', quantity: 2 },
-                        { name: 'Jagoda', quantity: 3 }
+                        { id: '11111111-1111-1111-1111-111111111111', quantity: 2 },
+                        { id: '22222222-2222-2222-2222-222222222222', quantity: 3 }
                     ]
                 },
                 {
@@ -81,8 +81,8 @@ const seed = async () => {
                         }
                     ],
                     topons: [
-                        { name: 'Med', quantity: 1 },
-                        { name: 'Orah', quantity: 4 }
+                        { id: '33333333-3333-3333-3333-333333333333', quantity: 1 },
+                        { id: '44444444-4444-4444-4444-444444444444', quantity: 4 }
                     ]
                 }
             ]
@@ -105,8 +105,8 @@ const seed = async () => {
                         }
                     ],
                     topons: [
-                        { name: 'Basil', quantity: 5 },
-                        { name: 'Tomato', quantity: 3 }
+                        { id: '55555555-5555-5555-5555-555555555555', quantity: 5 },
+                        { id: '66666666-6666-6666-6666-666666666666', quantity: 3 }
                     ]
                 },
                 {
@@ -122,8 +122,8 @@ const seed = async () => {
                         }
                     ],
                     topons: [
-                        { name: 'Pepperoni', quantity: 10 },
-                        { name: 'Olives', quantity: 5 }
+                        { id: '77777777-7777-7777-7777-777777777777', quantity: 10 },
+                        { id: '88888888-8888-8888-8888-888888888888', quantity: 5 }
                     ]
                 }
             ]
@@ -146,8 +146,8 @@ const seed = async () => {
                         }
                     ],
                     topons: [
-                        { name: 'Lettuce', quantity: 1 },
-                        { name: 'Tomato', quantity: 2 }
+                        { id: '99999999-9999-9999-9999-999999999999', quantity: 1 },
+                        { id: '66666666-6666-6666-6666-666666666666', quantity: 2 }
                     ]
                 },
                 {
@@ -163,8 +163,8 @@ const seed = async () => {
                         }
                     ],
                     topons: [
-                        { name: 'Bacon', quantity: 3 },
-                        { name: 'Pickles', quantity: 2 }
+                        { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', quantity: 3 },
+                        { id: '00000000-0000-0000-0000-000000000000', quantity: 2 }
                     ]
                 }
             ]
@@ -187,8 +187,8 @@ const seed = async () => {
                         }
                     ],
                     topons: [
-                        { name: 'Croutons', quantity: 10 },
-                        { name: 'Parmesan', quantity: 5 }
+                        { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', quantity: 10 },
+                        { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', quantity: 5 }
                     ]
                 },
                 {
@@ -218,13 +218,14 @@ const seed = async () => {
                         }
                     ],
                     topons: [
-                        { name: 'Olives', minValue: 10 },
-                        { name: 'Cucumber', quantity: 5 }
+                        { id: '88888888-8888-8888-8888-888888888888', minValue: 10 },
+                        { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', quantity: 5 }
                     ]
                 }
             ]
         }
     ];
+
     for (const productJson of productsData) {
         const product = await Product.create({
             name: productJson.name,
@@ -236,9 +237,8 @@ const seed = async () => {
             for (const itemId of productJson.items) {
                 const item = await Product.findOne({
                     where: { id: itemId }
-                })
+                });
                 await product.addComboItem(item);
-
             }
         } else {
             for (const variantData of productJson.variants) {
@@ -249,10 +249,10 @@ const seed = async () => {
 
                 if (variantData.topons) {
                     for (const toponData of variantData.topons) {
-
-                        const topon = await Topons.findOne({ where: { name: toponData.name } });
-                        await variant.addTopons(topon);
-
+                        const topon = await Topons.findOne({ where: { id: toponData.id } });
+                        if (topon) {
+                            await variant.addTopons(topon);
+                        }
                     }
                 }
 
@@ -288,11 +288,9 @@ const seed = async () => {
                 }
             }
         }
-        console.log('All products created');
-
     }
 
-}
-
+    console.log('All products created');
+};
 
 module.exports = { seed };

@@ -1,13 +1,9 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
-const Variant = require('../Variant/Variant');
 
 class Product extends Model {
     static associateModel(model) {
-        // Product.hasOne(model.Combo);
-        // Product.belongsToMany(model.ComboItem, { through: 'ComboItemProduct' });
-
-
+        
         Product.hasMany(model.Variant);
 
         Product.belongsToMany(model.Product, {
@@ -36,14 +32,18 @@ class Product extends Model {
                 },
 
                 name: {
-                    type: DataTypes.STRING,
+                    type: DataTypes.STRING(16),
+                    validate: {
+                        min: 4
+                    },
                     allowNull: false,
                 },
                 description: {
                     type: DataTypes.STRING,
+                    allowNull: false
                 },
                 type: {
-                    type: DataTypes.STRING,
+                    type: DataTypes.STRING(16),
                     allowNull: false,
                 }
             },
@@ -53,6 +53,7 @@ class Product extends Model {
                 timestamps: true,
                 createdAt: false,
                 updatedAt: 'updateTimestamp',
+
             },
         );
     }

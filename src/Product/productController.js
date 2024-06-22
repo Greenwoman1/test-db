@@ -1,5 +1,10 @@
-const Product = require('./Product');
-const { Variant, Topons, GroupOption, Option, GroupRule } = require('../index');
+const { Variant, Topons, GroupOption, Option, GroupRule , Product} = require('../index');
+
+const { createProduct,
+    handleComboItems,
+    handleVariants,
+    updateProduct
+} = require('./utils/index');
 
 const getProducts = async (req, res) => {
     try {
@@ -23,20 +28,6 @@ const getProductById = async (req, res) => {
     }
 };
 
-const updateProduct = async (req, res) => {
-    try {
-        const productId = req.params.id;
-        const { name, description, type } = req.body;
-        const product = await Product.findByPk(productId);
-        if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
-        }
-        await product.update({ name, description, type });
-        res.status(200).json({ message: 'Product updated successfully' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
 
 const deleteProduct = async (req, res) => {
     try {
@@ -50,91 +41,70 @@ const deleteProduct = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}; 
-
-const createProduct = async (productJson) => {
-    return await Product.create({
-        name: productJson.name,
-        description: productJson.description,
-        type: productJson.type
-    });
 };
 
-const handleComboItems = async (product, items) => {
-    for (const itemId of items) {
-        const item = await Product.findOne({
-            where: { id: itemId }
-        });
-        if (item) {
-            await product.addComboItem(item);
-        }
-    }
-};
 
-const createVariant = async (variantData, productId) => {
-    return await Variant.create({
-        name: variantData.name,
-        ProductId: productId
-    });
-};
-
-const handleTopons = async (variant, topons) => {
-    for (const toponData of topons) {
-        const topon = await Topons.findOne({ where: { name: toponData.name } });
-        if (topon) {
-            await variant.addTopon(topon);
-        }
-    }
-};
-
-const createGroupOption = async (groupOptionData, variantId) => {
-    const groupOption = await GroupOption.create({
-        name: groupOptionData.name,
-        type: groupOptionData.type,
-        VariantId: variantId
-    });
-
-    if (groupOptionData.rules) {
-        for (const ruleData of groupOptionData.rules) {
-            await GroupRule.create({
-                name: ruleData.name,
-                description: ruleData.description,
-                ruleType: ruleData.ruleType,
-                ruleValue: ruleData.ruleValue,
-                GroupOptionId: groupOption.id
-            });
-        }
-    }
-
-    if (groupOptionData.options) {
-        for (const optionData of groupOptionData.options) {
-            await Option.create({
-                name: optionData.name,
-                GroupOptionId: groupOption.id
-            });
-        }
-    }
-};
-
-const handleVariants = async (variants, productId) => {
-    for (const variantData of variants) {
-        const variant = await createVariant(variantData, productId);
-
-        if (variantData.topons) {
-            await handleTopons(variant, variantData.topons);
-        }
-
-        if (variantData.groupOptions) {
-            for (const groupOptionData of variantData.groupOptions) {
-                await createGroupOption(groupOptionData, variant.id);
-            }
-        }
-    }
-};
 
 const saveProductFromJson = async (req, res) => {
     const productsJson = req.body;
+
+    let errors = [];
     try {
+
+        const productNames = productsJson.map(product => product.name);
+        const uniqueProductNames = new Set(productNames);
+        const productItems = productsJson.flatMap(product => product.items || []);
+        const toponsId = productsJson.flatMap(product => product.variants.flatMap(variant => variant.topons.map(topon => topon.id)));
+        console.log({ productNames, uniqueProductNames, productItems, toponsId });
+        const promises = [
+            Product.findAll(),
+            Product.findAll({ where: { id: productItems } }),
+            Topons.findAll()
+        ];
+
+        const [existingProducts, existingProductItems, existingTopons] = await Promise.all(promises);
+
+        console.log({ existingProducts, existingProductItems, existingTopons });
+
+        if (uniqueProductNames.size !== productNames.length) {
+            errors.push({ msg: 'Product names must be unique', param: 'name', location: 'body' });
+        }
+
+        const existingProductNames = existingProducts.map(product => product.name);
+        const duplicateNames = productNames.filter(name => existingProductNames.includes(name));
+        if (duplicateNames.length > 0) {
+            errors.push({ msg: `Products with names (${duplicateNames.join(', ')}) already exist`, param: 'name', location: 'body' });
+        }
+
+        if (existingProductItems.length !== productItems.length) {
+            const missingProductItems = productItems.filter(id => !existingProductItems.map(product => product.id).includes(id));
+            if (missingProductItems.length > 0) {
+                errors.push({ msg: `Products with ids (${missingProductItems.join(', ')}) do not exist`, param: 'items', location: 'body' });
+            }
+        }
+
+        if (productsJson.some(product => product.type !== 'combo')) {
+            for (const product of productsJson) {
+                if (product.type !== 'combo') {
+                    for (const variant of product.variants) {
+                        const toponIds = variant.topons.map(topon => topon.toponId);
+                        const existingToponIds = existingTopons.map(topon => topon.id);
+                        console.log({ toponIds, existingToponIds });
+                        const missingTopons = toponIds.filter(id => !existingToponIds.includes(id));
+                        if (missingTopons.length > 0) {
+                            errors.push({ msg: `Topons with IDs (${missingTopons.join(', ')}) do not exist`, param: 'topons', location: 'body' });
+                        }
+                    }
+                }
+            }
+        }
+        if (errors.length > 0) {
+            res.status(400).json({ errors: errors });
+            return
+        }
+
+
+
         for (const productJson of productsJson) {
             const product = await createProduct(productJson);
 
@@ -148,13 +118,32 @@ const saveProductFromJson = async (req, res) => {
     } catch (error) {
         console.error('Error during saveProductFromJson:', error);
         res.status(500).json({ message: error.message });
+
+
+
     }
 };
+
+
+
+
+const updateProducts = async (req, res) => {
+    const updateProductsData = req.body;
+    try {
+        for (const productData of updateProductsData) {
+            await updateProduct(productData);
+        }
+        console.log('Products updated or created successfully');
+    } catch (error) {
+        console.error('Error updating or creating products:', error);
+    }
+    
+}
 const getProductSettings = async (req, res) => {
-    const { id } = req.params;
+    const { productId } = req.params;
     try {
         const product = await Product.findOne({
-            where: { id: id },
+            where: { id: productId },
             include: [
                 {
                     model: Variant,
@@ -212,12 +201,12 @@ const getProductSettings = async (req, res) => {
     }
 
 };
-    
+
 const getProductSettingsCombo = async (req, res) => {
-    const { id } = req.params;
+    const { productId } = req.params;
     try {
         const product = await Product.findOne({
-            where: { id: id },
+            where: { id: productId },
             include: [
                 {
                     model: Product,
@@ -284,5 +273,6 @@ module.exports = {
     deleteProduct,
     saveProductFromJson,
     getProductSettings,
-    getProductSettingsCombo
+    getProductSettingsCombo,
+    updateProducts
 };
