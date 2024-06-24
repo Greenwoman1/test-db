@@ -61,10 +61,23 @@ const deleteComboItem = async (req, res) => {
     }
 };
 
+
+const getProductsByLocation = async (req, res) => {
+    const { locationId } = req.params;
+
+    try {
+    } catch (error) {
+
+        
+    }
+
+}
+
 module.exports = {
     createComboItem,
     getComboItems,
     getComboItemById,
     updateComboItem,
-    deleteComboItem
+    deleteComboItem,
+    getProductsByLocation
 };

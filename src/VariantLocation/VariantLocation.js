@@ -4,12 +4,7 @@ const sequelize = require('../../sequelize');
 class VariantLocation extends Model {
     static initModel() {
         VariantLocation.init(
-            {
-                id: {
-                    type: DataTypes.UUID,
-                    primaryKey: true,
-                },
-            },
+            {},
             {
                 sequelize,
                 modelName: 'VariantLocation',
@@ -19,6 +14,7 @@ class VariantLocation extends Model {
     }
 
     static associateModel(models) {
+        
     }
 }
 

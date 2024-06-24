@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 
 const validateProductId = async (req, res, next) => {
     try {
-        const productId = req.params.id;
+        const productId = req.params.productId;
         console.log(productId);
         const product = await Product.findByPk(productId);
         if (!product) {

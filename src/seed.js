@@ -1,5 +1,5 @@
 const { saveProductFromJson } = require('./Product/productController');
-const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule } = require('./index');
+const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule, Location, VariantLocation } = require('./index');
 
 const seed = async () => {
     const toponsData = [
@@ -45,6 +45,29 @@ const seed = async () => {
     };
 
     await createToponsWithSKUs(toponsData);
+
+
+
+
+    const locationsData = [
+        { id: 'aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Stup Hadziabdinica' },
+        { id: 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Pofalici' }
+    ];
+
+    const createLocations = async (locationsData) => {
+        try {
+            for (const locationData of locationsData) {
+                await Location.create(locationData);
+            }
+            console.log('Locations created successfully.');
+        } catch (error) {
+            console.error('Error creating locations:', error);
+        }
+    };
+
+    await createLocations(locationsData);
+
+
     const productsData = [
         {
             name: 'Palačinke',
@@ -66,7 +89,9 @@ const seed = async () => {
                     topons: [
                         { id: '11111111-1111-1111-1111-111111111111', quantity: 2 },
                         { id: '22222222-2222-2222-2222-222222222222', quantity: 3 }
-                    ]
+                    ],
+                    locationIds: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb']
+
                 },
                 {
                     name: 'Obična palačinka',
@@ -83,7 +108,9 @@ const seed = async () => {
                     topons: [
                         { id: '33333333-3333-3333-3333-333333333333', quantity: 1 },
                         { id: '44444444-4444-4444-4444-444444444444', quantity: 4 }
-                    ]
+                    ],
+                    locationIds: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb']
+
                 }
             ]
         },
@@ -107,7 +134,9 @@ const seed = async () => {
                     topons: [
                         { id: '55555555-5555-5555-5555-555555555555', quantity: 5 },
                         { id: '66666666-6666-6666-6666-666666666666', quantity: 3 }
-                    ]
+                    ],
+                    locationIds: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb']
+
                 },
                 {
                     name: 'Pepperoni',
@@ -124,7 +153,9 @@ const seed = async () => {
                     topons: [
                         { id: '77777777-7777-7777-7777-777777777777', quantity: 10 },
                         { id: '88888888-8888-8888-8888-888888888888', quantity: 5 }
-                    ]
+                    ],
+                    locationIds: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb']
+
                 }
             ]
         },
@@ -148,7 +179,9 @@ const seed = async () => {
                     topons: [
                         { id: '99999999-9999-9999-9999-999999999999', quantity: 1 },
                         { id: '66666666-6666-6666-6666-666666666666', quantity: 2 }
-                    ]
+                    ],
+                    locationIds: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb']
+
                 },
                 {
                     name: 'Bacon Burger',
@@ -165,7 +198,9 @@ const seed = async () => {
                     topons: [
                         { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', quantity: 3 },
                         { id: '00000000-0000-0000-0000-000000000000', quantity: 2 }
-                    ]
+                    ],
+                    locationIds: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb']
+
                 }
             ]
         },
@@ -189,7 +224,9 @@ const seed = async () => {
                     topons: [
                         { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', quantity: 10 },
                         { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', quantity: 5 }
-                    ]
+                    ],
+                    locationIds: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb']
+
                 },
                 {
                     name: 'Greek Salad',
@@ -220,7 +257,10 @@ const seed = async () => {
                     topons: [
                         { id: '88888888-8888-8888-8888-888888888888', minValue: 10 },
                         { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', quantity: 5 }
-                    ]
+                    ],
+                    locationIds: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb']
+
+                    
                 }
             ]
         }
@@ -286,9 +326,33 @@ const seed = async () => {
                         }
                     }
                 }
+
+                if (variantData.locationIds) {
+                    for (const locationId of variantData.locationIds) {
+                        const location = await Location.findOne({ where: { id: locationId } });
+                        if (location) {
+                            await variant.addLocation(location);
+
+
+                            const rule = await SKURule.create({
+                                name: `${variant.name} Rule for ${location.name}`,
+                                VariantId: variant.id,
+                                LocationId: location.id
+                            });
+
+                            await SKU.create({
+                                name: `${variant.name} SKU for ${location.name}`,
+                                stock: 100, 
+                                price: 10, 
+                                SKURuleId: rule.id
+                            });
+                        }
+                    }
+                }
             }
         }
     }
+
 
     console.log('All products created');
 };
