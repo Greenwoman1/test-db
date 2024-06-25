@@ -10,10 +10,10 @@ class Location extends Model {
                     primaryKey: true,
                 },
                 name: {
-                    type: DataTypes.STRING(length = 100),
+                    type: DataTypes.STRING(64),
                     validate: {
                         notEmpty: true,
-                        len: [1, 100]
+                        min: 8,
                     }
                 }
             },

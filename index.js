@@ -12,17 +12,9 @@ const userRoute = require('./src/User/userRoute');
 const groupRuleRoute = require('./src/GroupRule/groupRoute');
 const { seed } = require('./src/seed');
 const init = require('./helpers/initModels');
-const { createProduct, addVariants, addGroupOptions, addOptionsToGroup, addTopons, createCombo, getVariantDetails, getComboDetails } = require('./src/seed');
-const { createPancakesProduct, getPancakesSettings, createProducts, getProductSettings } = require('./helpers/query');
 
 
 const app = express();
-
-// view engine setup
-app.set('views', path.join(__dirname, 'src/views'));
-app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({ extended: false }));
-
 
 sequelize.authenticate()
     .then(() => console.log('Database connected'))

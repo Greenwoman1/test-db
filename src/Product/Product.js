@@ -32,14 +32,14 @@ class Product extends Model {
                 },
 
                 name: {
-                    type: DataTypes.STRING(16),
+                    type: DataTypes.STRING(64),
                     validate: {
                         min: 4
                     },
                     allowNull: false,
                 },
                 description: {
-                    type: DataTypes.STRING,
+                    type: DataTypes.TEXT,
                     allowNull: false
                 },
                 type: {

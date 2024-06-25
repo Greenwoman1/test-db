@@ -26,7 +26,8 @@ const getProductById = async (req, res) => {
     const productId = req.params.id;
     const product = await Product.findByPk(productId);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ message: 'Product not found' });
+      return 
     }
     res.status(200).json(product);
   } catch (error) {
@@ -40,7 +41,8 @@ const deleteProduct = async (req, res) => {
     const productId = req.params.id;
     const product = await Product.findByPk(productId);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ message: 'Product not found' });
+      return
     }
     await product.destroy();
     res.status(200).json({ message: 'Product deleted successfully' });
@@ -59,7 +61,6 @@ const saveProductFromJson = async (req, res) => {
       const productNames = productsJson.map(product => product.name);
       const uniqueProductNames = new Set(productNames);
       const productItems = productsJson.flatMap(product => product.items || []);
-      // const toponsId = productsJson.flatMap(product => product.variants.flatMap(variant => variant.topons.map(topon => topon.id ) || []));
       const promises = [
         Product.findAll(),
         Product.findAll({ where: { id: productItems } }),
@@ -118,7 +119,7 @@ const saveProductFromJson = async (req, res) => {
           await handleVariants(productJson.variants, product.id, t);
         }
       }
-      res.status(201).json({ message: 'Products created successfully' });
+      res.status(201);
 
     });
   } catch (error) {
@@ -296,6 +297,7 @@ const updateProductFromJson = async (req, res, next) => {
           errors.push({ msg: `Locations with ids (${missingLocations.join(', ')}) do not exist`, param: 'locationIds', location: 'body' });
         }
       }
+      
       if (toponIds.length > 0) {
         const existingToponIds = existingTopons.map(topon => topon.id);
         const missingTopons = toponIds.filter(id => !existingToponIds.includes(id));
@@ -352,7 +354,8 @@ const getProductsByLocation = async (req, res) => {
       errors.push('Location not found');
     }
     if (errors.length > 0) {
-      return res.status(400).json({ errors });
+      res.status(400).json({ errors });
+      return;
     }
 
     const products = await Product.findAll({

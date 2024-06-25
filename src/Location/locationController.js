@@ -24,7 +24,7 @@ const getComboItemById = async (req, res) => {
         const comboItemId = req.params.id;
         const comboItem = await ComboItem.findByPk(comboItemId);
         if (!comboItem) {
-            return res.status(404).json({ message: 'Combo item not found' });
+            res.status(404).json({ message: 'Combo item not found' });
         }
         res.status(200).json(comboItem);
     } catch (error) {
@@ -38,7 +38,7 @@ const updateComboItem = async (req, res) => {
         const { combo_id, variant_id } = req.body;
         const comboItem = await ComboItem.findByPk(comboItemId);
         if (!comboItem) {
-            return res.status(404).json({ message: 'Combo item not found' });
+            res.status(404).json({ message: 'Combo item not found' });
         }
         await comboItem.update({ combo_id, variant_id });
         res.status(200).json({ message: 'Combo item updated successfully' });
@@ -52,7 +52,7 @@ const deleteComboItem = async (req, res) => {
         const comboItemId = req.params.id;
         const comboItem = await ComboItem.findByPk(comboItemId);
         if (!comboItem) {
-            return res.status(404).json({ message: 'Combo item not found' });
+           res.status(404).json({ message: 'Combo item not found' });
         }
         await comboItem.destroy();
         res.status(200).json({ message: 'Combo item deleted successfully' });
@@ -62,16 +62,7 @@ const deleteComboItem = async (req, res) => {
 };
 
 
-const getProductsByLocation = async (req, res) => {
-    const { locationId } = req.params;
 
-    try {
-    } catch (error) {
-
-        
-    }
-
-}
 
 module.exports = {
     createComboItem,
@@ -79,5 +70,4 @@ module.exports = {
     getComboItemById,
     updateComboItem,
     deleteComboItem,
-    getProductsByLocation
 };
