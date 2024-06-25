@@ -259,10 +259,59 @@ const getProductSettingsCombo = async (req, res) => {
 const updateProductFromJson = async (req, res, next) => {
   try {
     const productJson = req.body;
+    const errors = [];
     let product;
-
-    product = await updateOrCreateProduct(productJson);
     await sequelize.transaction(async (t) => {
+
+      product = await updateOrCreateProduct(productJson);
+
+      const productName = productJson.name;
+      const productItems = productJson.items || [];
+      const toponIds = productJson.variants?.flatMap(variant => variant.topons?.map(topon => topon.toponId)) || [];
+      const locationIds = productJson.locationIds || [];
+      const promises = [
+        Product.findOne({ where: { name: productName } }),
+        Product.findAll({ where: { id: productItems } }),
+        Topons.findAll({ where: { id: toponIds } }),
+        Location.findAll({ where: { id: locationIds } }),
+
+      ];
+
+      const [existingProduct, existingProductItems, existingTopons, existingLocations] = await Promise.all(promises);
+
+      if (existingProduct && existingProduct.id !== product.id) {
+        errors.push({ msg: `Product with name ${productName} already exists`, param: 'name', location: 'body' });
+      }
+
+      if (existingProductItems.length !== productItems.length) {
+        const missingProductItems = productItems.filter(id => !existingProductItems.map(product => product.id).includes(id));
+        if (missingProductItems.length > 0) {
+          errors.push({ msg: `Products with ids (${missingProductItems.join(', ')}) do not exist`, param: 'items', location: 'body' });
+        }
+      }
+
+      if (existingLocations.length !== locationIds.length) {
+        const missingLocations = locationIds.filter(id => !existingLocations.map(location => location.id).includes(id));
+        if (missingLocations.length > 0) {
+          errors.push({ msg: `Locations with ids (${missingLocations.join(', ')}) do not exist`, param: 'locationIds', location: 'body' });
+        }
+      }
+      if (toponIds.length > 0) {
+        const existingToponIds = existingTopons.map(topon => topon.id);
+        const missingTopons = toponIds.filter(id => !existingToponIds.includes(id));
+        if (missingTopons.length > 0) {
+          errors.push({ msg: `Topons with IDs (${missingTopons.join(', ')}) do not exist`, param: 'topons', location: 'body' });
+        }
+      }
+      if (errors.length > 0) {
+        res.status(400).json({ errors: errors });
+      }
+
+
+
+
+
+
       if (productJson.type === 'combo') {
         await updateComboItems(product.id, productJson.items, t);
       } else {

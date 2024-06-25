@@ -9,15 +9,19 @@ class Location extends Model {
                     type: DataTypes.UUID,
                     primaryKey: true,
                 },
-                name : {
-                    type: DataTypes.STRING
-                }   
+                name: {
+                    type: DataTypes.STRING(length = 100),
+                    validate: {
+                        notEmpty: true,
+                        len: [1, 100]
+                    }
+                }
             },
             {
                 sequelize,
                 modelName: 'Location',
                 timestamps: true,
-            } 
+            }
         );
     }
 

@@ -215,9 +215,16 @@ const updateOrCreateVariant = async (variantData, productId, t) => {
 
 
 const updateComboItems = async (productId, comboItems, transaction) => {
-  await ComboItem.destroy({ where: { productId }, transaction });
+	const product = await Product.findByPk(productId);
+  await ComboItem.destroy({ where: { comboId: productId }, transaction });
   for (const item of comboItems) {
-    await ComboItem.create({ productId, itemId: item }, { transaction });
+		
+		const productItem = await Product.findByPk(item);
+		if (!productItem) {
+			throw new Error(`Combo item ${item} does not exist`);
+		}
+		await product.addComboItem(productItem, { transaction });
+    // await ComboItem.create({ comboId: productId, itemId: item }, { transaction });
   }
 };
 

@@ -76,7 +76,35 @@ const validateDeleteProduct = [
 
 */
 
+const validateUpdateProductCombo = [
+  body('id').notEmpty().isUUID(4).withMessage('Product ID must be a UUIDv4'),
+  body('name').isString().withMessage('Name must be a string'),
+  body('description').isString().withMessage('Description must be a string'),
+  body('type').isString().withMessage('Type must be a string'),
+  body('items').isArray().withMessage('Items must be an array').custom((value) => {
+    if (value.length === 0) {
+      throw new Error('Items must not be empty');
+    }
+    for (let i = 0; i < value.length; i++) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value[i])) {
+        throw new Error('Item id must be a valid UUID');
+      }
+    }
+    return true;
+  }),
+  body('locationIds').isArray().withMessage('Location must be an array').custom((value) => {
+    if (value.length === 0) {
+      throw new Error('Location must not be empty');
+    }
+    for (let i = 0; i < value.length; i++) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value[i])) {
+        throw new Error('Location id must be a valid UUID');
+      }
+    }
+    return true;
+  }),
 
+]
 
 const validateProductId = [
   param('productId').notEmpty().isUUID(4).withMessage('Product ID must be a UUIDv4'),
@@ -84,7 +112,7 @@ const validateProductId = [
 ];
 
 const validateLocationId = [
-  param('locationId').notEmpty().isUUID(4).withMessage('Product ID must be a UUIDv4'),
+  param('locationId').notEmpty().isUUID().withMessage('Location ID must be a UUIDv4'),
 
 ];
 const validateResults = (req, res, next) => {
@@ -103,5 +131,6 @@ module.exports = {
   validateProductId,
   validateResults,
   validateUpdateProduct,
-  validateLocationId
+  validateLocationId,
+  validateUpdateProductCombo
 };
