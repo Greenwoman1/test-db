@@ -11,6 +11,7 @@ const VariantTopons = require('./VariantTopons/VariantTopons');
 const SKU = require('./SKU/SKU');
 const Location = require('./Location/Location');
 const VariantLocation = require('./VariantLocation/VariantLocation');
+const Image = require('./Image/Image');
 
 module.exports = {
     User,
@@ -25,5 +26,6 @@ module.exports = {
     VariantTopons,
     SKU,
     Location,
-    VariantLocation
+    VariantLocation,
+    Image
 }

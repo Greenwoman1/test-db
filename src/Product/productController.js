@@ -26,7 +26,7 @@ const getProductById = async (req, res) => {
     const productId = req.params.id;
     const product = await Product.findByPk(productId);
     if (!product) {
-      res.status(404).json({ message: 'Product not found' });
+      res.status(401).json({ message: 'Product not found' });
       return 
     }
     res.status(200).json(product);
@@ -41,7 +41,7 @@ const deleteProduct = async (req, res) => {
     const productId = req.params.id;
     const product = await Product.findByPk(productId);
     if (!product) {
-      res.status(404).json({ message: 'Product not found' });
+      res.status(401).json({ message: 'Product not found' });
       return
     }
     await product.destroy();
@@ -50,34 +50,25 @@ const deleteProduct = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 const saveProductFromJson = async (req, res) => {
-  const productsJson = req.body;
+  const productJson = req.body;
 
   let errors = [];
   try {
     const result = await sequelize.transaction(async (t) => {
-      const productNames = productsJson.map(product => product.name);
-      const uniqueProductNames = new Set(productNames);
-      const productItems = productsJson.flatMap(product => product.items || []);
+      const productName = productJson.name;
+      const productItems = productJson.items || [];
+      
       const promises = [
-        Product.findAll(),
+        Product.findOne({ where: { name: productName } }),
         Product.findAll({ where: { id: productItems } }),
         Topons.findAll()
       ];
 
-      const [existingProducts, existingProductItems, existingTopons] = await Promise.all(promises);
+      const [existingProduct, existingProductItems, existingTopons] = await Promise.all(promises);
 
-
-      if (uniqueProductNames.size !== productNames.length) {
-        errors.push({ msg: 'Product names must be unique', param: 'name', location: 'body' });
-      }
-
-      const existingProductNames = existingProducts.map(product => product.name);
-      const duplicateNames = productNames.filter(name => existingProductNames.includes(name));
-      if (duplicateNames.length > 0) {
-        errors.push({ msg: `Products with names (${duplicateNames.join(', ')}) already exist`, param: 'name', location: 'body' });
+      if (existingProduct) {
+        errors.push({ msg: `Product with name (${productName}) already exists`, param: 'name', location: 'body' });
       }
 
       if (existingProductItems.length !== productItems.length) {
@@ -87,49 +78,38 @@ const saveProductFromJson = async (req, res) => {
         }
       }
 
-      if (productsJson.some(product => product.type !== 'combo')) {
-        for (const product of productsJson) {
-          if (product.type !== 'combo') {
-            for (const variant of product.variants) {
-              const toponIds = variant.topons.map(topon => topon.toponId);
-              const existingToponIds = existingTopons.map(topon => topon.id);
-              console.log({ toponIds, existingToponIds });
-              const missingTopons = toponIds.filter(id => !existingToponIds.includes(id));
-              if (missingTopons.length > 0) {
-                errors.push({ msg: `Topons with IDs (${missingTopons.join(', ')}) do not exist`, param: 'topons', location: 'body' });
-              }
-            }
+      if (productJson.type !== 'combo') {
+        for (const variant of productJson.variants) {
+          const toponIds = variant.topons.map(topon => topon.toponId);
+          const existingToponIds = existingTopons.map(topon => topon.id);
+          const missingTopons = toponIds.filter(id => !existingToponIds.includes(id));
+          if (missingTopons.length > 0) {
+            errors.push({ msg: `Topons with IDs (${missingTopons.join(', ')}) do not exist`, param: 'topons', location: 'body' });
           }
         }
       }
+
       if (errors.length > 0) {
         res.status(400).json({ errors: errors });
-        return
+        return;
       }
 
+      const product = await createProduct(productJson, t);
 
-
-      for (const productJson of productsJson) {
-        const product = await createProduct(productJson, t);
-
-        if (productJson.type === 'combo') {
-
-          await handleComboItems(product, productJson.items, productJson.locationIds, t);
-        } else {
-          await handleVariants(productJson.variants, product.id, t);
-        }
+      if (productJson.type === 'combo') {
+        await handleComboItems(product, productJson.items, productJson.locationIds, t);
+      } else {
+        await handleVariants(productJson.variants, product.id, t);
       }
-      res.status(201);
 
+      res.status(201).json({ message: 'Product created successfully' });
     });
   } catch (error) {
     console.error('Error during saveProductFromJson:', error);
     res.status(500).json({ message: error.message });
-
-
-
   }
 };
+
 
 
 const getProductSettings = async (req, res) => {
@@ -194,6 +174,47 @@ const getProductSettings = async (req, res) => {
   }
 
 };
+const formatProductResponse = (product) => {
+  const formattedProduct = {
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    type: product.type,
+  };
+
+  if (product.comboItems) {
+    formattedProduct.comboItems = product.comboItems.map(item => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      type: item.type,
+      variants: item.Variants ? item.Variants.map(variant => ({
+        name: variant.name,
+        groupOptions: variant.GroupOptions ? variant.GroupOptions.map(groupOption => ({
+          name: groupOption.name,
+          options: groupOption.Options ? groupOption.Options.map(option => ({
+            name: option.name,
+          })) : [],
+          rules: groupOption.GroupRules ? groupOption.GroupRules.map(rule => ({
+            name: rule.name,
+            description: rule.description,
+            ruleType: rule.ruleType,
+            ruleValue: rule.ruleValue,
+          })) : [],
+        })) : [],
+        topons: variant.Topons ? variant.Topons.map(topon => ({
+          name: topon.name,
+          minValue: topon.minValue,
+          maxValue: topon.maxValue,
+          defaultValue: topon.defaultValue,
+          
+        })) : []
+      })) : []
+    }));
+  }
+
+  return formattedProduct;
+};
 
 const getProductSettingsCombo = async (req, res) => {
   const { productId } = req.params;
@@ -222,41 +243,18 @@ const getProductSettingsCombo = async (req, res) => {
       ]
     });
 
-    const comboProductSettings = {
-      name: product.name,
-      description: product.description,
-      type: product.type,
-      variants: product.comboItems.map(comboItem => ({
-        name: comboItem.name,
-        description: comboItem.description,
-        type: comboItem.type,
-        groupOptions: comboItem.Variants.flatMap(variant => variant.GroupOptions.map(groupOption => ({
-          name: groupOption.name,
-          options: groupOption.Options.map(option => ({ name: option.name })),
-          rules: groupOption.GroupRules ? groupOption.GroupRules.map(rule => ({
-            name: rule.name,
-            description: rule.description,
-            ruleType: rule.ruleType,
-            ruleValue: rule.ruleValue
-          })) : []
-        }))),
-        topons: comboItem.Variants.flatMap(variant => variant.Topons.map(topon => ({
-          name: topon.name,
-          minValue: topon.minValue,
-          maxValue: topon.maxValue,
-          defaultValue: topon.defaultValue
-        })))
-      }))
-    };
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
 
-    res.status(200).json(comboProductSettings);
+    const formattedProduct = formatProductResponse(product);
+
+    res.status(200).json(formattedProduct);
   } catch (error) {
     console.error('Error during getProductSettingsCombo:', error);
     res.status(500).json({ message: error.message });
   }
 };
-
-
 const updateProductFromJson = async (req, res, next) => {
   try {
     const productJson = req.body;
@@ -275,7 +273,6 @@ const updateProductFromJson = async (req, res, next) => {
         Product.findAll({ where: { id: productItems } }),
         Topons.findAll({ where: { id: toponIds } }),
         Location.findAll({ where: { id: locationIds } }),
-
       ];
 
       const [existingProduct, existingProductItems, existingTopons, existingLocations] = await Promise.all(promises);

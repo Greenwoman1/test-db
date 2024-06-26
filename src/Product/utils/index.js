@@ -105,20 +105,17 @@ const handleVariants = async (variants, productId, t) => {
 					console.log(variant);
 					await variant.addLocation(location, { transaction: t });
 
-					console.log('Variant Location created successfully');
 					const rule = await SKURule.create({
 						name: `${variant.name} Rule for ${location.name}`,
 						VariantId: variant.id,
 						LocationId: location.id
 					}, { transaction: t });
-					console.log('SKU Rule created successfully');
 					await SKU.create({
 						name: `${variant.name} SKU for ${location.name}`,
 						stock: 100,
 						price: 10,
 						SKURuleId: rule.id
 					}, { transaction: t });
-					console.log('SKU created successfully');
 				}
 			}
 		}
@@ -224,7 +221,6 @@ const updateComboItems = async (productId, comboItems, transaction) => {
 			throw new Error(`Combo item ${item} does not exist`);
 		}
 		await product.addComboItem(productItem, { transaction });
-    // await ComboItem.create({ comboId: productId, itemId: item }, { transaction });
   }
 };
 

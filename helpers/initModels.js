@@ -2,7 +2,7 @@ const sequelize = require("../sequelize");
 const { Product, Variant, GroupOption, Option, Topons, ComboItem, SKURule, GroupRule, User, 
     VariantTopons,
     SKU, Location,
-    VariantLocation
+    VariantLocation, Image
      } = require("../src");
 
 async function initModels() {
@@ -19,7 +19,8 @@ async function initModels() {
         User,
         SKU,
         Location,
-        VariantLocation
+        VariantLocation,
+        Image
 
     ];
 
@@ -45,7 +46,8 @@ async function associateModels() {
         'User': User,
         'SKU': SKU,
         'Location': Location,
-        'VariantLocation':VariantLocation
+        'VariantLocation':VariantLocation,
+        'Image': Image
         // 'ComboItemProduct': ComboItemProduct
     }
 
