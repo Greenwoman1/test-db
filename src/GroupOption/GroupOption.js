@@ -17,6 +17,10 @@ class GroupOption extends Model {
                     type: DataTypes.STRING,
                     allowNull: false,
                 },
+                type: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                }
              
             },
             {

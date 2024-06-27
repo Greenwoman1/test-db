@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path'); // Add this line
 const bodyParser = require('body-parser'); // Add this line
 const sequelize = require('./sequelize');
-const variantRoute = require('./src/Variant/variantRoute'); // Dodajte ovu liniju
+const variantRoute = require('./src/Variant/variantRoute');
 const comboItemRoute = require('./src/ComboItem/comboItemRoute');
 const productRoute = require('./src/Product/productRoute');
 const skuRoute = require('./src/SKU/SKURoute');
@@ -21,6 +21,7 @@ const app = express();
 app.use(cors());
 
 
+app.use(express.static(path.join(__dirname, 'public/images')));
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -57,7 +58,7 @@ app.listen(PORT, async () => {
     await init();
     await sequelize.sync(/* { force: true } */);
 
-    //    await seed(); 
+      //  await seed(); 
     console.log('Database synchronized.');
   } catch (error) {
     console.error('Error while working with the database:', error);

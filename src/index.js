@@ -12,6 +12,7 @@ const SKU = require('./SKU/SKU');
 const Location = require('./Location/Location');
 const VariantLocation = require('./VariantLocation/VariantLocation');
 const Image = require('./Image/Image');
+const Price = require('./Price/Price');
 
 module.exports = {
     User,
@@ -27,5 +28,6 @@ module.exports = {
     SKU,
     Location,
     VariantLocation,
-    Image
+    Image,
+    Price
 }

@@ -21,6 +21,8 @@ router.get('/', variantController.getVariants);
 router.get('/:id', variantController.getVariantById);
 router.put('/:id', variantController.updateVariant);
 router.delete('/:id', variantController.deleteVariant);
+router.get('/:variantId/price', variantController.getPrice);
+router.post('/:variantId/price', variantController.setPrice);
 
 
 router.post('/upload/:variantId', upload.array("images"), variantController.uploadImage);

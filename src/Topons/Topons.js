@@ -4,43 +4,50 @@ const sequelize = require('../../sequelize');
 class Topons extends Model {
 
 
-    static associateModel(models) {
-                Topons.belongsToMany(models.Variant, { through: 'VariantTopons' });
-                Topons.hasOne(models.SKURule)
-        
-    }
-    static initModel() {
-        Topons.init(
-            {
-                id: {
-                    type: DataTypes.UUID,
-                    defaultValue: UUIDV4,
-                    primaryKey: true,
-                    allowNull: false,
-                },
-                name: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                },
-                minValue: {
-                    type: DataTypes.INTEGER,
-                },
-                maxValue: {
-                    type: DataTypes.INTEGER,
-                },
-                defaultValue: {
-                    type: DataTypes.INTEGER,
-                },
-          
-            },
-            {
-                sequelize,
-                modelName: 'Topons',
-                timestamps: true,
-                createdAt: false,
-            }
-        );
-    }
+  static associateModel(models) {
+    Topons.belongsToMany(models.Variant, { through: 'VariantTopons' });
+    Topons.hasOne(models.SKURule)
+    Topons.hasMany(models.Price, {
+      foreignKey: 'itemId',
+      constraints: false,
+      scope: {
+        itemType: 'Topon'
+      }
+    })
+
+  }
+  static initModel() {
+    Topons.init(
+      {
+        id: {
+          type: DataTypes.UUID,
+          defaultValue: UUIDV4,
+          primaryKey: true,
+          allowNull: false,
+        },
+        name: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        minValue: {
+          type: DataTypes.INTEGER,
+        },
+        maxValue: {
+          type: DataTypes.INTEGER,
+        },
+        defaultValue: {
+          type: DataTypes.INTEGER,
+        },
+
+      },
+      {
+        sequelize,
+        modelName: 'Topons',
+        timestamps: true,
+        createdAt: false,
+      }
+    );
+  }
 
 }
 

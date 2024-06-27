@@ -1,4 +1,4 @@
-const { Variant } = require('../index');
+const { Variant, Price } = require('../index');
 const { Image } = require('../index');
 const createVariant = async (req, res) => {
   try {
@@ -94,11 +94,42 @@ const uploadImage = async (req, res) => {
 };
 
 
+const getPrice = async (req, res) => {
+  try {
+    const { variantId } = req.params;
+    const date = new Date();
+    const variant = await Variant.findByPk(variantId);
+    const price = await variant.getPrice(date);
+    console.log(price);
+    res.status(200).json( price );
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+const setPrice = async (req, res) => {
+  try {
+    const { variantId } = req.params;
+    const { price } = req.body;
+    const variant = await Variant.findByPk(variantId);
+
+    await Price.create({
+      price,
+      itemId: variantId
+    })
+    res.status(200).json({ message: 'Price set successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 module.exports = {
   createVariant,
   getVariants,
   getVariantById,
   updateVariant,
   deleteVariant,
-  uploadImage
+  uploadImage,
+  getPrice,
+  setPrice
 };

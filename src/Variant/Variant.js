@@ -1,6 +1,7 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
-
+const Price = require('../Price/Price');
+const { Op } = require('sequelize');
     
 class Variant extends Model {
    
@@ -12,6 +13,13 @@ class Variant extends Model {
         Variant.hasMany(models.GroupOption);
         Variant.belongsToMany(models.Location, { through: 'VariantLocation' });
         Variant.hasMany(models.Image);
+        Variant.hasMany(models.Price, {
+            foreignKey: 'itemId',
+            constraints: false,
+            scope: {
+                itemType: 'Variant'
+            }
+        });
     }
 
 
@@ -38,6 +46,25 @@ class Variant extends Model {
             }
         );
     }
+
+    async getPrice(date) {
+
+      try {
+          const price = await Price.findOne({
+              where: {
+                  itemId: this.id,
+                  createdAt: {
+                      [Op.lte]: date
+                  }
+              },
+              order: [['createdAt', 'DESC']]
+          });
+          return price ? price.price : null;
+      } catch (error) {
+          console.error('Error fetching price:', error);
+          throw error;
+      }
+  }
 }
 
 module.exports = Variant;

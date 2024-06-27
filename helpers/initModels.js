@@ -4,6 +4,7 @@ const { Product, Variant, GroupOption, Option, Topons, ComboItem, SKURule, Group
     SKU, Location,
     VariantLocation, Image
      } = require("../src");
+const Price = require("../src/Price/Price");
 
 async function initModels() {
     const models = [
@@ -20,7 +21,8 @@ async function initModels() {
         SKU,
         Location,
         VariantLocation,
-        Image
+        Image,
+        Price
 
     ];
 
@@ -47,7 +49,8 @@ async function associateModels() {
         'SKU': SKU,
         'Location': Location,
         'VariantLocation':VariantLocation,
-        'Image': Image
+        'Image': Image,
+        'Price': Price
         // 'ComboItemProduct': ComboItemProduct
     }
 
