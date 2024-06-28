@@ -65,17 +65,17 @@ const validateCreateProduct = [
     }),
   body('variants.*.groupOptions.*.options')
     .optional()
-    .isArray().withMessage('Options must be an array')
-    .custom((value, { req, path }) => {
+    .isArray().withMessage('Options must be an array').custom((value, { req, path }) => {
       if (value && value.length > 0) {
         value.forEach((option, index) => {
-          if (!option.name) {
+          if (typeof option !== 'string') {
             throw new Error(`Option name is required at ${path}[${index}].name`);
           }
         });
       }
       return true;
     })
+
 ];
 
 

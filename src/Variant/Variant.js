@@ -16,9 +16,7 @@ class Variant extends Model {
         Variant.hasMany(models.Price, {
             foreignKey: 'itemId',
             constraints: false,
-            scope: {
-                itemType: 'Variant'
-            }
+         
         });
     }
 

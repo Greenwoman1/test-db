@@ -10,9 +10,7 @@ class Topons extends Model {
     Topons.hasMany(models.Price, {
       foreignKey: 'itemId',
       constraints: false,
-      scope: {
-        itemType: 'Topon'
-      }
+  
     })
 
   }

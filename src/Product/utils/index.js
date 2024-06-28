@@ -3,10 +3,12 @@ const { Product, Variant, Topons, GroupOption, Option, GroupRule, VariantLocatio
 
 
 const createProduct = async (productJson) => {
+  console.log(productJson);
   return await Product.create({
     name: productJson.name,
     description: productJson.description,
-    type: productJson.type
+    type: productJson.type,
+    comboPrice: productJson.price ? productJson.price : null
   });
 };
 
@@ -76,8 +78,8 @@ const createGroupOption = async (groupOptionData, variantId, t) => {
 
   if (groupOptionData.options) {
     for (const optionData of groupOptionData.options) {
-      await Option.create({
-        name: optionData.name,
+      await Option.bulkCreate({
+        name: optionData,
         GroupOptionId: groupOption.id
       }, { transaction: t });
     }
@@ -92,7 +94,7 @@ const handleVariants = async (variants, productId, t) => {
       await Price.create({
         price: variantData.price,
         itemId: variant.id,
-      }, {transaction: t});
+      }, { transaction: t });
 
     }
 
@@ -132,17 +134,26 @@ const handleVariants = async (variants, productId, t) => {
 
 
 
-const updateOrCreateTopon = async (toponData, variantId, t) => {
+const updateOrCreateTopon = async (toponData, variant, t) => {
   const { toponId } = toponData;
+  console.log(toponData, variant, toponId, "toponData, variantId, toponId");
   try {
 
-    const variant = await Variant.findByPk(variantId);
+    if (!variant) {
+      throw new Error(`Variant with id ${variant} not found`);
+    }
     const exist = await variant.hasTopon(toponId);
     if (exist) {
       return;
     }
 
-    variant.addTopon(toponId);
+    console.log(exist, "exist")
+    const topon = await Topons.findOne({ where: { id: toponId } });
+    if (!topon) {
+      throw new Error(`Topon with id ${toponId} not found`);
+    }
+    console 
+    await variant.addTopon(topon);
 
   } catch (error) {
     console.error('Error updating/creating topon:', error);
@@ -184,21 +195,40 @@ const updateOrCreateVariant = async (variantData, productId, t) => {
   try {
     let variant;
 
+
+
+
     if (id) {
       variant = await Variant.findByPk(id);
     }
 
+
     if (variant) {
+      if (variantData.price) {
+        await Price.create({
+          price: variantData.price,
+          itemId: variant.id,
+        }, { transaction: t });
+
+      }
       await variant.update({
         name
       }, { transaction: t });
     } else {
+
       variant = await Variant.create({
         name,
         ProductId: productId
       }, { transaction: t });
-    }
+      if (variantData.price) {
+        await Price.create({
+          price: variantData.price,
+          itemId: variant.id,
+        }, { transaction: t });
 
+      }
+    }
+    console.log(variant.id);
     return variant;
   } catch (error) {
     console.error('Error updating/creating variant:', error);

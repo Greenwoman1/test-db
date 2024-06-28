@@ -45,6 +45,10 @@ class Product extends Model {
                 type: {
                     type: DataTypes.STRING(16),
                     allowNull: false,
+                },
+                comboPrice: {
+                    type: DataTypes.DECIMAL(10, 2),
+                    // allowNull: false
                 }
             },
             {

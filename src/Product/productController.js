@@ -111,8 +111,6 @@ const saveProductFromJson = async (req, res) => {
   }
 };
 
-
-
 const getProductSettings = async (req, res) => {
   const { productId } = req.params;
   try {
@@ -128,76 +126,77 @@ const getProductSettings = async (req, res) => {
             },
             Topons,
             Image,
-            Price
+            Price  
           ],
           as: 'Variants'
         },
-
       ]
     });
 
     if (!product) {
-      res.status(401).json({ message: `Product "${productId}" not found` });
-      return
+      return res.status(401).json({ message: `Product "${productId}" not found` });
     }
 
-
+    const formattedVariants = await Promise.all(product.Variants.map(async (variant) => {
+      const price = await variant.getPrice(new Date());
+      return {
+        id: variant.id,
+        name: variant.name,
+        price: price,
+        groupOptions: variant.GroupOptions.map(groupOption => ({
+          id: groupOption.id,
+          name: groupOption.name,
+          type: groupOption.type,
+          options: groupOption.Options.map(option => ({
+            id: option.id,
+            name: option.name
+          })),
+          rules: groupOption.GroupRules ? groupOption.GroupRules.map(rule => ({
+            id: rule.id,
+            name: rule.name,
+            description: rule.description,
+            ruleType: rule.ruleType,
+            ruleValue: rule.ruleValue
+          })) : []
+        })),
+        topons: variant.Topons.map(topon => ({
+          id: topon.id,
+          name: topon.name,
+          minValue: topon.minValue,
+          maxValue: topon.maxValue,
+          defaultValue: topon.defaultValue
+        })),
+        images: variant.Images ? variant.Images.map(image => ({
+          id: image.id,
+          url: `${image.image}`,
+          name: image.name
+        })) : []
+      };
+    }));
 
     const result = {
       product: {
         name: product.name,
         description: product.description,
         type: product.type,
-        variants: product.Variants.map(variant => ({
-          id: variant.id,
-          name: variant.name,
-          price: variant.getPrice(new Date()),
-          groupOptions: variant.GroupOptions.map(groupOption => ({
-            id: groupOption.id,
-            name: groupOption.name,
-            type: groupOption.type,
-            options: groupOption.Options.map(option => ({
-              id: option.id,
-              name: option.name
-            })),
-            rules: groupOption.GroupRules ? groupOption.GroupRules.map(rule => ({
-              id: rule.id,
-              name: rule.name,
-              description: rule.description,
-              ruleType: rule.ruleType,
-              ruleValue: rule.ruleValue
-            })) : []
-          })),
-          topons: variant.Topons.map(topon => ({
-            id: topon.id,
-            name: topon.name,
-            minValue: topon.minValue,
-            maxValue: topon.maxValue,
-            defaultValue: topon.defaultValue
-          })),
-          images: variant.Images ? variant.Images.map(image => ({
-            id: image.id,
-            url: `${image.image}`,
-            name: image.name
-          })) : []
-        }))
+        variants: formattedVariants
       }
     };
-
 
     return res.status(200).json(result);
   } catch (error) {
     console.error('Error during getProductSettings:', error);
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
-
 };
+
 const formatProductResponse = (product) => {
   const formattedProduct = {
     id: product.id,
     name: product.name,
     description: product.description,
     type: product.type,
+    price: product.comboPrice ? product.comboPrice : null,
   };
 
   if (product.comboItems) {
@@ -206,6 +205,7 @@ const formatProductResponse = (product) => {
       name: item.name,
       description: item.description,
       type: item.type,
+
       variants: item.Variants ? item.Variants.map(variant => ({
         id: variant.id,
         name: variant.name,
@@ -291,7 +291,6 @@ const updateProductFromJson = async (req, res, next) => {
       const productName = productJson.name;
       const productItems = productJson.items || [];
       const toponIds = productJson.variants?.flatMap(variant => variant.topons?.map(topon => topon.toponId)) || [];
-      console.log(toponIds, "toponIds")
       const locationIds = productJson.locationIds || [];
       const promises = [
         Product.findOne({ where: { name: productName } }),
@@ -302,9 +301,7 @@ const updateProductFromJson = async (req, res, next) => {
 
       const [existingProduct, existingProductItems, existingTopons, existingLocations] = await Promise.all(promises);
 
-      if (existingProduct && existingProduct.id !== product.id) {
-        errors.push({ msg: `Product with name ${productName} already exists`, param: 'name', location: 'body' });
-      }
+    
 
       if (existingProductItems.length !== productItems.length) {
         const missingProductItems = productItems.filter(id => !existingProductItems.map(product => product.id).includes(id));
@@ -323,9 +320,7 @@ const updateProductFromJson = async (req, res, next) => {
       if (toponIds.length > 0) {
         const existingToponIds = existingTopons.map(topon => topon.id);
         const missingTopons = toponIds.filter(id => !existingToponIds.includes(id));
-        console.log(existingToponIds, missingTopons)
         if (missingTopons.length > 0) {
-          console.log(missingTopons)
           errors.push({ msg: `Topons with IDs (${missingTopons.join(', ')}) do not exist`, param: 'topons', location: 'body' });
         }
       }
@@ -350,7 +345,34 @@ const updateProductFromJson = async (req, res, next) => {
 
 
       if (productJson.type === 'combo') {
-        const existingComboItemIds = product.ComboItems.map(item => item.id);
+        const productItem = await Product.findOne({
+          where: { id: product.id },
+          include: [
+            {
+              model: Product,
+              as: 'comboItems',
+              through: { attributes: [] },
+              include: [
+                {
+                  model: Variant,
+                  include: [
+                    {
+                      model: GroupOption,
+                      include: [Option, GroupRule]
+                    },
+                    Topons
+                  ],
+                  as: 'Variants'
+                }
+              ]
+            }
+          ]
+        });
+
+        await Product.update({ name: productJson.name, description: productJson.description, type: productJson.type, comboPrice: productJson.price }, { where: { id: product.id }, transaction });
+
+        console.log('Updating combo items...', productItem.comboItems);
+        const existingComboItemIds = productItem.comboItems.map(item => item.id);
         const incomingComboItemIds = productJson.items;
 
         const comboItemsToDelete = existingComboItemIds.filter(id => !incomingComboItemIds.includes(id));
@@ -374,7 +396,8 @@ const updateProductFromJson = async (req, res, next) => {
                   include: [Option, GroupRule]
                 },
                 Topons,
-                Image
+                Image,
+                Price
               ],
               as: 'Variants'
             },
@@ -413,9 +436,9 @@ const updateProductFromJson = async (req, res, next) => {
           }
 
           for (const toponData of variantData.topons) {
-            await updateOrCreateTopon(toponData, variant.id, transaction);
+            await updateOrCreateTopon(toponData, variant, transaction);
           }
-
+          console.log("dosao");
 
 
           const existingLocations = await VariantLocation.findAll({ where: { VariantId: variant.id } }).then(locations => locations.map(location => location.LocationId));
