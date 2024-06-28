@@ -68,7 +68,7 @@ const validateCreateProduct = [
     .isArray().withMessage('Options must be an array').custom((value, { req, path }) => {
       if (value && value.length > 0) {
         value.forEach((option, index) => {
-          if (typeof option !== 'string') {
+          if (!option.name) {
             throw new Error(`Option name is required at ${path}[${index}].name`);
           }
         });
