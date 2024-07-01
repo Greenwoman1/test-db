@@ -7,10 +7,7 @@ const validateCreateProduct = [
     .notEmpty().withMessage('Name must not be empty')
     .isLength({ min: 4 }).withMessage('Name must be at least 4 characters long')
     .isLength({ max: 64 }).withMessage('Name must be at most 64 characters long'),
-  body('description')
-    .isString().withMessage('Description must be a string')
-    .isLength({ min: 4 }).withMessage('Description must be at least 4 characters long')
-    .isLength({ max: 256 }).withMessage('Description must be at most 256 characters long'),
+
   body('type')
     .optional()
     .isString().withMessage('Type must be a string')
@@ -23,58 +20,20 @@ const validateCreateProduct = [
     .notEmpty().withMessage('Variant name must not be empty')
     .isLength({ min: 3 }).withMessage('Variant name must be at least 3 characters long')
     .isLength({ max: 64 }).withMessage('Variant name must be at most 64 characters long'),
-  body('variants.*.description')
-    .optional()
-    .isString().withMessage('Variant description must be a string'),
-  body('variants.*.topons')
-    .optional()
-    .isArray().withMessage('Topons must be an array'),
-  body('variants.*.topons.*.toponId')
-    .notEmpty().withMessage('Topon id must not be empty')
-    .isUUID().withMessage('Topon id must be a valid UUID'),
-  body('variants.*.groupOptions')
-    .optional()
-    .isArray().withMessage('Group options must be an array'),
-  body('variants.*.groupOptions.*.name')
-    .optional()
-    .isString().withMessage('Group option name must be a string'),
-  body('variants.*.groupOptions.*.type')
-    .optional()
-    .isString().withMessage('Group option type must be a string'),
-  body('variants.*.groupOptions.*.rules')
-    .optional()
-    .isArray().withMessage('Rules must be an array')
-    .custom((value, { req, path }) => {
-      if (value && value.length > 0) {
-        value.forEach((rule, index) => {
-          if (!rule.name) {
-            throw new Error(`Rule name is required at ${path}[${index}].name`);
-          }
-          if (!rule.description) {
-            throw new Error(`Rule description is required at ${path}[${index}].description`);
-          }
-          if (!rule.ruleType) {
-            throw new Error(`Rule type is required at ${path}[${index}].ruleType`);
-          }
-          if (!rule.ruleValue) {
-            throw new Error(`Rule value is required at ${path}[${index}].ruleValue`);
-          }
-        });
-      }
-      return true;
-    }),
-  body('variants.*.groupOptions.*.options')
-    .optional()
-    .isArray().withMessage('Options must be an array').custom((value, { req, path }) => {
-      if (value && value.length > 0) {
-        value.forEach((option, index) => {
-          if (!option.name) {
-            throw new Error(`Option name is required at ${path}[${index}].name`);
-          }
-        });
-      }
-      return true;
-    })
+  body('variants.*.groupOptions').isArray().withMessage('Group options must be an Array'),
+  body('variants.*.groupOptions.*.name').isString().withMessage('Group option name must be a string'),
+  body('variants.*.groupOptions.*.type').isString().withMessage('Group option type must be a string'),
+  body('variants.*.groupOptions.*.rules').isJSON().withMessage('Rules must be an JSON'),
+  body('variants.*.groupOptions.*.options').isArray().withMessage('Options must be an Array'),
+  body('variants.*.groupOptions.*.options.*').isString().withMessage('Options must be an Array'),
+  body('variants.*.groupTopons').isObject().withMessage('Group options must be an Object'),
+  body('variants.*.groupTopons.name').isString().withMessage('Group option name must be a string'),
+  body('variants.*.groupTopons.type').isString().withMessage('Group option type must be a string'),
+  body('variants.*.groupTopons.rules').isJSON().withMessage('Rules must be an JSON'),
+  body('variants.*.groupTopons.topons').isArray().withMessage('Rules must be an Array'),
+  body('variants.*.groupTopons.*.topons.*.toponId').isUUID().withMessage('ToponId must be an UUID'),
+  body('variants.*.groupTopons.*.topons.*.rules').isJSON().withMessage('Rules must be an JSON')
+
 
 ];
 
@@ -100,7 +59,7 @@ const validateUpdateProduct = [
     return true;
   }),
   body('variants.*.groupOptions').isArray().withMessage('Group options must be an array'),
-  body('variants.*.groupOptions.*.name').isString().withMessage('Group option name must be a string'),
+  body('variants.*.groupOptions.name').isString().withMessage('Group option name must be a string'),
   body('variants.*.groupOptions.*.type').isString().withMessage('Group option type must be a string'),
   body('variants.*.groupOptions.*.rules').optional().isArray().withMessage('Rules must be an array').custom((value, { req, path }) => {
     if (value && value.length > 0) {

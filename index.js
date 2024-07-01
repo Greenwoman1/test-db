@@ -3,7 +3,6 @@ const path = require('path'); // Add this line
 const bodyParser = require('body-parser'); // Add this line
 const sequelize = require('./sequelize');
 const variantRoute = require('./src/Variant/variantRoute');
-const comboItemRoute = require('./src/ComboItem/comboItemRoute');
 const productRoute = require('./src/Product/productRoute');
 const skuRoute = require('./src/SKU/SKURoute');
 const skuRuleRoute = require('./src/SKURule/SKURuleRoute');
@@ -42,7 +41,6 @@ app.use(express.json());
 app.use('/user', userRoute);
 app.use('/product', productRoute);
 app.use('/variant', variantRoute);
-app.use('/comboItems', comboItemRoute);
 app.use('/groupRules', groupRuleRoute);
 app.use('/sku', skuRoute);
 app.use('/skuRule', skuRuleRoute);
@@ -58,7 +56,7 @@ app.listen(PORT, async () => {
     await init();
     await sequelize.sync(/* { force: true } */);
 
-      //  await seed(); 
+    // await seed();
     console.log('Database synchronized.');
   } catch (error) {
     console.error('Error while working with the database:', error);

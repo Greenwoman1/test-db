@@ -1,73 +1,83 @@
 const sequelize = require("../sequelize");
-const { Product, Variant, GroupOption, Option, Topons, ComboItem, SKURule, GroupRule, User, 
-    VariantTopons,
-    SKU, Location,
-    VariantLocation, Image
-     } = require("../src");
-const Price = require("../src/Price/Price");
+const { Product, Variant, Option, Topons, SKURule, GroupRule, User,
+  VariantTopons,
+  SKU, Location,
+  VariantLocation, Image,
+  GroupOptions,
+  PriceHistory,
+  GroupTopons,
+  Combo,
+  ComboItems,
+  ComboVariants,
+  GroupToponsMid
+} = require("../src");
 
 async function initModels() {
-    const models = [
-        ComboItem,
-        Product,
-        Variant,
-        GroupOption,
-        Option,
-        Topons,
-        SKURule,
-        GroupRule,
-        VariantTopons,
-        User,
-        SKU,
-        Location,
-        VariantLocation,
-        Image,
-        Price
+  const models = [
+    User,
+    Product,
+    Variant,
+    GroupOptions,
+    Topons,
+    SKURule,
+    Option,
+    VariantTopons,
+    SKU,
+    Location,
+    VariantLocation,
+    Image,
+    PriceHistory,
+    GroupTopons,
+    Combo,
+    ComboItems,
+    ComboVariants,
+    GroupToponsMid
+  ];
 
-    ];
-
-    for (const model of models) {
-        // console.log(`Initializing model: ${model}`);
-        model.initModel();
-        // console.log(`Model init finish`);
-    }
+  for (const model of models) {
+    // console.log(`Initializing model: ${model}`);
+    model.initModel();
+    // console.log(`Model init finish`);
+  }
 }
 
 async function associateModels() {
-    const models = {
-        'Product': Product,
-        'Variant': Variant,
-        'GroupOption': GroupOption,
-        'Option': Option,
-        'Topons': Topons,
-        // "Combo": Combo,
-        'ComboItem': ComboItem,
-        'SKURule': SKURule,
-        'GroupRule': GroupRule,
-        'VariantTopons': VariantTopons,
-        'User': User,
-        'SKU': SKU,
-        'Location': Location,
-        'VariantLocation':VariantLocation,
-        'Image': Image,
-        'Price': Price
-        // 'ComboItemProduct': ComboItemProduct
-    }
+  const models = {
+    'Product': Product,
+    'Variant': Variant,
+    'Option': Option,
+    'Topons': Topons,
+    // "Combo": Combo,
+    'SKURule': SKURule,
+    'VariantTopons': VariantTopons,
+    'User': User,
+    'SKU': SKU,
+    'Location': Location,
+    'VariantLocation': VariantLocation,
+    'Image': Image,
+    'GroupOptions': GroupOptions,
+    'PriceHistory': PriceHistory,
+    'GroupTopons': GroupTopons,
+    'Combo': Combo,
+    'ComboItems': ComboItems,
+    'ComboVariants': ComboVariants,
+    'GroupToponsMid': GroupToponsMid
+  }
 
-    for (const [key, model] of Object.entries(models)) {
-        console.log(`Associating model: ${key}`);
-        if (model.associateModel) {
-            model.associateModel(models);
-            console.log(`Model associate finish for: ${key}`);
-        } else {
-            console.warn(`associateModel nije definiran za model ${key}`);
-        }
+  for (const [key, model] of Object.entries(models)) {
+    console.log(`Associating model: ${key}`);
+    if (model.associateModel) {
+      model.associateModel(models);
+      console.log(`Model associate finish for: ${key}`);
+    } else {
+      console.warn(`associateModel nije definiran za model ${key}`);
     }
+  }
 }
 
 
 const init = async () => {
-    await initModels();
-    await associateModels();
+  await initModels();
+  await associateModels();
 }
 module.exports = init;

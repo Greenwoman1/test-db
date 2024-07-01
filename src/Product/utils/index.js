@@ -1,5 +1,6 @@
 
-const { Product, Variant, Topons, GroupOption, Option, GroupRule, VariantLocation, Location, SKURule, SKU, ComboItem, Price } = require("../../index");
+const { name } = require("ejs");
+const { Product, Variant, Topons, GroupOption, Option, GroupRule, VariantLocation, Location, SKURule, SKU, ComboItem, Price, PriceHistory, GroupTopons, GroupOptions, GroupToponsMid, Combo, ComboItems, ComboVariants } = require("../../index");
 
 
 const createProduct = async (productJson) => {
@@ -12,8 +13,37 @@ const createProduct = async (productJson) => {
   });
 };
 
-const handleComboItems = async (product, items, locationId, t) => {
-  for (const itemId of items) {
+const handleComboItems = async (product, t) => {
+
+  const combo = await Combo.create({
+    name: product.name,
+    type: product.type
+  }, {
+    transaction: t
+  })
+
+  for (const comboVar of product.variants) {
+    const item = await ComboItems.create({
+      name: comboVar.name,
+    }, { transaction: t })
+
+    const price = await PriceHistory.create({
+      price: comboVar.price,
+      itemId: item.id
+    }, { transaction: t })
+
+    for (const varc of comboVar.items) {
+      const variant = await ComboVariants.create({
+        VariantId: varc,
+        ComboItemId: item.id
+      }, { transaction: t })
+
+
+
+    }
+  }
+
+  /* for (const itemId of items) {
     const item = await Product.findOne({
       where: { id: itemId }
     });
@@ -36,7 +66,7 @@ const handleComboItems = async (product, items, locationId, t) => {
 
       }
     }
-  }
+  } */
 };
 
 const createVariant = async (variantData, productId, t) => {
@@ -47,12 +77,41 @@ const createVariant = async (variantData, productId, t) => {
     { transaction: t });
 };
 
-const handleTopons = async (variant, topons, t) => {
-  for (const toponData of topons) {
+const handleTopons = async (variant, groupTopons, t) => {
+  const group = await GroupTopons.create({
+    name: groupTopons.name,
+    type: groupTopons.type,
+    rules: groupTopons.rules,
+    VariantId: variant.id
+  }, { transaction: t });
+
+
+  for (const toponData of groupTopons.topons) {
     const topon = await Topons.findOne({ where: { id: toponData.toponId } });
     if (topon) {
-      await variant.addTopon(topon, { transaction: t });
+      await GroupToponsMid.create({
+        ToponId: topon.id,
+        GroupToponId: group.id,
+        rules: toponData.rules
+      }, { transaction: t });
     }
+  }
+};
+
+const handleOptions = async (variant, groupOptions, t) => {
+  console.log(groupOptions)
+  const group = await GroupOptions.create({
+    name: groupOptions.name,
+    type: groupOptions.type,
+    rules: groupOptions.rules,
+    VariantId: variant.id
+  }, { transaction: t });
+
+
+  for (const option of groupOptions.options) {
+    await Option.create({
+      name: option,
+    }, { transaction: t });
   }
 };
 
@@ -91,21 +150,21 @@ const handleVariants = async (variants, productId, t) => {
     const variant = await createVariant(variantData, productId, t);
 
     if (variantData.price) {
-      await Price.create({
-        price: variantData.price,
+      await PriceHistory.create({
         itemId: variant.id,
+        price: variantData.price
       }, { transaction: t });
 
     }
 
-    if (variantData.topons) {
-      await handleTopons(variant, variantData.topons, t);
+    if (variantData.groupTopons) {
+      await handleTopons(variant, variantData.groupTopons, t);
     }
 
     if (variantData.groupOptions) {
-      console.log(variantData.groupOptions)
-      for (const groupOptionData of variantData.groupOptions) {
-        await createGroupOption(groupOptionData, variant.id, t);
+
+      for (const option of variantData.groupOptions) {
+        await handleOptions(variant, option, t);
       }
     }
 
@@ -152,7 +211,7 @@ const updateOrCreateTopon = async (toponData, variant, t) => {
     if (!topon) {
       throw new Error(`Topon with id ${toponId} not found`);
     }
-    console 
+    console
     await variant.addTopon(topon);
 
   } catch (error) {

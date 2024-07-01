@@ -1,5 +1,5 @@
 const sequelize = require('../../sequelize');
-const { Variant, Topons, GroupOption, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, Price } = require('../index');
+const { Variant, Topons, GroupOption, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, Price, GroupOptions, GroupTopons } = require('../index');
 const { findByPk } = require('./Product');
 
 const { createProduct,
@@ -79,13 +79,14 @@ const saveProductFromJson = async (req, res) => {
         }
       }
 
-      if (productJson.type !== 'combo') {
+      if (productJson.type == 'combo') {
         for (const variant of productJson.variants) {
-          const toponIds = variant.topons.map(topon => topon.toponId);
-          const existingToponIds = existingTopons.map(topon => topon.id);
-          const missingTopons = toponIds.filter(id => !existingToponIds.includes(id));
-          if (missingTopons.length > 0) {
-            errors.push({ msg: `Topons with IDs (${missingTopons.join(', ')}) do not exist`, param: 'topons', location: 'body' });
+          for (const topon of variant.items) {
+            if (!existingTopons.map(topon => topon.toponId).includes(topon)) {
+              errors.push({ msg: `Topons with ids (${topon}) do not exist`, param: 'topons', location: 'body' });
+              break;
+            }
+
           }
         }
       }
@@ -95,15 +96,17 @@ const saveProductFromJson = async (req, res) => {
         return;
       }
 
-      const product = await createProduct(productJson, t);
 
       if (productJson.type === 'combo') {
-        await handleComboItems(product, productJson.items, productJson.locationIds, t);
+
+        await handleComboItems(productJson);
       } else {
+        const product = await createProduct(productJson, t);
+
         await handleVariants(productJson.variants, product.id, t);
       }
 
-      res.status(201).json({ message: 'Product id ' + product.id + ' created' });
+      res.status(201).json({ message: 'Product id ' + ' created' });
     });
   } catch (error) {
     console.error('Error during saveProductFromJson:', error);
@@ -120,13 +123,23 @@ const getProductSettings = async (req, res) => {
         {
           model: Variant,
           include: [
-            {
-              model: GroupOption,
+            /* {
+              model: GroupOptions,
               include: [Option, GroupRule]
+            }, */
+            {
+              model: GroupTopons,
+              include: [{
+
+                model: Topons,
+                as: 'Topons',
+
+                through: {
+                  attributes: ["id"]
+                }
+              }]
             },
-            Topons,
             Image,
-            Price  
           ],
           as: 'Variants'
         },
@@ -301,7 +314,7 @@ const updateProductFromJson = async (req, res, next) => {
 
       const [existingProduct, existingProductItems, existingTopons, existingLocations] = await Promise.all(promises);
 
-    
+
 
       if (existingProductItems.length !== productItems.length) {
         const missingProductItems = productItems.filter(id => !existingProductItems.map(product => product.id).includes(id));
