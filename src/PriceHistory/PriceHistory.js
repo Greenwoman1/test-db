@@ -19,6 +19,10 @@ class PriceHistory extends Model {
         price: {
           type: DataTypes.DECIMAL(10, 2),
           allowNull: false
+        },
+        itemType: {
+          type: DataTypes.STRING,
+          allowNull: false
         }
 
       },
@@ -28,14 +32,25 @@ class PriceHistory extends Model {
         timestamps: true,
       }
     );
+    PriceHistory.addHook('beforeValidate', (priceHistory, options) => {
+      console.log(priceHistory, options, 'beforevalidate');
+      if (priceHistory.itemType === 'Variant') {
+        priceHistory.set('itemId', priceHistory.itemId);
+      } else if (priceHistory.itemType === 'ComboItems') {
+        priceHistory.set('itemId', priceHistory.itemId);
+      }
+    });
   }
 
   static associateModel(models) {
-    PriceHistory.belongsTo(models.Variant);
-    PriceHistory.belongsTo(models.ComboItems);
+    PriceHistory.belongsTo(models.Variant, { foreignKey: 'itemId', constraints: false, as: 'variant' });
+    PriceHistory.belongsTo(models.ComboItems, { foreignKey: 'itemId', constraints: false, as: 'comboItem' });
 
 
   }
 }
+
+
+
 
 module.exports = PriceHistory;

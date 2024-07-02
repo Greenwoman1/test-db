@@ -23,7 +23,7 @@ class ComboItems extends Model {
   static associateModel(models) {
     ComboItems.belongsTo(models.Combo)
     ComboItems.belongsToMany(models.Variant, { through: 'ComboVariants' })
-    ComboItems.hasMany(models.PriceHistory);
+    ComboItems.hasMany(models.PriceHistory, { foreignKey: 'itemId', constraints: false });
 
   }
 }

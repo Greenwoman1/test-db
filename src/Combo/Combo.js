@@ -13,6 +13,9 @@ class Combo extends Model {
         },
         name: {
           type: DataTypes.STRING
+        },
+        type: {
+          type: DataTypes.STRING
         }
 
       },

@@ -25,11 +25,14 @@ const handleComboItems = async (product, t) => {
   for (const comboVar of product.variants) {
     const item = await ComboItems.create({
       name: comboVar.name,
+      ComboId: combo.id
     }, { transaction: t })
 
     const price = await PriceHistory.create({
       price: comboVar.price,
-      itemId: item.id
+      itemId: item.id,
+      itemType: 'ComboItems',
+
     }, { transaction: t })
 
     for (const varc of comboVar.items) {
@@ -88,7 +91,9 @@ const handleTopons = async (variant, groupTopons, t) => {
 
   for (const toponData of groupTopons.topons) {
     const topon = await Topons.findOne({ where: { id: toponData.toponId } });
+    console.log(topon, toponData.rules)
     if (topon) {
+      console.log(topon, toponData.rules)
       await GroupToponsMid.create({
         ToponId: topon.id,
         GroupToponId: group.id,
@@ -109,8 +114,10 @@ const handleOptions = async (variant, groupOptions, t) => {
 
 
   for (const option of groupOptions.options) {
+    console.log(option)
     await Option.create({
       name: option,
+      GroupOptionId: group.id
     }, { transaction: t });
   }
 };
@@ -150,9 +157,12 @@ const handleVariants = async (variants, productId, t) => {
     const variant = await createVariant(variantData, productId, t);
 
     if (variantData.price) {
+      console.log(variantData.price, variant.id)
       await PriceHistory.create({
         itemId: variant.id,
-        price: variantData.price
+        price: variantData.price,
+        itemType: 'Variant',
+
       }, { transaction: t });
 
     }
@@ -193,26 +203,22 @@ const handleVariants = async (variants, productId, t) => {
 
 
 
-const updateOrCreateTopon = async (toponData, variant, t) => {
-  const { toponId } = toponData;
-  console.log(toponData, variant, toponId, "toponData, variantId, toponId");
-  try {
+const updateOrCreateTopon = async (toponData, groupToponId, t) => {
 
-    if (!variant) {
-      throw new Error(`Variant with id ${variant} not found`);
-    }
-    const exist = await variant.hasTopon(toponId);
+  const { id: toponId, name } = toponData;
+  try {
+    const groupTopon = await GroupTopons.findByPk(groupToponId);
+    console.log(groupTopon.id, toponId)
+    const exist = await groupTopon.hasTopon(toponId);
     if (exist) {
       return;
     }
 
-    console.log(exist, "exist")
     const topon = await Topons.findOne({ where: { id: toponId } });
     if (!topon) {
       throw new Error(`Topon with id ${toponId} not found`);
     }
-    console
-    await variant.addTopon(topon);
+    await GroupTopons.addTopon(topon);
 
   } catch (error) {
     console.error('Error updating/creating topon:', error);
@@ -311,33 +317,71 @@ const updateComboItems = async (productId, comboItems, transaction) => {
 };
 
 const updateOrCreateGroupOption = async (groupOptionData, variantId, t) => {
-  const { id, name, type, options, rules } = groupOptionData;
+  const { id, name, type, Options, Rules } = groupOptionData;
 
   try {
     let groupOption;
-
     if (id) {
-      groupOption = await GroupOption.findByPk(id);
+      groupOption = await GroupOptions.findByPk(id);
     }
 
     if (groupOption) {
       await groupOption.update({
         name,
-        type
+        type,
+        rules: Rules,
       }, { transaction: t });
     } else {
       groupOption = await GroupOption.create({
         name,
         type,
-        VariantId: variantId
+        VariantId: variantId,
+        rules: Rules
       }, { transaction: t });
     }
 
-    await updateOrCreateOptions(options, groupOption.id, t);
+    await updateOrCreateOptions(Options, groupOption.id, t);
 
-    await updateOrCreateRules(rules, groupOption.id, t);
 
     return groupOption;
+  } catch (error) {
+    console.error('Error updating/creating group option:', error);
+    throw error;
+  }
+};
+
+const updateOrCreateGroupTopon = async (groupOptionData, variantId, t) => {
+  const { id, name, type, Topons, Rules } = groupOptionData;
+
+  try {
+    let GroupTopon;
+    console.log(id, variantId)
+
+    if (id) {
+      GroupTopon = await GroupTopons.findByPk(id);
+    }
+
+    if (GroupTopon) {
+      await GroupTopon.update({
+        name,
+        type,
+        rules: Rules,
+      }, { transaction: t });
+    } else {
+      GroupTopon = await GroupTopons.create({
+        name,
+        type,
+        VariantId: variantId,
+        rules: Rules
+      }, { transaction: t });
+    }
+    console.log(GroupTopon.id, Topons)
+    for (const topon of Topons) {
+      await updateOrCreateTopon(topon, GroupTopon.id, t);
+    }
+
+
+    return GroupTopon;
   } catch (error) {
     console.error('Error updating/creating group option:', error);
     throw error;
@@ -421,7 +465,8 @@ module.exports = {
   updateOrCreateVariant,
   updateOrCreateGroupOption,
   updateOrCreateTopon,
-  updateComboItems
+  updateComboItems,
+  updateOrCreateGroupTopon
 
 
 }

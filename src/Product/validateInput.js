@@ -37,7 +37,17 @@ const validateCreateProduct = [
 
 ];
 
+const validateCreateProductCombo = [
+  body('name').isString().withMessage('Name must be a string'),
+  body('description').isString().withMessage('Description must be a string'),
+  body('type').isString().withMessage('Type must be a string'),
+  body('variants').isArray().withMessage('Variants must be an array'),
+  body('variants.*.name').isString().withMessage('Variant name must be a string'),
+  body('variants.*.price').isDecimal().withMessage('Price must be a decimal'),
+  body('variants.*.items').isArray().withMessage('Items must be an array'),
+  body('variants.*.items.*').isUUID().withMessage('Item id must be a valid UUID'),
 
+]
 const validateUpdateProduct = [
   body('name').isString().withMessage('Name must be a string'),
   body('description').isString().withMessage('Description must be a string'),
@@ -149,5 +159,6 @@ module.exports = {
   validateResults,
   validateUpdateProduct,
   validateLocationId,
-  validateUpdateProductCombo
+  validateUpdateProductCombo,
+  validateCreateProductCombo
 };
