@@ -45,7 +45,7 @@ const handleComboItems = async (product, t) => {
 
     }
   }
-
+  return combo
   /* for (const itemId of items) {
     const item = await Product.findOne({
       where: { id: itemId }

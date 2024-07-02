@@ -107,14 +107,19 @@ const saveProductFromJson = async (req, res) => {
       if (productJson.type === 'combo') {
 
 
-        await handleComboItems(productJson);
+        const combo = await handleComboItems(productJson, t);
+        res.status(201).json({ message: 'Product id ' + combo.id + ' created' });
+
       } else {
         const product = await createProduct(productJson, t);
 
         await handleVariants(productJson.variants, product.id, t);
+        res.status(201).json({ message: 'Product id ' + product.id + ' created' });
+
       }
 
-      res.status(201).json({ message: 'Product id ' + ' created' });
+      res.status(400)
+
     });
   } catch (error) {
     console.error('Error during saveProductFromJson:', error);

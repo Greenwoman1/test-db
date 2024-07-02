@@ -105,10 +105,10 @@ const validateUpdateProduct = [
 
 const validateUpdateProductCombo = [
   body('id').notEmpty().isUUID(4).withMessage('Product ID must be a UUIDv4'),
-  body('name').isString().withMessage('Name must be a string'),
+  body('name').notEmpty().withMessage('Name must not be empty').isString().withMessage('Name must be a string'),
   body('description').isString().withMessage('Description must be a string'),
-  body('type').isString().withMessage('Type must be a string'),
-  body('items').isArray().withMessage('Items must be an array').custom((value) => {
+  body('type').notEmpty().withMessage('Type must not be empty').isString().withMessage('Type must be a string'),
+  body('items').notEmpty().withMessage('Items must not be empty').isArray().withMessage('Items must be an array').custom((value) => {
     if (value.length === 0) {
       throw new Error('Items must not be empty');
     }
