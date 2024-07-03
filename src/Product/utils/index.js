@@ -168,7 +168,9 @@ const handleVariants = async (variants, productId, t) => {
     }
 
     if (variantData.groupTopons) {
-      await handleTopons(variant, variantData.groupTopons, t);
+      for (const toponData of variantData.groupTopons) {
+        await handleTopons(variant, toponData, t);
+      }
     }
 
     if (variantData.groupOptions) {
@@ -186,7 +188,6 @@ const handleVariants = async (variants, productId, t) => {
 
           const rule = await SKURule.create({
             name: `${variant.name} Rule for ${location.name}`,
-            VariantId: variant.id,
             LocationId: location.id
           }, { transaction: t });
           await SKU.create({

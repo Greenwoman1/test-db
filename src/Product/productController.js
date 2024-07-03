@@ -142,7 +142,7 @@ const getProductSettings = async (req, res) => {
             {
               model: GroupOptions,
               as: 'GroupOptions',
-              attributes: ['id', 'name', 'type'],
+              attributes: ['id', 'name', 'type', "rules"],
               include: [
                 {
                   model: Option,
@@ -154,7 +154,7 @@ const getProductSettings = async (req, res) => {
             {
               model: GroupTopons,
               as: 'GroupTopons',
-              attributes: ['id', 'name', 'type'],
+              attributes: ['id', 'name', 'type', "rules"],
               include: [
                 {
                   model: Topons,

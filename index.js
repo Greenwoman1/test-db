@@ -10,6 +10,7 @@ const toponsRoute = require('./src/Topons/toponsRoute');
 const userRoute = require('./src/User/userRoute');
 const groupRuleRoute = require('./src/GroupRule/groupRoute');
 const locationRoute = require('./src/Location/locationRoute');
+const comboRoute = require('./src/Combo/comboRoute');
 const { seed } = require('./src/seed');
 const init = require('./helpers/initModels');
 const cors = require('cors');
@@ -46,6 +47,7 @@ app.use('/sku', skuRoute);
 app.use('/skuRule', skuRuleRoute);
 app.use('/topons', toponsRoute);
 app.use('/locations', locationRoute);
+app.use('/combo', comboRoute);
 
 const PORT = process.env.PORT || 3000;
 
@@ -54,7 +56,7 @@ app.listen(PORT, async () => {
   try {
 
     await init();
-    await sequelize.sync(/* { force: true } */);
+    await sequelize.sync({/*  force: true */ });
 
     // await seed();
     console.log('Database synchronized.');

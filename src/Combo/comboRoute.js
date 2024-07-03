@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const comboItemController = require('./comboItemController');
-
-router.post('/', comboItemController.createComboItem);
-router.get('/', comboItemController.getComboItems);
-router.get('/:id', comboItemController.getComboItemById);
-router.put('/:id', comboItemController.updateComboItem);
-router.delete('/:id', comboItemController.deleteComboItem);
+const comboController = require('./comboController');
+router.post('/', comboController.createComboItem);
+router.get('/', comboController.getComboItems);
+router.get('/:id', comboController.getComboItemById);
+router.put('/:id', comboController.updateComboItem);
+router.delete('/:id', comboController.deleteComboItem);
 
 module.exports = router;
