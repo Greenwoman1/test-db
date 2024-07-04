@@ -9,7 +9,12 @@ const { Product, Variant, Option, Topons, SKURule, GroupRule, User,
   Combo,
   ComboItems,
   ComboVariants,
-  GroupToponsMid
+  GroupToponsMid,
+  Order,
+  ProductT,
+  ProductO,
+  OrderItems,
+  UserLocation
 } = require("../src");
 
 async function initModels() {
@@ -31,7 +36,12 @@ async function initModels() {
     Combo,
     ComboItems,
     ComboVariants,
-    GroupToponsMid
+    GroupToponsMid,
+    Order,
+    OrderItems,
+    ProductO,
+    ProductT,
+    UserLocation
   ];
 
   for (const model of models) {
@@ -61,7 +71,12 @@ async function associateModels() {
     'Combo': Combo,
     'ComboItems': ComboItems,
     'ComboVariants': ComboVariants,
-    'GroupToponsMid': GroupToponsMid
+    'GroupToponsMid': GroupToponsMid,
+    'Order': Order,
+    'OrderItems': OrderItems,
+    'ProductO': ProductO,
+    'ProductT': ProductT,
+    'UserLocation': UserLocation
   }
 
   for (const [key, model] of Object.entries(models)) {

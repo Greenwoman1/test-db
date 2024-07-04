@@ -1,6 +1,6 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
-
+const { Op } = require('sequelize');
 class PriceHistory extends Model {
   static initModel() {
     PriceHistory.init(
@@ -38,6 +38,8 @@ class PriceHistory extends Model {
         priceHistory.set('itemId', priceHistory.itemId);
       } else if (priceHistory.itemType === 'ComboItems') {
         priceHistory.set('itemId', priceHistory.itemId);
+      } else if (priceHistory.itemType === 'Topon') {
+        priceHistory.set('itemId', priceHistory.itemId);
       }
     });
   }
@@ -45,8 +47,23 @@ class PriceHistory extends Model {
   static associateModel(models) {
     PriceHistory.belongsTo(models.Variant, { foreignKey: 'itemId', constraints: false, as: 'variant' });
     PriceHistory.belongsTo(models.ComboItems, { foreignKey: 'itemId', constraints: false, as: 'comboItem' });
+    PriceHistory.belongsTo(models.Topons, { foreignKey: 'itemId', constraints: false, as: 'topons' });
 
 
+  }
+  static async getPriceByDate(itemId, date = new Date()) {
+    const price = await PriceHistory.findOne({
+      where: {
+        itemId: itemId,
+        createdAt: {
+          [Op.lte]: date
+        }
+      },
+      order: [['createdAt', 'DESC']]
+    });
+
+    console.log(price);
+    return price ? price.price : null;
   }
 }
 

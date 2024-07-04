@@ -17,6 +17,12 @@ const Combo = require('./Combo/Combo');
 const ComboItems = require('./ComboItems/ComboItems');
 const ComboVariants = require('./ComboVariants/ComboVariants');
 const GroupToponsMid = require('./GroupToponsMid/GroupToponsMid');
+const Order = require('./Order/Order');
+const OrderItems = require('./OrderItems/OrderItems');
+
+const ProductO = require('./ProductO/ProductO');
+const ProductT = require('./ProductT/ProductT');
+const UserLocation = require('./UserLocation/UserLocation');
 
 module.exports = {
   User,
@@ -36,5 +42,10 @@ module.exports = {
   GroupTopons,
   Combo, ComboItems,
   ComboVariants,
-  GroupToponsMid
+  GroupToponsMid,
+  Order,
+  OrderItems,
+  ProductO,
+  ProductT,
+  UserLocation
 } 

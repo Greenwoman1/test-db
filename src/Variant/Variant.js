@@ -14,6 +14,7 @@ class Variant extends Model {
     Variant.hasMany(models.GroupOptions);
     Variant.hasMany(models.GroupTopons);
     Variant.belongsToMany(models.Location, { through: 'VariantLocation' });
+    Variant.hasMany(models.OrderItems);
 
   }
 

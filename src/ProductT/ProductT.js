@@ -1,18 +1,17 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class Order extends Model {
+class ProductT extends Model {
 
 
   static associateModel(models) {
-    Order.belongsTo(models.User);
-    Order.hasMany(models.OrderItems);
+
 
   }
 
 
   static initModel() {
-    Order.init(
+    ProductT.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -20,21 +19,11 @@ class Order extends Model {
           primaryKey: true,
           allowNull: false,
         },
-        status: {
-          type: DataTypes.STRING,
-        },
-        totalPrice: {
-          type: DataTypes.DECIMAL(10, 2),
-        },
 
-        LocationId: {
-          type: DataTypes.UUID,
-          allowNull: false,
-        }
       },
       {
         sequelize,
-        modelName: 'Order',
+        modelName: 'ProductT',
         timestamps: true,
         createdAt: false,
         updatedAt: 'updateTimestamp',
@@ -45,4 +34,4 @@ class Order extends Model {
 
 }
 
-module.exports = Order;
+module.exports = ProductT;

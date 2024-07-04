@@ -88,12 +88,12 @@ const handleTopons = async (variant, groupTopons, t) => {
     VariantId: variant.id
   }, { transaction: t });
 
-
+  console.log(groupTopons.topons, "topons")
   for (const toponData of groupTopons.topons) {
+    console.log(toponData)
     const topon = await Topons.findOne({ where: { id: toponData.toponId } });
     console.log(topon, toponData.rules)
     if (topon) {
-      console.log(topon, toponData.rules)
       await GroupToponsMid.create({
         ToponId: topon.id,
         GroupToponId: group.id,
