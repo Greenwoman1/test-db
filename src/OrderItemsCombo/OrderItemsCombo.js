@@ -1,19 +1,22 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
+const Order = require('../Order/Order');
 
-class Order extends Model {
+class OrderItemsCombo extends Model {
 
 
   static associateModel(models) {
-    Order.belongsTo(models.User);
-    Order.hasMany(models.OrderItems);
-    Order.hasMany(models.OrderItemsCombo);
+
+    OrderItemsCombo.belongsTo(models.OrderItems);
+    OrderItemsCombo.belongsTo(models.Order);
+    OrderItemsCombo.belongsTo(models.ComboVariants);
+
 
   }
 
 
   static initModel() {
-    Order.init(
+    OrderItemsCombo.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -21,21 +24,12 @@ class Order extends Model {
           primaryKey: true,
           allowNull: false,
         },
-        status: {
-          type: DataTypes.STRING,
-        },
-        totalPrice: {
-          type: DataTypes.DECIMAL(10, 2),
-        },
 
-        LocationId: {
-          type: DataTypes.UUID,
-          allowNull: false,
-        }
+
       },
       {
         sequelize,
-        modelName: 'Order',
+        modelName: 'OrderItemsCombo',
         timestamps: true,
         createdAt: false,
         updatedAt: 'updateTimestamp',
@@ -46,4 +40,4 @@ class Order extends Model {
 
 }
 
-module.exports = Order;
+module.exports = OrderItemsCombo;

@@ -1,5 +1,7 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
+const PriceHistory = require('../PriceHistory/PriceHistory');
+const { Op } = require('sequelize');
 
 class Topons extends Model {
 
@@ -43,6 +45,25 @@ class Topons extends Model {
         createdAt: false,
       }
     );
+  }
+
+  async getPrice(date) {
+
+    try {
+      const price = await PriceHistory.findOne({
+        where: {
+          itemId: this.id,
+          createdAt: {
+            [Op.lte]: date
+          }
+        },
+        order: [['createdAt', 'DESC']]
+      });
+      return price ? price.price : 0;
+    } catch (error) {
+      console.error('Error fetching price:', error);
+      throw error;
+    }
   }
 
 }

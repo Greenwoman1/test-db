@@ -1,5 +1,6 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
+const Order = require('../Order/Order');
 
 class OrderItems extends Model {
 
@@ -9,6 +10,9 @@ class OrderItems extends Model {
     OrderItems.belongsTo(models.Variant);
     OrderItems.belongsToMany(models.Topons, { through: 'ProductT' });
     OrderItems.belongsToMany(models.Option, { through: 'ProductO' });
+    OrderItems.hasMany(models.OrderItemsCombo);
+
+
 
 
 
@@ -27,10 +31,6 @@ class OrderItems extends Model {
         quantity: {
           type: DataTypes.INTEGER,
         },
-        ProductId: {
-          type: DataTypes.UUID,
-          allowNull: false,
-        }
 
       },
       {

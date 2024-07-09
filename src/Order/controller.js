@@ -1,4 +1,4 @@
-const { OrderItems, Order, ItemProduct, ProductT, Variant, PriceHistory, Product, Topons, Op, User, Location, Option } = require("../.");
+const { OrderItems, Order, ItemProduct, ProductT, Variant, PriceHistory, Product, Topons, Op, User, Location, Option, OrderItemsCombo, ComboVariants } = require("../.");
 
 const { createOrderJson } = require("./utils");
 
@@ -13,14 +13,30 @@ const getOrders = async (req, res) => {
 
 
 const createOrder = async (req, res) => {
-  const { userId, locationId, products } = req.body;
-  let errors = [];
+  const order = req.body;
+  const errors = [];
+
+  const userId = order.userId;
+  const locationId = order.locationId;
+  const productIds = order.orderItems.map(item => item.productId);
+  const variantIds = order.orderItems.flatMap(item =>
+    item.type === 'single' ? [item.variantId] : item.comboVariants.map(cv => cv.variantId)
+  );
+  const optionIds = order.orderItems.flatMap(item =>
+    item.type === 'single' ? item.options.map(opt => opt.optionId) : item.comboVariants.flatMap(cv => cv.options.map(opt => opt.optionId))
+  );
+  const toponIds = order.orderItems.flatMap(item =>
+    item.type === 'single' ? item.topons.map(top => top.toponId) : item.comboVariants.flatMap(cv => cv.topons.map(top => top.toponId))
+  );
+
   try {
-
-
-    const [user, location] = await Promise.all([
+    const [user, location, products, variants, options, topons] = await Promise.all([
       User.findByPk(userId),
-      Location.findByPk(locationId)
+      Location.findByPk(locationId),
+      Product.findAll({ where: { id: productIds } }),
+      Variant.findAll({ where: { id: variantIds } }),
+      Option.findAll({ where: { id: optionIds } }),
+      Topons.findAll({ where: { id: toponIds } }),
     ]);
 
     if (!user) {
@@ -30,49 +46,64 @@ const createOrder = async (req, res) => {
     if (!location) {
       errors.push({ msg: `Location with ID (${locationId}) does not exist`, param: 'locationId', location: 'body' });
     }
-    for (const product of products) {
-      const { productId, variantId, options, topons } = product;
 
-      const [existingProduct, existingVariant] = await Promise.all([
-        Product.findByPk(productId),
-        Variant.findByPk(variantId)
-      ]);
-
-      if (!existingProduct) {
-        errors.push({ msg: `Product with ID (${productId}) does not exist`, param: 'productId', location: 'body' });
-      }
-
-      if (!existingVariant) {
-        errors.push({ msg: `Variant with ID (${variantId}) does not exist`, param: 'variantId', location: 'body' });
-      }
-
-      if (options && options.length > 0) {
-        const existingOptions = await Option.findAll({ where: { id: options } });
-        const missingOptions = options.filter(id => !existingOptions.map(option => option.id).includes(id));
-
-        if (missingOptions.length > 0) {
-          errors.push({ msg: `Options with IDs (${missingOptions.join(', ')}) do not exist`, param: 'options', location: 'body' });
-        }
-      }
-
-      if (topons && topons.length > 0) {
-        const existingTopons = await Topons.findAll({ where: { id: topons } });
-        const missingTopons = topons.filter(id => !existingTopons.map(topon => topon.id).includes(id));
-
-        if (missingTopons.length > 0) {
-          errors.push({ msg: `Topons with IDs (${missingTopons.join(', ')}) do not exist`, param: 'topons', location: 'body' });
-        }
-      }
+    const existingProductIds = products.map(p => p.id);
+    const missingProductIds = productIds.filter(id => !existingProductIds.includes(id));
+    if (missingProductIds.length > 0) {
+      errors.push({ msg: `Products with IDs (${missingProductIds.join(', ')}) do not exist`, param: 'productIds', location: 'body' });
     }
 
+    const existingVariantIds = variants.map(v => v.id);
+    const missingVariantIds = variantIds.filter(id => !existingVariantIds.includes(id));
+    if (missingVariantIds.length > 0) {
+      errors.push({ msg: `Variants with IDs (${missingVariantIds.join(', ')}) do not exist`, param: 'variantIds', location: 'body' });
+    }
+
+    const existingOptionIds = options.map(o => o.id);
+    const missingOptionIds = optionIds.filter(id => !existingOptionIds.includes(id));
+    if (missingOptionIds.length > 0) {
+      errors.push({ msg: `Options with IDs (${missingOptionIds.join(', ')}) do not exist`, param: 'optionIds', location: 'body' });
+    }
+
+    const existingToponIds = topons.map(t => t.id);
+    const missingToponIds = toponIds.filter(id => !existingToponIds.includes(id));
+    if (missingToponIds.length > 0) {
+      errors.push({ msg: `Topons with IDs (${missingToponIds.join(', ')}) do not exist`, param: 'toponIds', location: 'body' });
+    }
+
+
+    console.log("Errors:", errors);
     if (errors.length > 0) {
-      return res.status(400).json({ errors: errors });
+      res.status(400).json({ errors });
+      return;
     }
 
-
-
+    console.log("Order created:", errors);
     const order = await createOrderJson(req.body);
-    res.status(201).json(order);
+
+
+    const orderDetails = await Order.findOne({
+      where: { id: order.id },
+      include: [
+        { model: User, required: false },
+        {
+          model: OrderItems,
+          include: [
+            { model: Variant },
+            { model: Option, through: { attributes: [] } },
+            { model: Topons, through: { attributes: [] } },
+            {
+              model: OrderItemsCombo,
+              required: false,
+              include: [{ model: ComboVariants }]
+            }
+          ]
+        },
+
+      ]
+    });
+
+    res.status(201).json(orderDetails);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

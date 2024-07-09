@@ -14,37 +14,37 @@ const createProduct = async (productJson) => {
 };
 
 const handleComboItems = async (product, t) => {
-
-  const combo = await Combo.create({
+  console.log(JSON.stringify(product))
+  console.log(product.name, product.type)
+  const combo = await Product.create({
     name: product.name,
-    type: product.type
+    type: product.type,
+    description: product.description
   }, {
     transaction: t
   })
 
-  for (const comboVar of product.variants) {
-    const item = await ComboItems.create({
-      name: comboVar.name,
-      ComboId: combo.id
+  console.log("kreirao kombo")
+
+
+  const price = await PriceHistory.create({
+    price: product.price,
+    itemId: combo.id,
+    itemType: 'ComboVariants',
+
+  }, { transaction: t })
+
+  for (const comboVar of product.items) {
+    const v = await Variant.findByPk(comboVar)
+
+    const item = await ComboVariants.create({
+      ProductId: combo.id,
+      VariantId: v.id
     }, { transaction: t })
 
-    const price = await PriceHistory.create({
-      price: comboVar.price,
-      itemId: item.id,
-      itemType: 'ComboItems',
 
-    }, { transaction: t })
-
-    for (const varc of comboVar.items) {
-      const variant = await ComboVariants.create({
-        VariantId: varc,
-        ComboItemId: item.id
-      }, { transaction: t })
-
-
-
-    }
   }
+
   return combo
   /* for (const itemId of items) {
     const item = await Product.findOne({
@@ -88,11 +88,8 @@ const handleTopons = async (variant, groupTopons, t) => {
     VariantId: variant.id
   }, { transaction: t });
 
-  console.log(groupTopons.topons, "topons")
   for (const toponData of groupTopons.topons) {
-    console.log(toponData)
     const topon = await Topons.findOne({ where: { id: toponData.toponId } });
-    console.log(topon, toponData.rules)
     if (topon) {
       await GroupToponsMid.create({
         ToponId: topon.id,
@@ -104,7 +101,6 @@ const handleTopons = async (variant, groupTopons, t) => {
 };
 
 const handleOptions = async (variant, groupOptions, t) => {
-  console.log(groupOptions)
   const group = await GroupOptions.create({
     name: groupOptions.name,
     type: groupOptions.type,
@@ -114,7 +110,6 @@ const handleOptions = async (variant, groupOptions, t) => {
 
 
   for (const option of groupOptions.options) {
-    console.log(option)
     await Option.create({
       name: option,
       GroupOptionId: group.id
@@ -123,7 +118,6 @@ const handleOptions = async (variant, groupOptions, t) => {
 };
 
 const createGroupOption = async (groupOptionData, variantId, t) => {
-  console.log(groupOptionData)
   const groupOption = await GroupOption.create({
     name: groupOptionData.name,
     type: groupOptionData.type,
@@ -157,7 +151,6 @@ const handleVariants = async (variants, productId, t) => {
     const variant = await createVariant(variantData, productId, t);
 
     if (variantData.price) {
-      console.log(variantData.price, variant.id)
       await PriceHistory.create({
         itemId: variant.id,
         price: variantData.price,
@@ -180,25 +173,25 @@ const handleVariants = async (variants, productId, t) => {
       }
     }
 
-    if (variantData.locationIds) {
-      for (const locationId of variantData.locationIds) {
-        const location = await Location.findOne({ where: { id: locationId } });
-        if (location) {
-          await variant.addLocation(location, { transaction: t });
+    // if (variantData.locationIds) {
+    //   for (const locationId of variantData.locationIds) {
+    //     const location = await Location.findOne({ where: { id: locationId } });
+    //     if (location) {
+    //       await variant.addLocation(location, { transaction: t });
 
-          const rule = await SKURule.create({
-            name: `${variant.name} Rule for ${location.name}`,
-            LocationId: location.id
-          }, { transaction: t });
-          await SKU.create({
-            name: `${variant.name} SKU for ${location.name}`,
-            stock: 100,
-            price: 10,
-            SKURuleId: rule.id
-          }, { transaction: t });
-        }
-      }
-    }
+    //       const rule = await SKURule.create({
+    //         name: `${variant.name} Rule for ${location.name}`,
+    //         LocationId: location.id
+    //       }, { transaction: t });
+    //       await SKU.create({
+    //         name: `${variant.name} SKU for ${location.name}`,
+    //         stock: 100,
+    //         price: 10,
+    //         SKURuleId: rule.id
+    //       }, { transaction: t });
+    //     }
+    //   }
+    // }
   }
 };
 
@@ -209,7 +202,6 @@ const updateOrCreateTopon = async (toponData, groupToponId, t) => {
   const { id: toponId, name } = toponData;
   try {
     const groupTopon = await GroupTopons.findByPk(groupToponId);
-    console.log(groupTopon.id, toponId)
     const exist = await groupTopon.hasTopon(toponId);
     if (exist) {
       return;

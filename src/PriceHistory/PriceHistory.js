@@ -46,7 +46,7 @@ class PriceHistory extends Model {
 
   static associateModel(models) {
     PriceHistory.belongsTo(models.Variant, { foreignKey: 'itemId', constraints: false, as: 'variant' });
-    PriceHistory.belongsTo(models.ComboItems, { foreignKey: 'itemId', constraints: false, as: 'comboItem' });
+    PriceHistory.belongsTo(models.ComboVariants, { foreignKey: 'itemId', constraints: false, as: 'ComboPrice' });
     PriceHistory.belongsTo(models.Topons, { foreignKey: 'itemId', constraints: false, as: 'topons' });
 
 

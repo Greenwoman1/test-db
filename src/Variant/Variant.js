@@ -7,14 +7,14 @@ class Variant extends Model {
 
 
   static associateModel(models) {
-
-    Variant.belongsToMany(models.ComboItems, { through: 'ComboVariants' });
-    Variant.belongsTo(models.Product);
+    Variant.belongsToMany(models.Product, { through: 'ComboVariants', as: 'comboVariants', foreignKey: 'VariantId' });
+    Variant.belongsTo(models.Product, { as: 'Product' });
     Variant.hasMany(models.PriceHistory, { foreignKey: 'itemId', constraints: false });
     Variant.hasMany(models.GroupOptions);
     Variant.hasMany(models.GroupTopons);
     Variant.belongsToMany(models.Location, { through: 'VariantLocation' });
-    Variant.hasMany(models.OrderItems);
+    Variant.hasMany(models.ComboVariants, { foreignKey: 'VariantId' });
+
 
   }
 

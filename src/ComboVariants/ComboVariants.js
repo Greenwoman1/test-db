@@ -11,11 +11,11 @@ class ComboVariants extends Model {
           defaultValue: UUIDV4
 
         },
+
       },
       {
         sequelize,
         modelName: 'ComboVariants',
-        freezeTableName: true,
 
         timestamps: true,
       }
@@ -23,6 +23,11 @@ class ComboVariants extends Model {
   }
 
   static associateModel(models) {
+
+    ComboVariants.belongsTo(models.PriceHistory, { foreignKey: 'itemId', as: 'ComboPrice', constraints: false });
+    ComboVariants.hasMany(models.OrderItemsCombo);
+    ComboVariants.belongsTo(models.Variant, { foreignKey: 'VariantId' });
+
 
   }
 }

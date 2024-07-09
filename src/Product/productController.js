@@ -1,6 +1,5 @@
 const sequelize = require('../../sequelize');
-const { Variant, Topons, GroupOption, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, Price, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems } = require('../index');
-const { findByPk } = require('./Product');
+const { Variant, Topons, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems } = require('../index');
 
 const { createProduct,
   handleComboItems,
@@ -17,8 +16,7 @@ const { createProduct,
 const getProducts = async (req, res) => {
   try {
     const products = await Product.findAll();
-    const combos = await Combo.findAll()
-    res.status(200).json([...products, ...combos]);
+    res.status(200).json([...products]);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -60,11 +58,11 @@ const saveProductFromJson = async (req, res) => {
   try {
     const result = await sequelize.transaction(async (t) => {
       const productName = productJson.name;
-      const productItems = productJson.items || [];
+      const productItems = productJson?.items?.flatMap(item => item.id) || [];
 
       const promises = [
         Product.findOne({ where: { name: productName } }),
-        Product.findAll({ where: { id: productItems } }),
+        // Product.findAll({ where: { id: productItems } }),
         Topons.findAll()
       ];
 
@@ -74,27 +72,27 @@ const saveProductFromJson = async (req, res) => {
         errors.push({ msg: `Product with name (${productName}) already exists`, param: 'name', location: 'body' });
       }
 
-      if (existingProductItems.length !== productItems.length) {
-        const missingProductItems = productItems.filter(id => !existingProductItems.map(product => product.id).includes(id));
-        if (missingProductItems.length > 0) {
-          errors.push({ msg: `Products with ids (${missingProductItems.join(', ')}) do not exist`, param: 'items', location: 'body' });
-        }
-      }
+      /*  if (existingProductItems.length !== productItems.length) {
+         const missingProductItems = productItems.filter(id => !existingProductItems.map(product => product.id).includes(id));
+         if (missingProductItems.length > 0) {
+           errors.push({ msg: `Products with ids (${missingProductItems.join(', ')}) do not exist`, param: 'items', location: 'body' });
+         }
+       } */
 
       if (productJson.type == 'combo') {
-        const combos = await Combo.findAll({ where: { name: productJson.name } });
+        const combos = await Product.findAll({ where: { name: productJson.name } });
         if (combos.length > 0) {
           errors.push({ msg: `Combo with name (${productJson.name}) already exists`, param: 'name', location: 'body' });
         }
-        for (const variant of productJson.variants) {
-          for (const item of variant.items) {
-            const productItem = await Variant.findByPk(item);
-            if (!productItem) {
-              errors.push({ msg: `Combo item ${item} does not exist`, param: 'items', location: 'body' });
-            }
-
-
+        for (const variant of productJson?.items) {
+          console.log(variant);
+          const productItem = await Variant.findByPk(variant);
+          if (!productItem) {
+            errors.push({ msg: `Combo item ${variant} does not exist`, param: 'items', location: 'body' });
           }
+
+
+
         }
       }
 
@@ -102,7 +100,7 @@ const saveProductFromJson = async (req, res) => {
         res.status(400).json({ errors: errors });
         return;
       }
-
+      console.log(" dosao do komba");
 
       if (productJson.type === 'combo') {
 
@@ -142,48 +140,95 @@ const getProductSettings = async (req, res) => {
             {
               model: GroupOptions,
               as: 'GroupOptions',
-              attributes: ['id', 'name', 'type', "rules"],
+              attributes: ['id', 'name', 'type', 'rules'],
               include: [
                 {
                   model: Option,
-                  as: 'Options',
-                  attributes: ['id', 'name']
-                }
-              ]
+                  attributes: ['id', 'name'],
+                },
+              ],
             },
             {
               model: GroupTopons,
               as: 'GroupTopons',
-              attributes: ['id', 'name', 'type', "rules"],
+              attributes: ['id', 'name', 'type', 'rules'],
               include: [
                 {
                   model: Topons,
                   as: 'Topons',
                   attributes: ['id', 'name'],
                   through: {
-                    attributes: []
-                  }
-                }
-              ]
+                    attributes: [],
+                  },
+                },
+              ],
             },
             {
               model: PriceHistory,
               as: 'Prices',
-              attributes: ['price', 'createdAt']
+              attributes: ['price', 'createdAt'],
             },
             {
               model: Location,
               as: 'Locations',
               attributes: ['id', 'name'],
               through: {
-                attributes: []
-              }
-            }
-          ]
-        }
-      ]
+                attributes: [],
+              },
+            },
+          ],
+        },
+        {
+          model: Variant,
+          attributes: ['id', 'name'],
+          as: 'comboVariants',
+          through: {
+            attributes: [],
+          },
+          include: [
+            {
+              model: GroupOptions,
+              as: 'GroupOptions',
+              attributes: ['id', 'name', 'type', 'rules'],
+              include: [
+                {
+                  model: Option,
+                  attributes: ['id', 'name'],
+                },
+              ],
+            },
+            {
+              model: GroupTopons,
+              as: 'GroupTopons',
+              attributes: ['id', 'name', 'type', 'rules'],
+              include: [
+                {
+                  model: Topons,
+                  as: 'Topons',
+                  attributes: ['id', 'name'],
+                  through: {
+                    attributes: [],
+                  },
+                },
+              ],
+            },
+            {
+              model: PriceHistory,
+              as: 'Prices',
+              attributes: ['price', 'createdAt'],
+            },
+            {
+              model: Location,
+              as: 'Locations',
+              attributes: ['id', 'name'],
+              through: {
+                attributes: [],
+              },
+            },
+          ],
+        },
+      ],
     });
-
     if (!product) {
       return res.status(401).json({ message: `Product "${productId}" not found` });
     }
@@ -293,51 +338,101 @@ const formatProductResponse = (product) => {
 const getProductSettingsCombo = async (req, res) => {
   const { productId } = req.params;
   try {
-    const product = await Combo.findOne({
+    const product = await Product.findOne({
       where: { id: productId },
-      attributes: ['id', 'name'],
+      attributes: ['id', 'name', 'description', 'type'],
       include: [
         {
-          model: ComboItems,
-          as: 'ComboItems',
-          attributes: ['id'],
+          model: Variant,
+          as: 'DirectVariants',
+          attributes: ['id', 'name'],
           include: [
             {
-              model: Variant,
-              as: 'Variants',
-              attributes: ['id', 'name'],
-              through: { attributes: [] },
+              model: GroupOptions,
+              attributes: ['id', 'name', 'type', 'rules'],
               include: [
                 {
-                  model: GroupOptions,
-                  as: 'GroupOptions',
+                  model: Option,
                   attributes: ['id', 'name'],
-                  include: [
-                    {
-                      model: Option,
-                      as: 'Options',
-                      attributes: ['id', 'name']
-                    }
-                  ]
                 },
+              ],
+            },
+            {
+              model: GroupTopons,
+              as: 'GroupTopons',
+              attributes: ['id', 'name', 'type', 'rules'],
+              include: [
                 {
-                  model: GroupTopons,
-                  as: 'GroupTopons',
+                  model: Topons,
+                  as: 'Topons',
                   attributes: ['id', 'name'],
-                  include: [
-                    {
-                      model: Topons,
-                      as: 'Topons',
-                      through: { attributes: [] },
-                      attributes: ['id', 'name']
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
+                  through: {
+                    attributes: [],
+                  },
+                },
+              ],
+            },
+            {
+              model: PriceHistory,
+              as: 'Prices',
+              attributes: ['price', 'createdAt'],
+            },
+            {
+              model: Location,
+              as: 'Locations',
+              attributes: ['id', 'name'],
+              through: {
+                attributes: [],
+              },
+            },
+          ],
+        },
+        {
+          model: Variant,
+          as: 'ComboVariants',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: GroupOptions,
+              attributes: ['id', 'name', 'type', 'rules'],
+              include: [
+                {
+                  model: Option,
+                  attributes: ['id', 'name'],
+                },
+              ],
+            },
+            {
+              model: GroupTopons,
+              as: 'GroupTopons',
+              attributes: ['id', 'name', 'type', 'rules'],
+              include: [
+                {
+                  model: Topons,
+                  as: 'Topons',
+                  attributes: ['id', 'name'],
+                  through: {
+                    attributes: [],
+                  },
+                },
+              ],
+            },
+            {
+              model: PriceHistory,
+              as: 'Prices',
+              attributes: ['price', 'createdAt'],
+            },
+            {
+              model: Location,
+              as: 'Locations',
+              attributes: ['id', 'name'],
+              through: {
+                attributes: [],
+              },
+            },
+          ],
+        },
+      ],
     });
 
     if (!product) {

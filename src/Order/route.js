@@ -6,7 +6,7 @@ const { validateCreateOrder, validateResults } = require('./validateOrder');
 
 
 
-router.post('/', validateCreateOrder, validateResults, controller.createOrder);
+router.post('/', /* validateCreateOrder, validateResults,  */controller.createOrder);
 router.get('/', controller.createOrder);
 
 module.exports = router;

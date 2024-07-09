@@ -10,8 +10,8 @@ router.get('/', productController.getProducts);
 router.get('/:id', productController.getProductById);
 router.get('/:locationId/products', validateLocationId, validateResults, productController.getProductsByLocation);
 
-router.post('/settings', validateCreateProduct, validateResults, productController.saveProductFromJson)
-router.post('/settings/combo', validateCreateProductCombo, validateResults, productController.saveProductFromJson)
+router.post('/settings', /* validateCreateProduct, validateResults,  */productController.saveProductFromJson)
+router.post('/settings/combo',/*  validateCreateProductCombo, validateResults, */ productController.saveProductFromJson)
 router.get('/settings/:productId', validateProductId, validateResults, productController.getProductSettings)
 
 router.post('/settings/:productId', validateProductId, validateUpdateProduct, validateResults, productController.updateProductFromJson, productController.getProductSettings)
