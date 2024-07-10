@@ -24,7 +24,6 @@ const handleComboItems = async (product, t) => {
     transaction: t
   })
 
-  console.log("kreirao kombo")
 
 
   const price = await PriceHistory.create({

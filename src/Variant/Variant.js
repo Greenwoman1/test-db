@@ -56,7 +56,7 @@ class Variant extends Model {
         },
         order: [['createdAt', 'DESC']]
       });
-      return price ? price.price : null;
+      return price ? price.price : 0;
     } catch (error) {
       console.error('Error fetching price:', error);
       throw error;

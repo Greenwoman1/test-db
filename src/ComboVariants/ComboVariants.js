@@ -27,6 +27,7 @@ class ComboVariants extends Model {
     ComboVariants.belongsTo(models.PriceHistory, { foreignKey: 'itemId', as: 'ComboPrice', constraints: false });
     ComboVariants.hasMany(models.OrderItemsCombo);
     ComboVariants.belongsTo(models.Variant, { foreignKey: 'VariantId' });
+    ComboVariants.belongsTo(models.Product, { foreignKey: 'ProductId', as: 'PCV' });
 
 
   }

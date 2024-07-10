@@ -72,34 +72,60 @@ const createOrder = async (req, res) => {
     }
 
 
-    console.log("Errors:", errors);
     if (errors.length > 0) {
       res.status(400).json({ errors });
       return;
     }
 
-    console.log("Order created:", errors);
     const order = await createOrderJson(req.body);
-
 
     const orderDetails = await Order.findOne({
       where: { id: order.id },
+      attributes: ['id', 'status', 'totalPrice', 'LocationId', 'UserId'],
       include: [
-        { model: User, required: false },
+        {
+          model: User,
+          attributes: ['id', 'firstName', 'lastName'],
+          required: false
+        },
         {
           model: OrderItems,
+          attributes: ['id', 'quantity', 'OrderId', 'VariantId'],
           include: [
-            { model: Variant },
-            { model: Option, through: { attributes: [] } },
-            { model: Topons, through: { attributes: [] } },
+            {
+              model: Variant,
+              attributes: ['id', 'name', 'ProductId']
+            },
+            {
+              model: Option,
+              attributes: ['id', 'name'],
+              through: { attributes: [] }
+            },
+            {
+              model: Topons,
+              attributes: ['id', 'name'],
+              through: { attributes: [] }
+            },
             {
               model: OrderItemsCombo,
+              attributes: ['id', 'ComboVariantId', 'OrderId', 'OrderItemId'],
               required: false,
-              include: [{ model: ComboVariants }]
+              include: [
+                {
+                  model: ComboVariants,
+                  attributes: ['id', 'ProductId', 'VariantId'],
+                  include: [
+                    {
+                      model: Product,
+                      as: 'PCV',
+                      attributes: ['name'],
+                    }
+                  ]
+                }
+              ]
             }
           ]
-        },
-
+        }
       ]
     });
 

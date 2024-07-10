@@ -1,6 +1,6 @@
 const { name } = require("ejs");
 
-const { Order, OrderItems, PriceHistory, ProductT, ProductO, OrderItemsCombo, Topons, Variant, ComboVariants } = require("../..");
+const { Order, OrderItems, PriceHistory, ProductT, ProductO, OrderItemsCombo, Topons, Variant, ComboVariants, Product } = require("../..");
 const createOrderJson = async (orderJson) => {
   try {
     let totalPrice = 0;
@@ -26,21 +26,21 @@ const createOrderJson = async (orderJson) => {
       } else if (item.type === 'combo') {
         let comboTotalPrice = 0;
 
+
+        const p = await Product.findByPk(item.productId);
+        const productPrice = await p.getPrice(new Date());
+        comboTotalPrice += productPrice;
         for (const comboVariant of item.comboVariants) {
-          const v = await Variant.findByPk(comboVariant.variantId);
-          const variantPrice = await v.getPrice(new Date());
-          console.log(variantPrice)
-          comboTotalPrice += variantPrice;
 
           for (const topon of comboVariant.topons) {
             const t = await Topons.findByPk(topon.toponId);
             const toponPrice = await t.getPrice(new Date());
-            console.log(toponPrice)
+            console.log(toponPrice, "topon")
             comboTotalPrice += toponPrice * topon.quantity;
           }
         }
 
-        console.log(comboTotalPrice, item.quantity)
+        console.log(comboTotalPrice + "Dsadsa" + item.quantity)
         totalPrice += comboTotalPrice * item.quantity;
       }
     }
