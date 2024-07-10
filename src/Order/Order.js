@@ -22,7 +22,11 @@ class Order extends Model {
           allowNull: false,
         },
         status: {
-          type: DataTypes.STRING,
+          type: DataTypes.STRING(64),
+          allowNull: false,
+          validate: {
+            min: 4
+          },
         },
         totalPrice: {
           type: DataTypes.DECIMAL(10, 2),

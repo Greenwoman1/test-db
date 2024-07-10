@@ -11,14 +11,11 @@ const createOrderJson = async (orderJson) => {
       if (item.type === 'single') {
         const v = await Variant.findByPk(item.variantId);
         const variantPrice = await v.getPrice(new Date());
-        console.log(variantPrice)
         let itemTotalPrice = variantPrice * item.quantity;
 
         for (const topon of item.topons) {
           const t = await Topons.findByPk(topon.toponId);
-          console.log(topon.toponId)
           const toponPrice = await t.getPrice(new Date());
-          console.log(toponPrice)
           itemTotalPrice += toponPrice * topon.quantity * item.quantity;
         }
 
@@ -35,12 +32,10 @@ const createOrderJson = async (orderJson) => {
           for (const topon of comboVariant.topons) {
             const t = await Topons.findByPk(topon.toponId);
             const toponPrice = await t.getPrice(new Date());
-            console.log(toponPrice, "topon")
             comboTotalPrice += toponPrice * topon.quantity;
           }
         }
 
-        console.log(comboTotalPrice + "Dsadsa" + item.quantity)
         totalPrice += comboTotalPrice * item.quantity;
       }
     }

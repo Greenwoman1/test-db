@@ -29,8 +29,11 @@ class Variant extends Model {
           allowNull: false,
         },
         name: {
-          type: DataTypes.STRING,
+          type: DataTypes.STRING(64),
           allowNull: false,
+          validate: {
+            min: 4
+          },
         }
 
       },

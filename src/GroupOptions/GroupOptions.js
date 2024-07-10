@@ -13,16 +13,25 @@ class GroupOption extends Model {
           primaryKey: true,
         },
         name: {
-          type: DataTypes.STRING,
+          type: DataTypes.STRING(64),
           allowNull: false,
+          validate: {
+            min: 4
+          }
         },
         type: {
-          type: DataTypes.STRING,
+          type: DataTypes.STRING(64),
           allowNull: false,
+          validate: {
+            min: 4
+          }
         },
         rules: {
-          type: DataTypes.JSON,
-          allowNull: true
+          type: DataTypes.STRING(64),
+          allowNull: false,
+          validate: {
+            min: 4
+          }
         }
 
       },

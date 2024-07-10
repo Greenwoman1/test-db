@@ -13,8 +13,6 @@ class Product extends Model {
       foreignKey: 'ProductId',
 
     });
-
-
     Product.hasMany(model.ComboVariants, { foreignKey: 'ProductId', as: "PCV" });
 
 

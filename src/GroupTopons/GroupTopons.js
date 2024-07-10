@@ -13,10 +13,18 @@ class GroupTopons extends Model {
 
         },
         name: {
-          type: DataTypes.STRING
+          type: DataTypes.STRING(64),
+          allowNull: false,
+          validate: {
+            min: 4
+          },
         },
         type: {
-          type: DataTypes.STRING
+          type: DataTypes.STRING(64),
+          allowNull: false,
+          validate: {
+            min: 4
+          },
         },
         rules: {
           type: DataTypes.JSON
