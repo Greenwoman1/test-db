@@ -63,7 +63,6 @@ const deleteVariant = async (req, res) => {
 
 const uploadImage = async (req, res) => {
   try {
-    console.log(req.files);
     const variantId = req.params.variantId;
 
     const variant = await Variant.findByPk(variantId);
@@ -100,8 +99,7 @@ const getPrice = async (req, res) => {
     const date = new Date();
     const variant = await Variant.findByPk(variantId);
     const price = await variant.getPrice(date);
-    console.log(price);
-    res.status(200).json( price );
+    res.status(200).json(price);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

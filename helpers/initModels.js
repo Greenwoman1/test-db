@@ -14,7 +14,8 @@ const { Product, Variant, Option, Topons, SKURule, GroupRule, User,
   ProductO,
   OrderItems,
   UserLocation,
-  OrderItemsCombo
+  OrderItemsCombo,
+  Balance
 } = require("../src");
 
 async function initModels() {
@@ -41,7 +42,8 @@ async function initModels() {
     ProductO,
     ProductT,
     UserLocation,
-    OrderItemsCombo
+    OrderItemsCombo,
+    Balance
   ];
 
   for (const model of models) {
@@ -75,14 +77,13 @@ async function associateModels() {
     'ProductO': ProductO,
     'ProductT': ProductT,
     'UserLocation': UserLocation,
-    'OrderItemsCombo': OrderItemsCombo
+    'OrderItemsCombo': OrderItemsCombo,
+    'Balance': Balance
   }
 
   for (const [key, model] of Object.entries(models)) {
-    console.log(`Associating model: ${key}`);
     if (model.associateModel) {
       model.associateModel(models);
-      console.log(`Model associate finish for: ${key}`);
     } else {
       console.warn(`associateModel nije definiran za model ${key}`);
     }

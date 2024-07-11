@@ -1,10 +1,12 @@
 const { name } = require('ejs');
 const { saveProductFromJson, createProduct } = require('./Product/productController');
-const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule, Location, VariantLocation, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, OrderItems, ProductO, ProductT, OrderItemsCombo, User } = require('./index');
+const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule, Location, VariantLocation, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, OrderItems, ProductO, ProductT, OrderItemsCombo, User, Balance } = require('./index');
 const { handleVariants } = require('./Product/utils');
 const { Json } = require('sequelize/lib/utils');
 const { Sequelize } = require('sequelize');
 const sequelize = require('../sequelize');
+
+const redisClient = require('../redisClient');
 
 const seed = async () => {
   const toponsData = [
@@ -43,7 +45,6 @@ const seed = async () => {
         });
       }
 
-      console.log('Topons and associated SKUs created successfully.');
     } catch (error) {
       console.error('Error creating topons and SKUs:', error);
     }
@@ -64,7 +65,6 @@ const seed = async () => {
       for (const locationData of locationsData) {
         await Location.create(locationData);
       }
-      console.log('Locations created successfully.');
     } catch (error) {
       console.error('Error creating locations:', error);
     }
@@ -130,7 +130,6 @@ const seed = async () => {
   }
 
 
-  console.log('Products and variants created successfully.');
 
   const comboProduct = await Product.findOne({
     where: { id: p7.id },
@@ -232,7 +231,6 @@ const seed = async () => {
 
   });
 
-  console.log(JSON.stringify(result));
 
 
   const getProductSettings = async (productId) => {
@@ -349,7 +347,6 @@ const seed = async () => {
   const productSettings = await getProductSettings(
     result.id);
 
-  console.log(JSON.stringify(productSettings));
 
 
   /*
@@ -704,8 +701,25 @@ const seed = async () => {
     ]
   });
 
-  console.log(JSON.stringify(orderDetails, null, 2));
 
+  const user = await User.create({ firstName: "Alice", lastName: "a@a.com", password: "a" });
+
+  const newBalance = await Balance.create({
+    UserId: user.id,
+    amount: 151,
+    date: new Date(),
+    reason: 'Initial Balance',
+    comment: 'New balance added',
+  });
+
+  const totalBalance = await Balance.sum('amount', { where: { UserId: user.id } });
+
+  await redisClient.set(`user_balance_${user.id}`, JSON.stringify(totalBalance), 'EX', 36000);
+
+  const cacheKey = `user_balance_${user.id}`;
+
+  const cachedBalance = await redisClient.get(cacheKey);
+  console.log(cachedBalance);
 
   console.log('All products created');
 };

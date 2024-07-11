@@ -4,7 +4,6 @@ const { Product, Variant, Topons, GroupOption, Option, GroupRule, VariantLocatio
 
 
 const createProduct = async (productJson) => {
-  console.log(productJson);
   return await Product.create({
     name: productJson.name,
     description: productJson.description,
@@ -14,8 +13,7 @@ const createProduct = async (productJson) => {
 };
 
 const handleComboItems = async (product, t) => {
-  console.log(JSON.stringify(product))
-  console.log(product.name, product.type)
+
   const combo = await Product.create({
     name: product.name,
     type: product.type,
@@ -285,7 +283,6 @@ const updateOrCreateVariant = async (variantData, productId, t) => {
 
       }
     }
-    console.log(variant.id);
     return variant;
   } catch (error) {
     console.error('Error updating/creating variant:', error);
@@ -347,7 +344,6 @@ const updateOrCreateGroupTopon = async (groupOptionData, variantId, t) => {
 
   try {
     let GroupTopon;
-    console.log(id, variantId)
 
     if (id) {
       GroupTopon = await GroupTopons.findByPk(id);
@@ -367,7 +363,6 @@ const updateOrCreateGroupTopon = async (groupOptionData, variantId, t) => {
         rules: Rules
       }, { transaction: t });
     }
-    console.log(GroupTopon.id, Topons)
     for (const topon of Topons) {
       await updateOrCreateTopon(topon, GroupTopon.id, t);
     }

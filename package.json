@@ -26,10 +26,12 @@
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "express-validator": "^7.1.0",
+    "ioredis": "^1.0.11",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.12.0",
     "pg-hstore": "^2.3.4",
+    "redis": "^4.6.15",
     "sequelize": "^6.37.3"
   },
   "devDependencies": {

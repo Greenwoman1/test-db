@@ -129,7 +129,6 @@ const getOrderDetailsForUser = async (req, res) => {
               name: option.name,
             };
           });
-          console.log(JSON.stringify(item.Topons))
           const topons = item.Topons.map(topon => {
             const toponPrice = topon.Prices.length ? topon.Prices[0].price : 0;
             return {

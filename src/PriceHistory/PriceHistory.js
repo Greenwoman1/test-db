@@ -33,7 +33,6 @@ class PriceHistory extends Model {
       }
     );
     PriceHistory.addHook('beforeValidate', (priceHistory, options) => {
-      console.log(priceHistory, options, 'beforevalidate');
       if (priceHistory.itemType === 'Variant') {
         priceHistory.set('itemId', priceHistory.itemId);
       } else if (priceHistory.itemType === 'ComboItems') {
@@ -62,7 +61,6 @@ class PriceHistory extends Model {
       order: [['createdAt', 'DESC']]
     });
 
-    console.log(price);
     return price ? price.price : null;
   }
 }

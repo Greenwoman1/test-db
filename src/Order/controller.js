@@ -1,4 +1,5 @@
 const { OrderItems, Order, ItemProduct, ProductT, Variant, PriceHistory, Product, Topons, Op, User, Location, Option, OrderItemsCombo, ComboVariants } = require("../.");
+const sequelize = require('../../sequelize');
 
 const { createOrderJson } = require("./utils");
 
@@ -39,6 +40,8 @@ const createOrder = async (req, res) => {
       Topons.findAll({ where: { id: toponIds } }),
     ]);
 
+
+
     if (!user) {
       errors.push({ msg: `User with ID (${userId}) does not exist`, param: 'userId', location: 'body' });
     }
@@ -77,10 +80,18 @@ const createOrder = async (req, res) => {
       return;
     }
 
-    const order = await createOrderJson(req.body);
+
+    const result = await sequelize.transaction(async (t) => {
+
+      const order = await createOrderJson(req.body, t);
+
+      return order
+
+    });
+
 
     const orderDetails = await Order.findOne({
-      where: { id: order.id },
+      where: { id: result.id },
       attributes: ['id', 'status', 'totalPrice', 'LocationId', 'UserId'],
       include: [
         {
@@ -128,7 +139,6 @@ const createOrder = async (req, res) => {
         }
       ]
     });
-
     res.status(201).json(orderDetails);
   } catch (error) {
     res.status(500).json({ message: error.message });
