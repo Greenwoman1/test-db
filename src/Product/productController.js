@@ -85,7 +85,6 @@ const saveProductFromJson = async (req, res) => {
           errors.push({ msg: `Combo with name (${productJson.name}) already exists`, param: 'name', location: 'body' });
         }
         for (const variant of productJson?.items) {
-          console.log(variant);
           const productItem = await Variant.findByPk(variant);
           if (!productItem) {
             errors.push({ msg: `Combo item ${variant} does not exist`, param: 'items', location: 'body' });
@@ -100,7 +99,6 @@ const saveProductFromJson = async (req, res) => {
         res.status(400).json({ errors: errors });
         return;
       }
-      console.log(" dosao do komba");
 
       if (productJson.type === 'combo') {
 
