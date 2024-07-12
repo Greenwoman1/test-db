@@ -28,7 +28,8 @@ class Location extends Model {
 
   static associateModel(models) {
     Location.belongsToMany(models.Variant, { through: 'VariantLocation' });
-    Location.hasMany(models.SKURule);
+    Location.belongsToMany(models.Topons, { through: 'ToponLocations' });
+    Location.hasMany(models.SKU)
     Location.belongsTo(models.UserLocation);
 
   }

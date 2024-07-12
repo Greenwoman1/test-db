@@ -9,40 +9,53 @@ const sequelize = require('../sequelize');
 const redisClient = require('../redisClient');
 
 const seed = async () => {
+
+
+  const locationsData = [
+    { id: 'aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Stup Hadziabdinica' },
+    { id: 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Pofalici' }
+  ];
+
   const toponsData = [
-    { id: '11111111-1111-1111-1111-111111111111', name: 'Banana', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: '22222222-2222-2222-2222-222222222222', name: 'Jagoda', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: '33333333-3333-3333-3333-333333333333', name: 'Med', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: '44444444-4444-4444-4444-444444444444', name: 'Orah', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: '55555555-5555-5555-5555-555555555555', name: 'Basil', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: '66666666-6666-6666-6666-666666666666', name: 'Tomato', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: '77777777-7777-7777-7777-777777777777', name: 'Pepperoni', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: '88888888-8888-8888-8888-888888888888', name: 'Olives', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: '99999999-9999-9999-9999-999999999999', name: 'Lettuce', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: '00000000-0000-0000-0000-000000000000', name: 'Pickles', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Croutons', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Parmesan', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', name: 'Feta Cheese', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', name: 'Goat Cheese', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 },
-    { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', name: 'Cucumber', minValue: 0, maxValue: 5, defaultValue: 2, stock: 4561, price: 0 }
+    { id: '11111111-1111-1111-1111-111111111111', name: 'Banana', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '22222222-2222-2222-2222-222222222222', name: 'Jagoda', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '33333333-3333-3333-3333-333333333333', name: 'Med', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '44444444-4444-4444-4444-444444444444', name: 'Orah', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '55555555-5555-5555-5555-555555555555', name: 'Basil', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '66666666-6666-6666-6666-666666666666', name: 'Tomato', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '77777777-7777-7777-7777-777777777777', name: 'Pepperoni', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '88888888-8888-8888-8888-888888888888', name: 'Olives', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '99999999-9999-9999-9999-999999999999', name: 'Lettuce', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '00000000-0000-0000-0000-000000000000', name: 'Pickles', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Croutons', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Parmesan', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', name: 'Feta Cheese', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', name: 'Goat Cheese', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', name: 'Cucumber', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] }
   ];
 
   const createToponsWithSKUs = async (toponsData) => {
     try {
+
       for (const toponData of toponsData) {
-        const topon = await Topons.create(toponData);
+        const { id, name, locations } = toponData;
+        const topon = await Topons.create({ id, name });
+
+        for (const locationId of locations) {
+          const location = await Location.findOne({ where: { id: locationId } });
+          await topon.addLocation(location);
+        }
+        const sku = await SKU.create({
+          name: topon.name,
+          stock: toponData.stock || 0,
+          price: toponData.price,
+        });
 
         const rule = await SKURule.create({
           name: topon.name,
-          ToponId: topon.id
+          SKUId: sku.id
         });
 
-        await SKU.create({
-          name: topon.name,
-          stock: toponData.stock,
-          price: toponData.price,
-          SKURuleId: rule.id
-        });
       }
 
     } catch (error) {
@@ -54,11 +67,6 @@ const seed = async () => {
 
 
 
-
-  const locationsData = [
-    { id: 'aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Stup Hadziabdinica' },
-    { id: 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Pofalici' }
-  ];
 
   const createLocations = async (locationsData) => {
     try {
@@ -221,131 +229,131 @@ const seed = async () => {
       }
     ]
   }
-  const result = await sequelize.transaction(async (t) => {
+  // const result = await sequelize.transaction(async (t) => {
 
-    const product = await createProduct(JsonProduct, t);
+  //   const product = await createProduct(JsonProduct, t);
 
-    await handleVariants(JsonProduct.variants, product.id, t);
+  //   await handleVariants(JsonProduct.variants, product.id, t);
 
-    return product;
+  //   return product;
 
-  });
+  // });
 
 
 
-  const getProductSettings = async (productId) => {
-    try {
+  // const getProductSettings = async (productId) => {
+  //   try {
 
-      const product = await Product.findOne({
-        where: { id: productId },
-        attributes: ['id', 'name', 'description', 'type'],
-        include: [
-          {
-            model: Variant,
-            as: 'Variants',
-            attributes: ['id', 'name'],
-            include: [
-              {
-                model: GroupOptions,
-                as: 'GroupOptions',
-                attributes: ['id', 'name', 'type', 'rules'],
-                include: [
-                  {
-                    model: Option,
-                    attributes: ['id', 'name'],
-                  },
-                ],
-              },
-              {
-                model: GroupTopons,
-                as: 'GroupTopons',
-                attributes: ['id', 'name', 'type', 'rules'],
-                include: [
-                  {
-                    model: Topons,
-                    as: 'Topons',
-                    attributes: ['id', 'name'],
-                    through: {
-                      attributes: [],
-                    },
-                  },
-                ],
-              },
-              {
-                model: PriceHistory,
-                as: 'Prices',
-                attributes: ['price', 'createdAt'],
-              },
-              {
-                model: Location,
-                as: 'Locations',
-                attributes: ['id', 'name'],
-                through: {
-                  attributes: [],
-                },
-              },
-            ],
-          },
-          {
-            model: Variant,
-            attributes: ['id', 'name'],
-            as: 'comboVariants',
-            through: {
-              attributes: [],
-            },
-            include: [
-              {
-                model: GroupOptions,
-                as: 'GroupOptions',
-                attributes: ['id', 'name', 'type', 'rules'],
-                include: [
-                  {
-                    model: Option,
-                    attributes: ['id', 'name'],
-                  },
-                ],
-              },
-              {
-                model: GroupTopons,
-                as: 'GroupTopons',
-                attributes: ['id', 'name', 'type', 'rules'],
-                include: [
-                  {
-                    model: Topons,
-                    as: 'Topons',
-                    attributes: ['id', 'name'],
-                    through: {
-                      attributes: [],
-                    },
-                  },
-                ],
-              },
-              {
-                model: PriceHistory,
-                as: 'Prices',
-                attributes: ['price', 'createdAt'],
-              },
-              {
-                model: Location,
-                as: 'Locations',
-                attributes: ['id', 'name'],
-                through: {
-                  attributes: [],
-                },
-              },
-            ],
-          },
-        ],
-      });
-      return product;
-    } catch (error) {
-      console.error('Error getting product settings:', error);
-      throw error;
-    }
-  };
+  //     const product = await Product.findOne({
+  //       where: { id: productId },
+  //       attributes: ['id', 'name', 'description', 'type'],
+  //       include: [
+  //         {
+  //           model: Variant,
+  //           as: 'Variants',
+  //           attributes: ['id', 'name'],
+  //           include: [
+  //             {
+  //               model: GroupOptions,
+  //               as: 'GroupOptions',
+  //               attributes: ['id', 'name', 'type', 'rules'],
+  //               include: [
+  //                 {
+  //                   model: Option,
+  //                   attributes: ['id', 'name'],
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               model: GroupTopons,
+  //               as: 'GroupTopons',
+  //               attributes: ['id', 'name', 'type', 'rules'],
+  //               include: [
+  //                 {
+  //                   model: Topons,
+  //                   as: 'Topons',
+  //                   attributes: ['id', 'name'],
+  //                   through: {
+  //                     attributes: [],
+  //                   },
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               model: PriceHistory,
+  //               as: 'Prices',
+  //               attributes: ['price', 'createdAt'],
+  //             },
+  //             {
+  //               model: Location,
+  //               as: 'Locations',
+  //               attributes: ['id', 'name'],
+  //               through: {
+  //                 attributes: [],
+  //               },
+  //             },
+  //           ],
+  //         },
+  //         {
+  //           model: Variant,
+  //           attributes: ['id', 'name'],
+  //           as: 'comboVariants',
+  //           through: {
+  //             attributes: [],
+  //           },
+  //           include: [
+  //             {
+  //               model: GroupOptions,
+  //               as: 'GroupOptions',
+  //               attributes: ['id', 'name', 'type', 'rules'],
+  //               include: [
+  //                 {
+  //                   model: Option,
+  //                   attributes: ['id', 'name'],
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               model: GroupTopons,
+  //               as: 'GroupTopons',
+  //               attributes: ['id', 'name', 'type', 'rules'],
+  //               include: [
+  //                 {
+  //                   model: Topons,
+  //                   as: 'Topons',
+  //                   attributes: ['id', 'name'],
+  //                   through: {
+  //                     attributes: [],
+  //                   },
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               model: PriceHistory,
+  //               as: 'Prices',
+  //               attributes: ['price', 'createdAt'],
+  //             },
+  //             {
+  //               model: Location,
+  //               as: 'Locations',
+  //               attributes: ['id', 'name'],
+  //               through: {
+  //                 attributes: [],
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       ],
+  //     });
+  //     return product;
+  //   } catch (error) {
+  //     console.error('Error getting product settings:', error);
+  //     throw error;
+  //   }
+  // };
 
-  const productSettings = await getProductSettings(
-    result.id);
+  // const productSettings = await getProductSettings(
+  //   result.id);
 
 
 

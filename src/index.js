@@ -25,6 +25,7 @@ const ProductT = require('./ProductT/ProductT');
 const UserLocation = require('./UserLocation/UserLocation');
 const OrderItemsCombo = require('./OrderItemsCombo/OrderItemsCombo');
 const Balance = require('./Balance/balance');
+const ToponLocations = require('./ToponLocations/ToponLocations');
 
 module.exports = {
   User,
@@ -51,5 +52,6 @@ module.exports = {
   ProductT,
   UserLocation,
   OrderItemsCombo,
-  Balance
+  Balance,
+  ToponLocations
 } 

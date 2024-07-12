@@ -4,12 +4,14 @@ const { Product, Variant, Topons, GroupOption, Option, GroupRule, VariantLocatio
 
 
 const createProduct = async (productJson) => {
-  return await Product.create({
+  const p = await Product.create({
     name: productJson.name,
     description: productJson.description,
     type: productJson.type,
     comboPrice: productJson.price ? productJson.price : null
   });
+
+  return p;
 };
 
 const handleComboItems = async (product, t) => {
@@ -36,7 +38,9 @@ const handleComboItems = async (product, t) => {
 
     const item = await ComboVariants.create({
       ProductId: combo.id,
-      VariantId: v.id
+      VariantId: v.id,
+      stock: 0,
+
     }, { transaction: t })
 
 
@@ -69,15 +73,27 @@ const handleComboItems = async (product, t) => {
   } */
 };
 
-const createVariant = async (variantData, productId, t) => {
-  return await Variant.create({
-    name: variantData.name,
-    ProductId: productId
-  },
-    { transaction: t });
+const createVariant = async (variantData, locationIds, productId, t) => {
+  console.log(variantData, productId)
+  try {
+    const variant = await Variant.create({
+      name: variantData.name,
+      ProductId: productId
+    },
+      { transaction: t });
+    return variant
+
+  } catch (error) {
+    console.error('Error creating variant:', error);
+    throw error;
+  }
+
+
 };
 
 const handleTopons = async (variant, groupTopons, t) => {
+
+  console.log(JSON.stringify(variant))
   const group = await GroupTopons.create({
     name: groupTopons.name,
     type: groupTopons.type,
@@ -143,10 +159,11 @@ const createGroupOption = async (groupOptionData, variantId, t) => {
   }
 };
 
-const handleVariants = async (variants, productId, t) => {
+const handleVariants = async (variants, locationIds, product, t) => {
+  console.log(variants, locationIds, product);
   for (const variantData of variants) {
-    const variant = await createVariant(variantData, productId, t);
-
+    const variant = await createVariant(variantData, locationIds, product.id, t);
+    console.log(variantData, variant);
     if (variantData.price) {
       await PriceHistory.create({
         itemId: variant.id,
@@ -154,14 +171,25 @@ const handleVariants = async (variants, productId, t) => {
         itemType: 'Variant',
 
       }, { transaction: t });
+      if (variant) {
+        console.log(locationIds)
+        for (const locationId of variantData.locationIds) {
+          const location = await Location.findOne({ where: { id: locationId } });
+          if (location) {
+            await variant.addLocation(location, { transaction: t });
+          }
+        }
+
+      }
 
     }
-
     if (variantData.groupTopons) {
       for (const toponData of variantData.groupTopons) {
         await handleTopons(variant, toponData, t);
       }
     }
+
+
 
     if (variantData.groupOptions) {
 
@@ -170,25 +198,26 @@ const handleVariants = async (variants, productId, t) => {
       }
     }
 
-    // if (variantData.locationIds) {
-    //   for (const locationId of variantData.locationIds) {
-    //     const location = await Location.findOne({ where: { id: locationId } });
-    //     if (location) {
-    //       await variant.addLocation(location, { transaction: t });
+    if (variantData.locationIds) {
+      for (const locationId of variantData.locationIds) {
+        const location = await Location.findOne({ where: { id: locationId } });
+        if (location) {
+          await variant.addLocation(location, { transaction: t });
+          const sku = await SKU.create({
+            name: `${variant.name} SKU for ${location.name}`,
+            stock: 100,
+            price: 10,
+            LocationId: location.id,
+          }, { transaction: t });
+          const rule = await SKURule.create({
+            name: `${variant.name} Rule for ${location.name}`,
+            LocationId: location.id,
+            SKUId: sku.id
+          }, { transaction: t });
 
-    //       const rule = await SKURule.create({
-    //         name: `${variant.name} Rule for ${location.name}`,
-    //         LocationId: location.id
-    //       }, { transaction: t });
-    //       await SKU.create({
-    //         name: `${variant.name} SKU for ${location.name}`,
-    //         stock: 100,
-    //         price: 10,
-    //         SKURuleId: rule.id
-    //       }, { transaction: t });
-    //     }
-    //   }
-    // }
+        }
+      }
+    }
   }
 };
 

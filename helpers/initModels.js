@@ -15,7 +15,8 @@ const { Product, Variant, Option, Topons, SKURule, GroupRule, User,
   OrderItems,
   UserLocation,
   OrderItemsCombo,
-  Balance
+  Balance,
+  ToponLocations
 } = require("../src");
 
 async function initModels() {
@@ -43,7 +44,8 @@ async function initModels() {
     ProductT,
     UserLocation,
     OrderItemsCombo,
-    Balance
+    Balance,
+    ToponLocations
   ];
 
   for (const model of models) {
@@ -78,7 +80,8 @@ async function associateModels() {
     'ProductT': ProductT,
     'UserLocation': UserLocation,
     'OrderItemsCombo': OrderItemsCombo,
-    'Balance': Balance
+    'Balance': Balance,
+    'ToponLocations': ToponLocations
   }
 
   for (const [key, model] of Object.entries(models)) {

@@ -1,6 +1,7 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 const { getSKUById } = require('../SKU/skuController');
+const SKU = require('../SKU/SKU');
 
 class SKURule extends Model {
   static initModel() {
@@ -24,9 +25,9 @@ class SKURule extends Model {
   }
 
   static associateModel(models) {
-    SKURule.hasOne(models.SKU);
-    SKURule.belongsTo(models.Location);
 
+
+    SKURule.belongsTo(models.SKU);
   }
 }
 

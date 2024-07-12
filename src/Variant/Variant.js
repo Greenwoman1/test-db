@@ -1,4 +1,4 @@
-const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const { DataTypes, Model, UUIDV4, BelongsTo } = require('sequelize');
 const sequelize = require('../../sequelize');
 const { Op } = require('sequelize');
 const PriceHistory = require('../PriceHistory/PriceHistory');

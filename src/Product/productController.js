@@ -1,5 +1,5 @@
 const sequelize = require('../../sequelize');
-const { Variant, Topons, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems } = require('../index');
+const { Variant, Topons, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems, SKU } = require('../index');
 
 const { createProduct,
   handleComboItems,
@@ -109,7 +109,7 @@ const saveProductFromJson = async (req, res) => {
       } else {
         const product = await createProduct(productJson, t);
 
-        await handleVariants(productJson.variants, product.id, t);
+        await handleVariants(productJson.variants, productJson.locationIds, product, t);
         res.status(201).json({ message: 'Product id ' + product.id + ' created' });
 
       }
@@ -173,7 +173,16 @@ const getProductSettings = async (req, res) => {
               through: {
                 attributes: [],
               },
+              include: [
+                {
+                  model: SKU,
+                  attributes: ['id', 'stock'],
+
+                }
+              ]
             },
+
+
           ],
         },
         {

@@ -1,7 +1,8 @@
 const { name } = require("ejs");
 
 
-const { Order, OrderItems, PriceHistory, ProductT, ProductO, OrderItemsCombo, Topons, Variant, ComboVariants, Product } = require("../..");
+const { Order, OrderItems, PriceHistory, ProductT, ProductO, OrderItemsCombo, Topons, Variant, ComboVariants, Product, Balance } = require("../..");
+const { getVariantSKU } = require("../../Variant/utils");
 const createOrderJson = async (orderJson, t) => {
   try {
     let totalPrice = 0;
@@ -9,6 +10,9 @@ const createOrderJson = async (orderJson, t) => {
 
 
     for (const item of orderJson.orderItems) {
+      const sku = getVariantSKU(item.variantId, orderJson.locationId);
+      console.log(sku);
+
       if (item.type === 'single') {
         const v = await Variant.findByPk(item.variantId);
         const variantPrice = await v.getPrice(new Date());
@@ -41,12 +45,15 @@ const createOrderJson = async (orderJson, t) => {
       }
     }
 
+
     const order = await Order.create({
       UserId: orderJson.userId,
       LocationId: orderJson.locationId,
       status: orderJson.status,
       totalPrice: totalPrice
     }, { transaction: t });
+
+
 
     for (const item of orderJson.orderItems) {
       if (item.type === 'single') {
@@ -110,14 +117,67 @@ const createOrderJson = async (orderJson, t) => {
 
     return order;
 
-    return result;
+    // return result;
 
   } catch (error) {
     console.error("Error while creating order:", error);
   }
 };
 
+const getOrderDetails = async (orderId) => {
+
+  const orderDetails = await Order.findOne({
+    where: { id: orderId },
+    attributes: ['id', 'status', 'totalPrice', 'LocationId', 'UserId'],
+    include: [
+      {
+        model: User,
+        attributes: ['id', 'firstName', 'lastName'],
+        required: false
+      },
+      {
+        model: OrderItems,
+        attributes: ['id', 'quantity', 'OrderId', 'VariantId'],
+        include: [
+          {
+            model: Variant,
+            attributes: ['id', 'name', 'ProductId']
+          },
+          {
+            model: Option,
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
+          },
+          {
+            model: Topons,
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
+          },
+          {
+            model: OrderItemsCombo,
+            attributes: ['id', 'ComboVariantId', 'OrderId', 'OrderItemId'],
+            required: false,
+            include: [
+              {
+                model: ComboVariants,
+                attributes: ['id', 'ProductId', 'VariantId'],
+                include: [
+                  {
+                    model: Product,
+                    as: 'PCV',
+                    attributes: ['name'],
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+
+  return orderDetails;
+}
 
 
-
-module.exports = { createOrderJson };
+module.exports = { createOrderJson, getOrderDetails };

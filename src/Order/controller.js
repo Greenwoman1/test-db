@@ -1,7 +1,10 @@
-const { OrderItems, Order, ItemProduct, ProductT, Variant, PriceHistory, Product, Topons, Op, User, Location, Option, OrderItemsCombo, ComboVariants } = require("../.");
+const { OrderItems, Order, ItemProduct, ProductT, Variant, PriceHistory, Product, Topons, Op, User, Location, Option, OrderItemsCombo, ComboVariants, Balance } = require("../.");
+const redisClient = require("../../redisClient");
 const sequelize = require('../../sequelize');
+const { getBalance, setBalance } = require("../Balance/utils");
+const { getVariantSKU } = require("../Variant/utils");
 
-const { createOrderJson } = require("./utils");
+const { createOrderJson, getOrderDetails } = require("./utils");
 
 const getOrders = async (req, res) => {
   try {
@@ -75,70 +78,73 @@ const createOrder = async (req, res) => {
     }
 
 
+
+    const cachedBalance = getBalance(userId);
+
+    let totalPrice = 0;
+
+
+    for (const item of order.orderItems) {
+      if (item.type === 'single') {
+        const v = await Variant.findByPk(item.variantId);
+        const variantPrice = await v.getPrice(new Date());
+        let itemTotalPrice = variantPrice * item.quantity;
+
+        for (const topon of item.topons) {
+          const t = await Topons.findByPk(topon.toponId);
+          const toponPrice = await t.getPrice(new Date());
+          itemTotalPrice += toponPrice * topon.quantity * item.quantity;
+        }
+
+        totalPrice += itemTotalPrice;
+      } else if (item.type === 'combo') {
+        let comboTotalPrice = 0;
+
+
+        const p = await Product.findByPk(item.productId);
+        const productPrice = await p.getPrice(new Date());
+        comboTotalPrice += productPrice;
+        for (const comboVariant of item.comboVariants) {
+
+          for (const topon of comboVariant.topons) {
+            const t = await Topons.findByPk(topon.toponId);
+            const toponPrice = await t.getPrice(new Date());
+            comboTotalPrice += toponPrice * topon.quantity;
+          }
+        }
+
+        totalPrice += comboTotalPrice * item.quantity;
+      }
+    }
+    if (totalPrice > cachedBalance && cachedBalance == null) {
+      errors.push({ msg: 'Insufficient balance', param: 'totalPrice', location: 'body' });
+    }
+
+
+
+
+
     if (errors.length > 0) {
       res.status(400).json({ errors });
       return;
     }
 
-
     const result = await sequelize.transaction(async (t) => {
 
       const order = await createOrderJson(req.body, t);
+
+
+
+      await setBalance(userId, -totalPrice, 'Order', 'Order created', order.id);
 
       return order
 
     });
 
 
-    const orderDetails = await Order.findOne({
-      where: { id: result.id },
-      attributes: ['id', 'status', 'totalPrice', 'LocationId', 'UserId'],
-      include: [
-        {
-          model: User,
-          attributes: ['id', 'firstName', 'lastName'],
-          required: false
-        },
-        {
-          model: OrderItems,
-          attributes: ['id', 'quantity', 'OrderId', 'VariantId'],
-          include: [
-            {
-              model: Variant,
-              attributes: ['id', 'name', 'ProductId']
-            },
-            {
-              model: Option,
-              attributes: ['id', 'name'],
-              through: { attributes: [] }
-            },
-            {
-              model: Topons,
-              attributes: ['id', 'name'],
-              through: { attributes: [] }
-            },
-            {
-              model: OrderItemsCombo,
-              attributes: ['id', 'ComboVariantId', 'OrderId', 'OrderItemId'],
-              required: false,
-              include: [
-                {
-                  model: ComboVariants,
-                  attributes: ['id', 'ProductId', 'VariantId'],
-                  include: [
-                    {
-                      model: Product,
-                      as: 'PCV',
-                      attributes: ['name'],
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    });
+
+
+    const orderDetails = getOrderDetails(result.id);
     res.status(201).json(orderDetails);
   } catch (error) {
     res.status(500).json({ message: error.message });

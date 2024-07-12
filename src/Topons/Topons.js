@@ -8,9 +8,9 @@ class Topons extends Model {
 
   static associateModel(models) {
     Topons.belongsToMany(models.GroupTopons, { through: 'GroupToponsMid' });
-    Topons.hasOne(models.SKURule)
     Topons.belongsToMany(models.OrderItems, { through: 'ProductT' });
     Topons.hasMany(models.PriceHistory, { foreignKey: 'itemId', constraints: false });
+    Topons.belongsToMany(models.Location, { through: 'ToponLocations' });
 
 
   }
