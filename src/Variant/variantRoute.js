@@ -25,6 +25,7 @@ router.get('/:variantId/price', variantController.getPrice);
 router.post('/:variantId/price', variantController.setPrice);
 
 
+
 router.post('/upload/:variantId', upload.array("images"), variantController.uploadImage);
 
 module.exports = router;

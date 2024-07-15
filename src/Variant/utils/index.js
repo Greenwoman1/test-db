@@ -1,8 +1,9 @@
+const Location = require("../../Location/Location")
 const SKU = require("../../SKU/SKU")
 const Variant = require("../Variant")
 
-const getVariantSKU = (variant, location) => {
-  const sku = Variant.findByPk(variant, {
+const getVariantSKU = async (variant, location) => {
+  const sku = await Variant.findByPk(variant, {
     include: [
       {
         model: Location,
@@ -18,7 +19,9 @@ const getVariantSKU = (variant, location) => {
       }
     ]
   })
-  return sku
+
+
+  return Number(sku.Locations[0].SKUs[0].stock)
 }
 
 module.exports = { getVariantSKU }

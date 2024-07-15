@@ -4,9 +4,9 @@ const sequelize = require('../../sequelize');
 const { getBalance, setBalance } = require("../Balance/utils");
 const { getVariantSKU } = require("../Variant/utils");
 
-const { createOrderJson, getOrderDetails } = require("./utils");
+const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments } = require("./utils");
 
-const getOrders = async (req, res) => {
+/* const getOrders = async (req, res) => {
   try {
     const orders = await Order.findAll();
     res.status(200).json(orders);
@@ -14,7 +14,7 @@ const getOrders = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
+ */
 
 const createOrder = async (req, res) => {
   const order = req.body;
@@ -79,8 +79,8 @@ const createOrder = async (req, res) => {
 
 
 
-    const cachedBalance = getBalance(userId);
-
+    const cachedBalance = await getBalance(userId);
+    console.log(cachedBalance)
     let totalPrice = 0;
 
 
@@ -89,18 +89,14 @@ const createOrder = async (req, res) => {
         const v = await Variant.findByPk(item.variantId);
         const variantPrice = await v.getPrice(new Date());
         let itemTotalPrice = variantPrice * item.quantity;
-
         for (const topon of item.topons) {
           const t = await Topons.findByPk(topon.toponId);
           const toponPrice = await t.getPrice(new Date());
           itemTotalPrice += toponPrice * topon.quantity * item.quantity;
         }
-
         totalPrice += itemTotalPrice;
       } else if (item.type === 'combo') {
         let comboTotalPrice = 0;
-
-
         const p = await Product.findByPk(item.productId);
         const productPrice = await p.getPrice(new Date());
         comboTotalPrice += productPrice;
@@ -112,39 +108,35 @@ const createOrder = async (req, res) => {
             comboTotalPrice += toponPrice * topon.quantity;
           }
         }
-
         totalPrice += comboTotalPrice * item.quantity;
       }
     }
-    if (totalPrice > cachedBalance && cachedBalance == null) {
+    if (totalPrice > cachedBalance || cachedBalance == null) {
       errors.push({ msg: 'Insufficient balance', param: 'totalPrice', location: 'body' });
     }
-
-
-
-
-
     if (errors.length > 0) {
       res.status(400).json({ errors });
       return;
     }
-
     const result = await sequelize.transaction(async (t) => {
+      const totalPrice = await getOrderTotalPrice(order);
+      console.log(order.userId, order.locationId, order.status, totalPrice)
+      const O = await Order.create({
+        UserId: order.userId,
+        LocationId: order.locationId,
+        status: order.status,
+        totalPrice: totalPrice
+      }, { transaction: t });
 
-      const order = await createOrderJson(req.body, t);
-
-
-
-      await setBalance(userId, -totalPrice, 'Order', 'Order created', order.id);
-
-      return order
-
+      await createOrderJson(req.body, O, t);
+      await setBalance(userId, -totalPrice, 'Order', 'Order created', O.id);
+      return O
     });
 
 
 
 
-    const orderDetails = getOrderDetails(result.id);
+    const orderDetails = await getOrderDetails(result.id);
     res.status(201).json(orderDetails);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -152,4 +144,38 @@ const createOrder = async (req, res) => {
 }
 
 
-module.exports = { getOrders, createOrder }
+const proccessOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findByPk(orderId);
+    console.log(order)
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    const orderAdj = req.body;
+    console.log(orderAdj)
+    if (Object.keys(orderAdj).length === 0) {
+      await AcceptOrder(orderId);
+      res.status(200).json({ message: 'Order accepted' });
+      return
+    }
+
+    await setBalance(order.UserId, +order.totalPrice, 'Order-adjustment', 'Order adjusted', order.id);
+
+    const newOrder = await orderAdjustments(orderAdj, orderId);
+    await order.update({
+      status: "adjustment"
+    });
+
+    const orderDetails = await getOrderDetails(newOrder.id);
+
+    res.status(200).json(orderDetails)
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+
+module.exports = { createOrder, proccessOrder };

@@ -1,4 +1,4 @@
-const { Variant, Price } = require('../index');
+const { Variant, Price, SKU, Location } = require('../index');
 const { Image } = require('../index');
 const createVariant = async (req, res) => {
   try {
@@ -26,7 +26,23 @@ const getVariantById = async (req, res) => {
     if (!variant) {
       return res.status(404).json({ message: 'Variant not found' });
     }
-    res.status(200).json(variant);
+
+    const sku = Variant.findByPk(variantId, {
+      include: [
+        {
+          model: Location,
+
+          include: [
+            {
+              model: SKU,
+              attributes: ['stock']
+            }
+          ]
+        }
+      ]
+    })
+
+    res.status(200).json(sku);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

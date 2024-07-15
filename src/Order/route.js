@@ -8,5 +8,6 @@ const { validateCreateOrder, validateResults } = require('./validateOrder');
 
 router.post('/', validateCreateOrder, validateResults, controller.createOrder);
 router.get('/', controller.createOrder);
+router.post('/proccess/:orderId', controller.proccessOrder);
 
 module.exports = router;
