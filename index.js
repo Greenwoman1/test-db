@@ -75,9 +75,9 @@ app.listen(PORT, async () => {
   try {
 
     await init();
-    await sequelize.sync({ /* force: true */ });
+    await sequelize.sync({/*  force: true */ });
 
-    await seed();
+    // await seed();
     console.log('Database synchronized.');
   } catch (error) {
     console.error('Error while working with the database:', error);

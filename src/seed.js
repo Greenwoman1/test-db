@@ -12,74 +12,84 @@ const { AcceptOrder } = require('./Order/utils');
 const seed = async () => {
 
 
-  // const locationsData = [
-  //   { id: 'aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Stup Hadziabdinica' },
-  //   { id: 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Pofalici' }
-  // ];
+  const locationsData = [
+    { id: 'aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Stup Hadziabdinica' },
+    { id: 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Pofalici' }
+  ];
 
-  // const toponsData = [
-  //   { id: '11111111-1111-1111-1111-111111111111', name: 'Banana', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: '22222222-2222-2222-2222-222222222222', name: 'Jagoda', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: '33333333-3333-3333-3333-333333333333', name: 'Med', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: '44444444-4444-4444-4444-444444444444', name: 'Orah', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: '55555555-5555-5555-5555-555555555555', name: 'Basil', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: '66666666-6666-6666-6666-666666666666', name: 'Tomato', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: '77777777-7777-7777-7777-777777777777', name: 'Pepperoni', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: '88888888-8888-8888-8888-888888888888', name: 'Olives', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: '99999999-9999-9999-9999-999999999999', name: 'Lettuce', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: '00000000-0000-0000-0000-000000000000', name: 'Pickles', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Croutons', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Parmesan', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', name: 'Feta Cheese', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', name: 'Goat Cheese', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
-  //   { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', name: 'Cucumber', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] }
-  // ];
-
-  // const createToponsWithSKUs = async (toponsData) => {
-  //   try {
-
-  //     for (const toponData of toponsData) {
-  //       const { id, name, locations } = toponData;
-  //       const topon = await Topons.create({ id, name });
-
-  //       for (const locationId of locations) {
-  //         const location = await Location.findOne({ where: { id: locationId } });
-  //         await topon.addLocation(location);
-  //       }
-  //       const sku = await SKU.create({
-  //         name: topon.name,
-  //         stock: toponData.stock || 0,
-  //         price: toponData.price,
-  //       });
-
-  //       const rule = await SKURule.create({
-  //         name: topon.name,
-  //         SKUId: sku.id
-  //       });
-
-  //     }
-
-  //   } catch (error) {
-  //     console.error('Error creating topons and SKUs:', error);
-  //   }
-  // };
-
-  // await createToponsWithSKUs(toponsData);
+  const toponsData = [
+    { id: '11111111-1111-1111-1111-111111111111', name: 'Banana', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '22222222-2222-2222-2222-222222222222', name: 'Jagoda', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '33333333-3333-3333-3333-333333333333', name: 'Med', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '44444444-4444-4444-4444-444444444444', name: 'Orah', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '55555555-5555-5555-5555-555555555555', name: 'Basil', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '66666666-6666-6666-6666-666666666666', name: 'Tomato', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '77777777-7777-7777-7777-777777777777', name: 'Pepperoni', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '88888888-8888-8888-8888-888888888888', name: 'Olives', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '99999999-9999-9999-9999-999999999999', name: 'Lettuce', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: '00000000-0000-0000-0000-000000000000', name: 'Pickles', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Croutons', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Parmesan', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', name: 'Feta Cheese', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', name: 'Goat Cheese', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] },
+    { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', name: 'Cucumber', locations: ['aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb'] }
+  ];
 
 
 
 
-  // const createLocations = async (locationsData) => {
-  //   try {
-  //     for (const locationData of locationsData) {
-  //       await Location.create(locationData);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error creating locations:', error);
-  //   }
-  // };
+  const createLocations = async (locationsData) => {
+    try {
+      for (const locationData of locationsData) {
+        await Location.create(locationData);
+      }
+    } catch (error) {
+      console.error('Error creating locations:', error);
+    }
+  };
 
-  // await createLocations(locationsData);
+  await createLocations(locationsData);
+
+
+  const createToponsWithSKUs = async (toponsData) => {
+    try {
+
+      for (const toponData of toponsData) {
+        const { id, name, locations } = toponData;
+        const topon = await Topons.create({ id, name });
+
+        for (const locationId of locations) {
+          const location = await Location.findOne({ where: { id: locationId } });
+
+          console.log(location)
+          const sku = await SKU.create({
+            name: topon.name,
+            stock: toponData.stock || 5,
+            price: toponData.price,
+            LocationId: location.id
+          });
+
+          await topon.addSKU(sku);
+
+          const rule = await SKURule.create({
+            name: topon.name,
+            SKUId: sku.id
+          });
+        }
+
+
+
+
+      }
+
+    } catch (error) {
+      console.error('Error creating topons and SKUs:', error);
+    }
+  };
+
+  await createToponsWithSKUs(toponsData);
+
+
 
 
   // const [p1, p2, p3, p4, p5, p6, p7] = await Product.bulkCreate([{
@@ -640,100 +650,104 @@ const seed = async () => {
   
   
   */
-  // const chicken = await Product.create({ name: 'Chicken', description: 'Grilled Chicken', type: 'single', price: 50 });
-  // const coke = await Product.create({ name: 'Coke', description: 'Cold Drink', type: 'single', price: 20 });
-  // const fanta = await Product.create({ name: 'Fanta', description: 'Cold Drink', type: 'single', price: 20 });
-  // const mealCombo = await Product.create({ name: 'Meal Combo', description: 'Combo of Chicken and Drink', type: 'combo', price: 70 });
+  const chicken = await Product.create({ name: 'Chicken', description: 'Grilled Chicken', type: 'single', price: 50 });
+  const coke = await Product.create({ name: 'Coke', description: 'Cold Drink', type: 'single', price: 20 });
+  const fanta = await Product.create({ name: 'Fanta', description: 'Cold Drink', type: 'single', price: 20 });
+  const mealCombo = await Product.create({ name: 'Meal Combo', description: 'Combo of Chicken and Drink', type: 'combo', price: 70 });
 
-  // const chickenCurry = await Variant.create({ name: 'Chicken Curry', ProductId: chicken.id });
-  // const chickenWhiteSauce = await Variant.create({ name: 'Chicken in White Sauce', ProductId: chicken.id });
-  // const regularCoke = await Variant.create({ name: 'Regular Coke', ProductId: coke.id });
-  // const regularFanta = await Variant.create({ name: 'Regular Fanta', ProductId: fanta.id });
+  const chickenCurry = await Variant.create({ name: 'Chicken Curry', ProductId: chicken.id });
+  const chickenWhiteSauce = await Variant.create({ name: 'Chicken in White Sauce', ProductId: chicken.id });
+  const regularCoke = await Variant.create({ name: 'Regular Coke', ProductId: coke.id });
+  const regularFanta = await Variant.create({ name: 'Regular Fanta', ProductId: fanta.id });
 
-  // const extraSauceGroup = await GroupOptions.create({ name: 'Extra Sauce', type: 'single', VariantId: chickenCurry.id, rules: "{}" });
-  // const iceGroupCoke = await GroupOptions.create({ name: 'Ice', type: 'single', VariantId: regularCoke.id, rules: "{}" });
-  // const iceGroupFanta = await GroupOptions.create({ name: 'Ice', type: 'single', VariantId: regularFanta.id, rules: "{}" });
+  const extraSauceGroup = await GroupOptions.create({ name: 'Extra Sauce', type: 'single', VariantId: chickenCurry.id, rules: "{}" });
+  const iceGroupCoke = await GroupOptions.create({ name: 'Ice', type: 'single', VariantId: regularCoke.id, rules: "{}" });
+  const iceGroupFanta = await GroupOptions.create({ name: 'Ice', type: 'single', VariantId: regularFanta.id, rules: "{}" });
 
-  // const extraCheeseGroup = await GroupTopons.create({ name: 'Extra Cheese', type: 'single', VariantId: chickenCurry.id, rules: "{}" });
-  // const lemonGroupCoke = await GroupTopons.create({ name: 'Lemon', type: 'single', VariantId: regularCoke.id, rules: "{}" });
-  // const lemonGroupFanta = await GroupTopons.create({ name: 'Lemon', type: 'single', VariantId: regularFanta.id, rules: "{}" });
+  const extraCheeseGroup = await GroupTopons.create({ name: 'Extra Cheese', type: 'single', VariantId: chickenCurry.id, rules: "{}" });
+  const lemonGroupCoke = await GroupTopons.create({ name: 'Lemon', type: 'single', VariantId: regularCoke.id, rules: "{}" });
+  const lemonGroupFanta = await GroupTopons.create({ name: 'Lemon', type: 'single', VariantId: regularFanta.id, rules: "{}" });
 
-  // const extraSauce = await Option.create({ name: 'Extra Sauce', GroupOptionId: extraSauceGroup.id });
-  // const iceOptionCoke = await Option.create({ name: 'Ice', GroupOptionId: iceGroupCoke.id });
-  // const iceOptionFanta = await Option.create({ name: 'Ice', GroupOptionId: iceGroupFanta.id });
+  const extraSauce = await Option.create({ name: 'Extra Sauce', GroupOptionId: extraSauceGroup.id });
+  const iceOptionCoke = await Option.create({ name: 'Ice', GroupOptionId: iceGroupCoke.id });
+  const iceOptionFanta = await Option.create({ name: 'Ice', GroupOptionId: iceGroupFanta.id });
 
-  // const extraCheese = await Topons.create({ name: 'Extra Cheese', GroupToponId: extraCheeseGroup.id });
-  // const lemonCoke = await Topons.create({ name: 'Lemon', GroupToponId: lemonGroupCoke.id });
-  // const lemonFanta = await Topons.create({ name: 'Lemon', GroupToponId: lemonGroupFanta.id });
+  const extraCheese = await Topons.create({ name: 'Extra Cheese', GroupToponId: extraCheeseGroup.id });
+  const lemonCoke = await Topons.create({ name: 'Lemon', GroupToponId: lemonGroupCoke.id });
+  const lemonFanta = await Topons.create({ name: 'Lemon', GroupToponId: lemonGroupFanta.id });
 
-  // const comboChickenWhiteSauce = await ComboVariants.create({ ProductId: mealCombo.id, VariantId: chickenWhiteSauce.id });
-  // const comboRegularCoke = await ComboVariants.create({ ProductId: mealCombo.id, VariantId: regularCoke.id });
+  const comboChickenWhiteSauce = await ComboVariants.create({ ProductId: mealCombo.id, VariantId: chickenWhiteSauce.id });
+  const comboRegularCoke = await ComboVariants.create({ ProductId: mealCombo.id, VariantId: regularCoke.id });
 
-  // const orderAlice = await Order.create({ userId: "user-id-alice", LocationId: "30700db8-d88a-4cf7-8fb8-7ae23efedc70", status: "pending", totalPrice: 0 });
-  // const orderBob = await Order.create({ userId: "user-id-bob", LocationId: "30700db8-d88a-4cf7-8fb8-7ae23efedc70", status: "pending", totalPrice: 0 });
+  const orderAlice = await Order.create({ userId: "user-id-alice", LocationId: "30700db8-d88a-4cf7-8fb8-7ae23efedc70", status: "pending", totalPrice: 0 });
+  const orderBob = await Order.create({ userId: "user-id-bob", LocationId: "30700db8-d88a-4cf7-8fb8-7ae23efedc70", status: "pending", totalPrice: 0 });
 
-  // const orderItemAliceChicken = await OrderItems.create({ OrderId: orderAlice.id, VariantId: chickenCurry.id, quantity: 1 });
-  // const orderItemAliceCoke = await OrderItems.create({ OrderId: orderAlice.id, VariantId: regularCoke.id, quantity: 1 });
+  const orderItemAliceChicken = await OrderItems.create({ OrderId: orderAlice.id, VariantId: chickenCurry.id, quantity: 1 });
+  const orderItemAliceCoke = await OrderItems.create({ OrderId: orderAlice.id, VariantId: regularCoke.id, quantity: 1 });
 
-  // await ProductO.create({ OrderItemId: orderItemAliceChicken.id, OptionId: extraSauce.id });
-  // await ProductT.create({ OrderItemId: orderItemAliceChicken.id, ToponId: extraCheese.id });
+  await ProductO.create({ OrderItemId: orderItemAliceChicken.id, OptionId: extraSauce.id });
+  await ProductT.create({ OrderItemId: orderItemAliceChicken.id, ToponId: extraCheese.id });
 
-  // const orderItemBobChickenWhiteSauce = await OrderItems.create({ OrderId: orderBob.id, VariantId: chickenWhiteSauce.id, quantity: 1 });
-  // const orderItemBobCoke = await OrderItems.create({ OrderId: orderBob.id, VariantId: regularCoke.id, quantity: 1 });
+  const orderItemBobChickenWhiteSauce = await OrderItems.create({ OrderId: orderBob.id, VariantId: chickenWhiteSauce.id, quantity: 1 });
+  const orderItemBobCoke = await OrderItems.create({ OrderId: orderBob.id, VariantId: regularCoke.id, quantity: 1 });
 
-  // await ProductO.create({ OrderItemId: orderItemBobChickenWhiteSauce.id, OptionId: extraSauce.id });
-  // await ProductT.create({ OrderItemId: orderItemBobChickenWhiteSauce.id, ToponId: extraCheese.id });
+  await ProductO.create({ OrderItemId: orderItemBobChickenWhiteSauce.id, OptionId: extraSauce.id });
+  await ProductT.create({ OrderItemId: orderItemBobChickenWhiteSauce.id, ToponId: extraCheese.id });
 
-  // await ProductO.create({ OrderItemId: orderItemBobCoke.id, OptionId: iceOptionCoke.id });
-  // await ProductT.create({ OrderItemId: orderItemBobCoke.id, ToponId: lemonCoke.id });
+  await ProductO.create({ OrderItemId: orderItemBobCoke.id, OptionId: iceOptionCoke.id });
+  await ProductT.create({ OrderItemId: orderItemBobCoke.id, ToponId: lemonCoke.id });
 
-  // await OrderItemsCombo.create({ OrderItemId: orderItemBobChickenWhiteSauce.id, ComboVariantId: comboChickenWhiteSauce.id, OrderId: orderBob.id });
-  // await OrderItemsCombo.create({ OrderItemId: orderItemBobCoke.id, ComboVariantId: comboRegularCoke.id, OrderId: orderBob.id });
+  await OrderItemsCombo.create({ OrderItemId: orderItemBobChickenWhiteSauce.id, ComboVariantId: comboChickenWhiteSauce.id, OrderId: orderBob.id });
+  await OrderItemsCombo.create({ OrderItemId: orderItemBobCoke.id, ComboVariantId: comboRegularCoke.id, OrderId: orderBob.id });
 
-  // const orderDetails = await Order.findOne({
-  //   where: { id: orderAlice.id },
-  //   include: [
-  //     { model: User, required: false },
-  //     {
-  //       model: OrderItems,
-  //       include: [
-  //         { model: Variant },
-  //         { model: Option, through: { attributes: [] } },
-  //         { model: Topons, through: { attributes: [] } }
-  //       ]
-  //     },
-  //     {
-  //       model: OrderItemsCombo,
-  //       required: false,
-  //       include: [{ model: ComboVariants, include: [{ model: Variant }] }]
-  //     }
-  //   ]
-  // });
+  const orderDetails = await Order.findOne({
+    where: { id: orderAlice.id },
+    include: [
+      { model: User, required: false },
+      {
+        model: OrderItems,
+        include: [
+          { model: Variant },
+          { model: Option, through: { attributes: [] } },
+          { model: Topons, through: { attributes: [] } }
+        ]
+      },
+      {
+        model: OrderItemsCombo,
+        required: false,
+        include: [{ model: ComboVariants, include: [{ model: Variant }] }]
+      }
+    ]
+  });
 
 
-  // const user = await User.create({ firstName: "Alice", lastName: "a@a.com", password: "a" });
+  const user = await User.create({ firstName: "Alice", lastName: "a@a.com", password: "a" });
 
-  // const newBalance = await Balance.create({
-  //   UserId: user.id,
-  //   amount: 151,
-  //   date: new Date(),
-  //   reason: 'Initial Balance',
-  //   comment: 'New balance added',
-  // });
+  const newBalance = await Balance.create({
+    UserId: user.id,
+    amount: 151,
+    date: new Date(),
+    reason: 'Initial Balance',
+    comment: 'New balance added',
+  });
 
-  // const totalBalance = await Balance.sum('amount', { where: { UserId: user.id } });
+  const totalBalance = await Balance.sum('amount', { where: { UserId: user.id } });
 
-  // await redisClient.set(`user_balance_${user.id}`, JSON.stringify(totalBalance), 'EX', 36000);
+  await redisClient.set(`user_balance_${user.id}`, JSON.stringify(totalBalance), 'EX', 36000);
 
-  // const cacheKey = `user_balance_${user.id}`;
+  const cacheKey = `user_balance_${user.id}`;
 
-  // const cachedBalance = await redisClient.get(cacheKey);
-  // console.log(cachedBalance);
+  const cachedBalance = await redisClient.get(cacheKey);
+  console.log(cachedBalance);
 
 
 
 
   // const variants = await AcceptOrder("04aa29a0-0ff2-4b34-af04-2809871caa8d");
+
+
+  await PriceHistory.create({ itemId: '22222222-2222-2222-2222-222222222222', itemType: 'topon', price: 10 });
+  await PriceHistory.create({ itemId: '33333333-3333-3333-3333-333333333333', itemType: 'topon', price: 5 });
 
   console.log('All products created');
 };

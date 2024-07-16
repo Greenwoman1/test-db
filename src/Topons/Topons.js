@@ -10,7 +10,7 @@ class Topons extends Model {
     Topons.belongsToMany(models.GroupTopons, { through: 'GroupToponsMid' });
     Topons.belongsToMany(models.OrderItems, { through: 'ProductT' });
     Topons.hasMany(models.PriceHistory, { foreignKey: 'itemId', constraints: false });
-    Topons.belongsToMany(models.Location, { through: 'ToponLocations' });
+    Topons.belongsToMany(models.SKU, { through: 'ToponSKUs' });
 
 
   }

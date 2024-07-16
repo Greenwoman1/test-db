@@ -19,6 +19,11 @@ class ProductT extends Model {
           primaryKey: true,
           allowNull: false,
         },
+        quantity: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          defaultValue: 1
+        }
 
       },
       {

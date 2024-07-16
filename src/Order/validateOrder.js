@@ -17,7 +17,7 @@ const validateCreateOrder = [
   body('orderItems.*.options.*.optionId').if(body('orderItems.*.type').equals('single')).isUUID(4).withMessage('Option ID must be a valid UUID'),
 
   body('orderItems.*.topons').if(body('orderItems.*.type').equals('single')).isArray().withMessage('Topons must be an array for single products'),
-  body('orderItems.*.topons.*.toponId').if(body('orderItems.*.type').equals('single')).isUUID(4).withMessage('Topon ID must be a valid UUID'),
+  // body('orderItems.*.topons.*.toponId').if(body('orderItems.*.type').equals('single')).isUUID(4).withMessage('Topon ID must be a valid UUID'),
   body('orderItems.*.topons.*.quantity').if(body('orderItems.*.type').equals('single')).isInt({ min: 1 }).withMessage('Topon quantity must be a positive integer'),
 
   body('orderItems.*.comboVariants').if(body('orderItems.*.type').equals('combo')).isArray().withMessage('Combo variants must be an array for combo products'),

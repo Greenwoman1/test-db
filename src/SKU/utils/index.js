@@ -1,16 +1,9 @@
 const SKU = require("../SKU");
 
-const updateSKU = async (item) => {
+const updateSKU = async (skuId, quantityChange, location, t) => {
   try {
-
-
-    const { quantity, Variant } = item;
-    const { Locations } = Variant;
-
-    const location = Locations[0];
-    const skuId = location.SKUs[0].id;
-
     const sku = await SKU.findByPk(skuId);
+    console.log(skuId)
 
     if (!sku) {
       console.error('SKU not found');
@@ -19,14 +12,14 @@ const updateSKU = async (item) => {
 
     let stock = parseInt(sku.stock, 10);
 
-    stock -= quantity;
+    stock += quantityChange;
 
     if (stock < 0) {
       console.warn('Stock cannot be negative. Setting stock to 0.');
       stock = 0;
     }
 
-    await SKU.update({ stock }, { where: { id: skuId } });
+    await SKU.update({ stock }, { where: { id: skuId } }, { transaction: t });
 
     console.log(`SKU stock updated successfully. New stock: ${stock}`);
 

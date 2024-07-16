@@ -2,7 +2,7 @@ const sequelize = require("../sequelize");
 const { Product, Variant, Option, Topons, SKURule, GroupRule, User,
   VariantTopons,
   SKU, Location,
-  VariantLocation, Image,
+  VariantSKUs, Image,
   GroupOptions,
   PriceHistory,
   GroupTopons,
@@ -16,7 +16,8 @@ const { Product, Variant, Option, Topons, SKURule, GroupRule, User,
   UserLocation,
   OrderItemsCombo,
   Balance,
-  ToponLocations
+  ToponSKUs,
+
 } = require("../src");
 
 async function initModels() {
@@ -31,7 +32,7 @@ async function initModels() {
     VariantTopons,
     SKU,
     Location,
-    VariantLocation,
+    VariantSKUs,
     Image,
     PriceHistory,
     GroupTopons,
@@ -45,7 +46,7 @@ async function initModels() {
     UserLocation,
     OrderItemsCombo,
     Balance,
-    ToponLocations
+    ToponSKUs
   ];
 
   for (const model of models) {
@@ -67,7 +68,7 @@ async function associateModels() {
     'User': User,
     'SKU': SKU,
     'Location': Location,
-    'VariantLocation': VariantLocation,
+    'VariantSKUs': VariantSKUs,
     'Image': Image,
     'GroupOptions': GroupOptions,
     'PriceHistory': PriceHistory,
@@ -81,7 +82,7 @@ async function associateModels() {
     'UserLocation': UserLocation,
     'OrderItemsCombo': OrderItemsCombo,
     'Balance': Balance,
-    'ToponLocations': ToponLocations
+    'ToponSKUs': ToponSKUs
   }
 
   for (const [key, model] of Object.entries(models)) {

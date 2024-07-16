@@ -1,6 +1,6 @@
 
 const { name } = require("ejs");
-const { Product, Variant, Topons, GroupOption, Option, GroupRule, VariantLocation, Location, SKURule, SKU, ComboItem, Price, PriceHistory, GroupTopons, GroupOptions, GroupToponsMid, Combo, ComboItems, ComboVariants } = require("../../index");
+const { Product, Variant, Topons, GroupOption, Option, GroupRule, VariantLocation, Location, SKURule, SKU, ComboItem, Price, PriceHistory, GroupTopons, GroupOptions, GroupToponsMid, Combo, ComboItems, ComboVariants, VariantSKUs } = require("../../index");
 
 
 const createProduct = async (productJson) => {
@@ -74,7 +74,6 @@ const handleComboItems = async (product, t) => {
 };
 
 const createVariant = async (variantData, locationIds, productId, t) => {
-  console.log(variantData, productId)
   try {
     const variant = await Variant.create({
       name: variantData.name,
@@ -160,67 +159,54 @@ const createGroupOption = async (groupOptionData, variantId, t) => {
 };
 
 const handleVariants = async (variants, locationIds, product, t) => {
-  console.log(variants, locationIds, product);
   for (const variantData of variants) {
     const variant = await createVariant(variantData, locationIds, product.id, t);
-    console.log(variantData, variant);
+    await variant.save({ transaction: t });
+
     if (variantData.price) {
       await PriceHistory.create({
         itemId: variant.id,
         price: variantData.price,
         itemType: 'Variant',
-
       }, { transaction: t });
-      if (variant) {
-        console.log(locationIds)
-        for (const locationId of variantData.locationIds) {
-          const location = await Location.findOne({ where: { id: locationId } });
-          if (location) {
-            await variant.addLocation(location, { transaction: t });
-          }
-        }
-
-      }
-
     }
+
     if (variantData.groupTopons) {
       for (const toponData of variantData.groupTopons) {
         await handleTopons(variant, toponData, t);
       }
     }
 
-
-
     if (variantData.groupOptions) {
-
       for (const option of variantData.groupOptions) {
         await handleOptions(variant, option, t);
       }
     }
 
+
     if (variantData.locationIds) {
       for (const locationId of variantData.locationIds) {
         const location = await Location.findOne({ where: { id: locationId } });
         if (location) {
-          await variant.addLocation(location, { transaction: t });
           const sku = await SKU.create({
             name: `${variant.name} SKU for ${location.name}`,
             stock: 100,
             price: 10,
             LocationId: location.id,
           }, { transaction: t });
+
+          await variant.addSKU(sku, { transaction: t });
+
           const rule = await SKURule.create({
             name: `${variant.name} Rule for ${location.name}`,
             LocationId: location.id,
             SKUId: sku.id
           }, { transaction: t });
-
         }
       }
     }
   }
 };
-
 
 
 const updateOrCreateTopon = async (toponData, groupToponId, t) => {
