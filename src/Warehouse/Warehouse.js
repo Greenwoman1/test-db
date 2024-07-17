@@ -1,9 +1,9 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class Location extends Model {
+class Warehouse extends Model {
   static initModel() {
-    Location.init(
+    Warehouse.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -12,26 +12,24 @@ class Location extends Model {
         },
         name: {
           type: DataTypes.STRING(64),
+          allowNull: false,
           validate: {
-            notEmpty: true,
-            min: 8,
+            min: 4
           }
         }
       },
       {
         sequelize,
-        modelName: 'Location',
+        modelName: 'Warehouse',
         timestamps: true,
       }
     );
   }
 
   static associateModel(models) {
-    Location.belongsTo(models.UserLocation);
-    Location.belongsToMany(models.Variant, { through: 'VariantLocations' });
-    Location.belongsToMany(models.Warehouse, { through: 'WarehouseLocations' });
-
+    Warehouse.belongsToMany(models.Location, { through: 'WarehouseLocations' });
+    Warehouse.belongsTo(models.SKU);
   }
 }
 
-module.exports = Location;
+module.exports = Warehouse;

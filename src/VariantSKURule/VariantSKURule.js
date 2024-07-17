@@ -3,9 +3,9 @@ const sequelize = require('../../sequelize');
 const { getSKUById } = require('../SKU/skuController');
 const SKU = require('../SKU/SKU');
 
-class SKURule extends Model {
+class VariantSKURule extends Model {
   static initModel() {
-    SKURule.init(
+    VariantSKURule.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -17,7 +17,7 @@ class SKURule extends Model {
       },
       {
         sequelize,
-        modelName: 'SKURule',
+        modelName: 'VariantSKURule',
         timestamps: true,
         createdAt: false,
       }
@@ -27,8 +27,9 @@ class SKURule extends Model {
   static associateModel(models) {
 
 
-    SKURule.belongsTo(models.SKU);
+    VariantSKURule.belongsTo(models.VariantLocations);
+    VariantSKURule.belongsTo(models.SKU);
   }
 }
 
-module.exports = SKURule;
+module.exports = VariantSKURule;

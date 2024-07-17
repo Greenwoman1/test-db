@@ -8,6 +8,7 @@ const sequelize = require('../sequelize');
 
 const redisClient = require('../redisClient');
 const { AcceptOrder } = require('./Order/utils');
+const { describe } = require('./User/User');
 
 const seed = async () => {
 
@@ -650,6 +651,21 @@ const seed = async () => {
   
   
   */
+  /*   const createSingleProduct = async (name) => {
+  
+      return Product.create({
+        name, describe: 'NIJE BITNO', type: 'single', price: Math.random(Math.random() * 1000)
+      })
+    }
+  
+    const cocalCola = await createSingleProduct('cocaCola')
+  
+   const attachVariantToLocation = async (product, variant) => {
+  
+    return product.createProductVarian({variantId: variant.id, dodatnaKolona: false})
+  
+   } */
+
   const chicken = await Product.create({ name: 'Chicken', description: 'Grilled Chicken', type: 'single', price: 50 });
   const coke = await Product.create({ name: 'Coke', description: 'Cold Drink', type: 'single', price: 20 });
   const fanta = await Product.create({ name: 'Fanta', description: 'Cold Drink', type: 'single', price: 20 });

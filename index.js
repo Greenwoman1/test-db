@@ -5,7 +5,6 @@ const sequelize = require('./sequelize');
 const variantRoute = require('./src/Variant/variantRoute');
 const productRoute = require('./src/Product/productRoute');
 const skuRoute = require('./src/SKU/SKURoute');
-const skuRuleRoute = require('./src/SKURule/SKURuleRoute');
 const toponsRoute = require('./src/Topons/toponsRoute');
 const userRoute = require('./src/User/userRoute');
 const groupRuleRoute = require('./src/GroupRule/groupRoute');
@@ -46,7 +45,6 @@ app.use('/product', productRoute);
 app.use('/variant', variantRoute);
 app.use('/groupRules', groupRuleRoute);
 app.use('/sku', skuRoute);
-app.use('/skuRule', skuRuleRoute);
 app.use('/topons', toponsRoute);
 app.use('/locations', locationRoute);
 app.use('/combo', comboRoute);
@@ -75,7 +73,7 @@ app.listen(PORT, async () => {
   try {
 
     await init();
-    await sequelize.sync({/*  force: true */ });
+    await sequelize.sync({ force: true });
 
     // await seed();
     console.log('Database synchronized.');

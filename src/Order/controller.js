@@ -92,6 +92,7 @@ const createOrder = async (req, res) => {
       } else if (item.type === 'combo') {
         let comboTotalPrice = 0;
         const p = await Product.findByPk(item.productId);
+        console.log(p.id);
         const productPrice = await p.getPrice(new Date());
         comboTotalPrice += productPrice;
         for (const comboVariant of item.comboVariants) {

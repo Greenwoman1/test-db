@@ -12,9 +12,9 @@ class Variant extends Model {
     Variant.hasMany(models.PriceHistory, { foreignKey: 'itemId', constraints: false });
     Variant.hasMany(models.GroupOptions);
     Variant.hasMany(models.GroupTopons);
-    Variant.belongsToMany(models.SKU, { through: 'VariantSKUs', foreignKey: 'VariantId' });
     Variant.hasMany(models.ComboVariants, { foreignKey: 'VariantId' });
-
+    Variant.belongsToMany(models.Location, { through: 'VariantLocations' });
+    Variant.belongsToMany(models.Ingredients, { through: 'VariantIngredients' });
 
   }
 

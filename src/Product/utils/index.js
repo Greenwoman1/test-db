@@ -34,13 +34,12 @@ const handleComboItems = async (product, t) => {
   }, { transaction: t })
 
   for (const comboVar of product.items) {
-    const v = await Variant.findByPk(comboVar)
+    const v = await Variant.findByPk(comboVar.variantId)
 
     const item = await ComboVariants.create({
       ProductId: combo.id,
       VariantId: v.id,
-      stock: 0,
-
+      quantity: comboVar.quantity
     }, { transaction: t })
 
 
@@ -184,22 +183,14 @@ const handleVariants = async (variants, locationIds, product, t) => {
     }
 
 
-    if (variantData.locationIds) {
-      for (const locationId of variantData.locationIds) {
-        const location = await Location.findOne({ where: { id: locationId } });
-        if (location) {
-          const sku = await SKU.create({
-            name: `${variant.name} SKU for ${location.name}`,
-            stock: 100,
-            price: 10,
-            LocationId: location.id,
-          }, { transaction: t });
-
+    if (variantData.SKUIds) {
+      for (const skuId of variantData.SKUIds) {
+        const sku = await SKU.findOne({ where: { id: skuId } });
+        if (sku) {
           await variant.addSKU(sku, { transaction: t });
 
           const rule = await SKURule.create({
-            name: `${variant.name} Rule for ${location.name}`,
-            LocationId: location.id,
+            name: `${variant.name} Rule for ${sku.name}`,
             SKUId: sku.id
           }, { transaction: t });
         }

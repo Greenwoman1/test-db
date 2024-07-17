@@ -1,17 +1,17 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
+const PriceHistory = require('../PriceHistory/PriceHistory');
+const { Op } = require('sequelize');
 
-class SKU extends Model {
+class Ingredients extends Model {
+
+
   static associateModel(models) {
-    SKU.hasMany(models.VariantSKURule);
-    SKU.hasMany(models.IngredientSKURule);
-    SKU.belongsToMany(models.Topons, { through: 'ToponSKUs', foreignKey: 'SkuId' });
-    SKU.belongsToMany(models.Variant, { through: 'VariantSKUs', foreignKey: 'SkuId' });
-    SKU.hasMany(models.Warehouse);
-  }
+    Ingredients.belongsToMany(models.Variant, { through: 'VariantIngredients' });
 
+  }
   static initModel() {
-    SKU.init(
+    Ingredients.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -23,19 +23,20 @@ class SKU extends Model {
           type: DataTypes.STRING,
           allowNull: false,
         },
-        stock: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        }
+
+
       },
       {
         sequelize,
-        modelName: 'SKU',
+        modelName: 'Ingredients',
         timestamps: true,
         createdAt: false,
-      },
+      }
     );
   }
+
+
+
 }
 
-module.exports = SKU;
+module.exports = Ingredients;

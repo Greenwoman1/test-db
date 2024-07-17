@@ -84,10 +84,10 @@ const saveProductFromJson = async (req, res) => {
         if (combos.length > 0) {
           errors.push({ msg: `Combo with name (${productJson.name}) already exists`, param: 'name', location: 'body' });
         }
-        for (const variant of productJson?.items) {
-          const productItem = await Variant.findByPk(variant);
+        for (const item of productJson?.items) {
+          const productItem = await Variant.findByPk(item.variantId);
           if (!productItem) {
-            errors.push({ msg: `Combo item ${variant} does not exist`, param: 'items', location: 'body' });
+            errors.push({ msg: `Combo item ${item.variantId} does not exist`, param: 'items', location: 'body' });
           }
 
 
@@ -122,7 +122,6 @@ const saveProductFromJson = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 const getProductSettings = async (req, res) => {
   const { productId } = req.params;
   try {
@@ -167,22 +166,10 @@ const getProductSettings = async (req, res) => {
               attributes: ['price', 'createdAt'],
             },
             {
-              model: Location,
-              as: 'Locations',
-              attributes: ['id', 'name'],
-              through: {
-                attributes: [],
-              },
-              include: [
-                {
-                  model: SKU,
-                  attributes: ['id', 'stock'],
-
-                }
-              ]
+              model: SKU,
+              attributes: ['id'],
+              through: { attributes: [] },
             },
-
-
           ],
         },
         {
@@ -225,70 +212,86 @@ const getProductSettings = async (req, res) => {
               attributes: ['price', 'createdAt'],
             },
             {
-              model: Location,
-              as: 'Locations',
-              attributes: ['id', 'name'],
-              through: {
-                attributes: [],
-              },
+              model: SKU,
+              attributes: ['id'],
+              through: { attributes: [] },
             },
           ],
         },
       ],
     });
+
     if (!product) {
       return res.status(401).json({ message: `Product "${productId}" not found` });
     }
 
-    // const formattedVariants = await Promise.all(product.Variants.map(async (variant) => {
-    //   const price = await variant.getPrice(new Date());
-    //   return {
-    //     id: variant.id,
-    //     name: variant.name,
-    //     price: price,
-    //     groupOptions: variant.GroupOptions.map(groupOption => ({
-    //       id: groupOption.id,
-    //       name: groupOption.name,
-    //       type: groupOption.type,
-    //       options: groupOption.Options.map(option => ({
-    //         id: option.id,
-    //         name: option.name
-    //       })),
-    //       rules: groupOption.GroupRules ? groupOption.GroupRules.map(rule => ({
-    //         id: rule.id,
-    //         name: rule.name,
-    //         description: rule.description,
-    //         ruleType: rule.ruleType,
-    //         ruleValue: rule.ruleValue
-    //       })) : []
-    //     })),
-    //     topons: variant.Topons.map(topon => ({
-    //       id: topon.id,
-    //       name: topon.name,
-    //       minValue: topon.minValue,
-    //       maxValue: topon.maxValue,
-    //       defaultValue: topon.defaultValue
-    //     })),
-    //     images: variant.Images ? variant.Images.map(image => ({
-    //       id: image.id,
-    //       url: `${image.image}`,
-    //       name: image.name
-    //     })) : []
-    //   };
-    // }));
+    const mappedProduct = {
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      type: product.type,
+      Variants: product.Variants.map(variant => ({
+        id: variant.id,
+        name: variant.name,
+        GroupOptions: variant.GroupOptions.map(groupOption => ({
+          id: groupOption.id,
+          name: groupOption.name,
+          type: groupOption.type,
+          rules: groupOption.rules,
+          Options: groupOption.Options.map(option => ({
+            id: option.id,
+            name: option.name,
+          })),
+        })),
+        GroupTopons: variant.GroupTopons.map(groupTopon => ({
+          id: groupTopon.id,
+          name: groupTopon.name,
+          type: groupTopon.type,
+          rules: groupTopon.rules,
+          Topons: groupTopon.Topons.map(topon => ({
+            id: topon.id,
+            name: topon.name,
+          })),
+        })),
+        Prices: variant.Prices.map(price => ({
+          price: price.price,
+          createdAt: price.createdAt,
+        })),
+        SKUs: variant.SKUs.map(sku => sku.id),
+      })),
+      comboVariants: product.comboVariants.map(variant => ({
+        id: variant.id,
+        name: variant.name,
+        GroupOptions: variant.GroupOptions.map(groupOption => ({
+          id: groupOption.id,
+          name: groupOption.name,
+          type: groupOption.type,
+          rules: groupOption.rules,
+          Options: groupOption.Options.map(option => ({
+            id: option.id,
+            name: option.name,
+          })),
+        })),
+        GroupTopons: variant.GroupTopons.map(groupTopon => ({
+          id: groupTopon.id,
+          name: groupTopon.name,
+          type: groupTopon.type,
+          rules: groupTopon.rules,
+          Topons: groupTopon.Topons.map(topon => ({
+            id: topon.id,
+            name: topon.name,
+          })),
+        })),
+        Prices: variant.Prices.map(price => ({
+          price: price.price,
+          createdAt: price.createdAt,
+        })),
+        SKUs: variant.SKUs.map(sku => sku.id),
+      })),
+    };
 
-    // const result = {
-    //   product: {
-    //     name: product.name,
-    //     description: product.description,
-    //     type: product.type,
-    //     variants: formattedVariants
-    //   }
-    // };
-
-    return res.status(200).json(product);
+    return res.status(200).json(mappedProduct);
   } catch (error) {
-    console.error('Error during getProductSettings:', error);
     return res.status(500).json({ message: error.message });
   }
 };

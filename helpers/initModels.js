@@ -17,8 +17,15 @@ const { Product, Variant, Option, Topons, SKURule, GroupRule, User,
   OrderItemsCombo,
   Balance,
   ToponSKUs,
+  VariantSKURule,
+  IngredientSKURule,
+  Ingredients,
+  Warehouse,
+  WarehouseLocations,
+  VariantLocations
 
 } = require("../src");
+const VariantIngredients = require("../src/VariantIngredients/VariantIngredients");
 
 async function initModels() {
   const models = [
@@ -27,12 +34,10 @@ async function initModels() {
     Variant,
     GroupOptions,
     Topons,
-    SKURule,
     Option,
     VariantTopons,
     SKU,
     Location,
-    VariantSKUs,
     Image,
     PriceHistory,
     GroupTopons,
@@ -46,7 +51,14 @@ async function initModels() {
     UserLocation,
     OrderItemsCombo,
     Balance,
-    ToponSKUs
+    ToponSKUs,
+    VariantSKURule,
+    IngredientSKURule,
+    Ingredients,
+    Warehouse,
+    WarehouseLocations,
+    VariantLocations,
+    VariantIngredients
   ];
 
   for (const model of models) {
@@ -63,12 +75,10 @@ async function associateModels() {
     'Option': Option,
     'Topons': Topons,
     // "Combo": Combo,
-    'SKURule': SKURule,
     'VariantTopons': VariantTopons,
     'User': User,
     'SKU': SKU,
     'Location': Location,
-    'VariantSKUs': VariantSKUs,
     'Image': Image,
     'GroupOptions': GroupOptions,
     'PriceHistory': PriceHistory,
@@ -82,7 +92,16 @@ async function associateModels() {
     'UserLocation': UserLocation,
     'OrderItemsCombo': OrderItemsCombo,
     'Balance': Balance,
-    'ToponSKUs': ToponSKUs
+    'ToponSKUs': ToponSKUs,
+
+    'VariantSKURule': VariantSKURule,
+    'IngredientSKURule': IngredientSKURule,
+    'Ingredients': Ingredients,
+    'Warehouse': Warehouse,
+    'WarehouseLocations': WarehouseLocations,
+    'VariantLocations': VariantLocations,
+
+    'VariantIngredients': VariantIngredients
   }
 
   for (const [key, model] of Object.entries(models)) {

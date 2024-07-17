@@ -12,6 +12,11 @@ class ComboVariants extends Model {
 
         },
 
+        quantity: {
+          type: DataTypes.INTEGER,
+
+        },
+
       },
       {
         sequelize,
