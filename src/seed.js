@@ -806,13 +806,13 @@ const seed = async () => {
 
 
   /// create sku
-  const createSKU = async (name, stock, code) => {
-    return await SKU.create({ name: name, stock: stock, code: code });
+  const createSKU = async (name, stock, code, warehouse) => {
+    return await SKU.create({ name: name, stock: stock, code: code, WarehouseId: warehouse.id });
   }
 
   ///create warehoue for sku 
   const createWarehouse = async (name, sku) => {
-    return await Warehouse.create({ name: name, SKUId: sku.id });
+    return await Warehouse.create({ name: name });
   }
 
   ///add warehouse to location 
@@ -880,31 +880,50 @@ const seed = async () => {
   await addVariantToLocation(piletinaSir, hadziabdinica);
   await addVariantToLocation(piletinaSir, stup);
 
+  /// create warehouse
+
+  const stupWarehouse = await createWarehouse('stup');
+  const hadziabdinicaWarehouse = await createWarehouse('hadziabdinica');
+  const tuzlaWarehouse = await createWarehouse('tuzla');
+
+  await addWarehouseToLocation(stupWarehouse, stup);
+  await addWarehouseToLocation(hadziabdinicaWarehouse, hadziabdinica);
+  await addWarehouseToLocation(tuzlaWarehouse, hadziabdinica);
+
+
+
 
   ///create sku 
 
-  const kafaObicnaSku = await createSKU('kafaObicna', 100, 'kafaObicna');
-  const kafaManoloSku = await createSKU('kafaManolo', 100, 'kafaManolo');
-  const piletinaSku = await createSKU('piletina', 100, 'piletina');
-  const currySku = await createSKU('curry', 100, 'curry');
-  const sirSku = await createSKU('sir', 100, 'sir');
-  const kolaSku = await createSKU('kola', 100, 'kola');
-  const kolaLightSku = await createSKU('kolaLight', 100, 'kolaLight');
+  const kafaObicnaSkuS = await createSKU('kafaObicna', 100, '225883', stupWarehouse);
+  const kafaObicnaSkuH = await createSKU('kafaObicnaneka', 100, '225883', hadziabdinicaWarehouse);
+  // const piletinaSku = await createSKU('piletina', 100, 'piletina', piletinaWarehouse);
+  // const currySku = await createSKU('curry', 100, 'curry', );
+  // const sirSku = await createSKU('sir', 100, 'sir');
+  // const kolaSku = await createSKU('kola', 100, 'kola');
+  // const kolaLightSku = await createSKU('kolaLight', 100, 'kolaLight');
 
   /// add rule for variant sku 
-  await addVariantRulesToSKU(kola, kolaSku);
-  await addVariantRulesToSKU(kolaLight, kolaLightSku);
+
+  await addVariantRulesToSKU(kafaObicna, kafaObicnaSkuS);
+  await addVariantRulesToSKU(kafaObicna, kafaObicnaSkuH);
 
 
   /// add rule for ingredient sku
 
-  await addIngredientRulesToSKU(kafaObicna, kafaObicnaSastojak);
-  await addIngredientRulesToSKU(kafaManolo, kafaManoloSastojak);
-  await addIngredientRulesToSKU(piletinaCurry, currySastojak);
-  await addIngredientRulesToSKU(piletinaSir, sirSastojak);
+  /// dodaj jos podataka za sastojke 
 
 
-  /// create warehouse
+  /// 
+
+
+
+
+
+
+
+
+
 
 
 
