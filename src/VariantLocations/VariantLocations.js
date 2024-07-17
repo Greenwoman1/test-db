@@ -10,13 +10,7 @@ class VariantLocations extends Model {
           primaryKey: true,
           defaultValue: UUIDV4
         },
-        name: {
-          type: DataTypes.STRING(64),
-          allowNull: false,
-          validate: {
-            min: 4
-          },
-        },
+
       },
 
       {

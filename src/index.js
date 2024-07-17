@@ -30,6 +30,7 @@ const Ingredients = require('./Ingredients/Ingredients');
 const Warehouse = require('./Warehouse/Warehouse');
 const WarehouseLocations = require('./WarehouseLocations/WarehouseLocations');
 const VariantLocations = require('./VariantLocations/VariantLocations');
+const VariantIngredients = require('./VariantIngredients/VariantIngredients');
 
 module.exports = {
   User,
@@ -61,6 +62,7 @@ module.exports = {
   Ingredients,
   Warehouse,
   WarehouseLocations,
-  VariantLocations
+  VariantLocations,
+  VariantIngredients
 
 } 

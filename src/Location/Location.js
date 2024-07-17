@@ -27,7 +27,7 @@ class Location extends Model {
   }
 
   static associateModel(models) {
-    Location.belongsTo(models.UserLocation);
+    Location.belongsToMany(models.User, { through: 'UserLocation' });
     Location.belongsToMany(models.Variant, { through: 'VariantLocations' });
     Location.belongsToMany(models.Warehouse, { through: 'WarehouseLocations' });
 
