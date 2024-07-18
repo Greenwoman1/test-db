@@ -3,9 +3,9 @@ const sequelize = require('../../sequelize');
 const { getSKUById } = require('../SKU/skuController');
 const SKU = require('../SKU/SKU');
 
-class VariantSKURule extends Model {
+class SKURule extends Model {
   static initModel() {
-    VariantSKURule.init(
+    SKURule.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -13,11 +13,23 @@ class VariantSKURule extends Model {
           primaryKey: true,
           allowNull: false,
         },
+        unit: {
+          type: DataTypes.STRING(64),
+          allowNull: false,
+        },
+        quantity: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        disabled: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+        },
 
       },
       {
         sequelize,
-        modelName: 'VariantSKURule',
+        modelName: 'SKURule',
         timestamps: true,
         createdAt: false,
       }
@@ -26,10 +38,12 @@ class VariantSKURule extends Model {
 
   static associateModel(models) {
 
+    SKURule.belongsTo(models.SKU);
+    SKURule.belongsTo(models.VariantLocations)
+    SKURule.belongsTo(models.VariantIngredients)
 
-    VariantSKURule.belongsTo(models.VariantLocations);
-    VariantSKURule.belongsTo(models.SKU);
+
   }
 }
 
-module.exports = VariantSKURule;
+module.exports = SKURule;

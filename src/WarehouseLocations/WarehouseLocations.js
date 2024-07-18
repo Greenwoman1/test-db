@@ -5,11 +5,7 @@ class WarehouseLocations extends Model {
   static initModel() {
     WarehouseLocations.init(
       {
-        id: {
-          type: DataTypes.UUID,
-          primaryKey: true,
-          defaultValue: UUIDV4
-        },
+
       },
 
       {

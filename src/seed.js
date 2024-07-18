@@ -795,8 +795,8 @@ const seed = async () => {
 
 
   ///dodaj satojak na varijantu 
-  const addIngredientToVariant = async (variant, ingredient) => {
-    return await VariantIngredients.create({ VariantId: variant.id, IngredientId: ingredient.id });
+  const addIngredientToVariant = async (variantLocation, ingredient) => {
+    return await VariantIngredients.create({ VariantLocationId: variantLocation.id, IngredientId: ingredient.id });
   }
 
   /// add variant to location 
@@ -807,7 +807,7 @@ const seed = async () => {
 
   /// create sku
   const createSKU = async (name, stock, code, warehouse) => {
-    return await SKU.create({ name: name, stock: stock, code: code, WarehouseId: warehouse.id });
+    return await SKU.create({ name: name, stock: stock, code: code, WarehouseId: warehouse.id, allowMinus: true });
   }
 
   ///create warehoue for sku 
@@ -822,20 +822,14 @@ const seed = async () => {
 
   /// add rules for variant for sku
 
-  const addVariantRulesToSKU = async (variant, sku) => {
+  const createSKURules = async (VariantLocation, VariantIngredient, sku) => {
 
-
-    return await VariantSKURule.create({ VariantId: variant.id, SKUId: sku.id, unit: 'g', quantity: 1 });
+    return await SKURule.create({ VariantLocationId: VariantLocation.id, VariantIngredientId: VariantIngredient?.id || null, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false });
   }
 
 
-  ///add rules for ingredient for sku
-
-  const addIngredientRulesToSKU = async (ingredient, sku) => {
-
-    return await IngredientSKURule.create({ IngredientId: ingredient.id, SKUId: sku.id, unit: 'g', quantity: 1 });
-  }
-
+  const stup = await createLocation('stup');
+  const hadziabdinica = await createLocation('hadziabdinica');
 
   const proizvodKafa = await createSingleProduct('kafa');
   const proizvodPiletina = await createSingleProduct('piletina ');
@@ -845,88 +839,140 @@ const seed = async () => {
   const kolaLight = await createProductVariant('kolaLight', kolaProizvod);
   const kola = await createProductVariant('kola', kolaProizvod);
 
-  const kafaObicna = await createProductVariant('obicna', proizvodKafa);
-  const kafaManolo = await createProductVariant('manolo', proizvodKafa);
+  const kolaStup = await addVariantToLocation(kola, stup);
+  const kolaHadziabdinica = await addVariantToLocation(kola, hadziabdinica);
 
-  const piletinaCurry = await createProductVariant('curry', proizvodPiletina);
-  const piletinaSir = await createProductVariant('sir', proizvodPiletina);
-
-  const stup = await createLocation('stup');
-  const hadziabdinica = await createLocation('hadziabdinica');
-
-  const kafaObicnaSastojak = await createIngredient('kafa');
-  const kafaManoloSastojak = await createIngredient('kafa');
-
-  const piletinaSastojak = await createIngredient('piletina');
-  const sirSastojak = await createIngredient('sir');
-  const currySastojak = await createIngredient('curry');
+  const kolaLightStup = await addVariantToLocation(kolaLight, stup);
+  const kolaLightHadziabdinica = await addVariantToLocation(kolaLight, hadziabdinica);
 
 
-  await addIngredientToVariant(kafaObicna, kafaObicnaSastojak);
-  await addIngredientToVariant(kafaManolo, kafaManoloSastojak);
-  await addIngredientToVariant(piletinaCurry, piletinaSastojak);
-  await addIngredientToVariant(piletinaSir, sirSastojak);
-  await addIngredientToVariant(piletinaCurry, currySastojak);
+  const stupSkladiste = await createWarehouse('stup');
+  const hadziabdinicaSkladiste = await createWarehouse('hadziabdinica');
+
+  await addWarehouseToLocation(stupSkladiste, stup);
+  await addWarehouseToLocation(hadziabdinicaSkladiste, hadziabdinica);
 
 
+  const kolaSKU = await createSKU('kola', 10, 'kola', stupSkladiste);
+  const kolaLightSKUHadzi = await createSKU('kolaLight', 10, 'kolaLight', hadziabdinicaSkladiste);
+  const kolaLightSKUStup = await createSKU('kolaLight', 10, 'kolaLight', stupSkladiste);
 
-  await addVariantToLocation(kafaObicna, stup);
-  await addVariantToLocation(kafaManolo, stup);
 
-  await addVariantToLocation(kafaObicna, hadziabdinica);
-  await addVariantToLocation(kafaManolo, hadziabdinica);
-
-  await addVariantToLocation(piletinaCurry, hadziabdinica);
-  await addVariantToLocation(piletinaSir, hadziabdinica);
-  await addVariantToLocation(piletinaSir, stup);
-
-  /// create warehouse
-
-  const stupWarehouse = await createWarehouse('stup');
-  const hadziabdinicaWarehouse = await createWarehouse('hadziabdinica');
-  const tuzlaWarehouse = await createWarehouse('tuzla');
-
-  await addWarehouseToLocation(stupWarehouse, stup);
-  await addWarehouseToLocation(hadziabdinicaWarehouse, hadziabdinica);
-  await addWarehouseToLocation(tuzlaWarehouse, hadziabdinica);
+  const kolaRules = await createSKURules(kolaStup, null, kolaSKU);
+  const kolaLightRules = await createSKURules(kolaLightStup, null, kolaLightSKUHadzi);
+  const kolaLightRulesStup = await createSKURules(kolaLightHadziabdinica, null, kolaLightSKUStup);
 
 
 
+  const piletinaProizvod = await createSingleProduct('piletina');
 
-  ///create sku 
+  const piletina = await createIngredient('piletina');
+  const riza = await createIngredient('riza');
+  const curry = await createIngredient('curry');
 
-  const kafaObicnaSkuS = await createSKU('kafaObicna', 100, '225883', stupWarehouse);
-  const kafaObicnaSkuH = await createSKU('kafaObicnaneka', 100, '225883', hadziabdinicaWarehouse);
-  // const piletinaSku = await createSKU('piletina', 100, 'piletina', piletinaWarehouse);
-  // const currySku = await createSKU('curry', 100, 'curry', );
-  // const sirSku = await createSKU('sir', 100, 'sir');
-  // const kolaSku = await createSKU('kola', 100, 'kola');
-  // const kolaLightSku = await createSKU('kolaLight', 100, 'kolaLight');
-
-  /// add rule for variant sku 
-
-  await addVariantRulesToSKU(kafaObicna, kafaObicnaSkuS);
-  await addVariantRulesToSKU(kafaObicna, kafaObicnaSkuH);
+  const piletinaObicnaVariant = await createProductVariant('piletinaObicna', piletinaProizvod);
+  const piletinaRizaVariant = await createProductVariant('piletinaRiza', piletinaProizvod);
+  const piletinaCurryVariant = await createProductVariant('piletinaCurry', piletinaProizvod);
 
 
-  /// add rule for ingredient sku
-
-  /// dodaj jos podataka za sastojke 
-
-
-  /// 
+  const piletinaHadzi = await addVariantToLocation(piletinaObicnaVariant, hadziabdinica);
+  const piletinaRiza = await addVariantToLocation(piletinaRizaVariant, hadziabdinica);
+  const piletinaCurry = await addVariantToLocation(piletinaCurryVariant, hadziabdinica);
+  const piletinaStup = await addVariantToLocation(piletinaObicnaVariant, stup);
+  const piletinaRizaStup = await addVariantToLocation(piletinaRizaVariant, stup);
+  const piletinaCurryStup = await addVariantToLocation(piletinaCurryVariant, stup);
 
 
 
+  const piletinaSastojakStup = await addIngredientToVariant(piletinaStup, piletina);
+  const piletinaSastojakRizaStup = await addIngredientToVariant(piletinaRizaStup, riza);
+  const piletinaSastojakCurryStup = await addIngredientToVariant(piletinaCurryStup, curry);
+
+
+  const piletinaSastojakPiletina = await addIngredientToVariant(piletinaHadzi, piletina);
+  const piletinaRizaSastojakPiletina = await addIngredientToVariant(piletinaRiza, riza);
+  const piletinaCurrySastojakPiletina = await addIngredientToVariant(piletinaCurry, curry);
+
+
+  const piletinaSkuStup = await createSKU('piletina', 10, 'piletina', stupSkladiste);
+  const rizaSKUStup = await createSKU('riza', 10, 'riza', stupSkladiste);
+  const currySKUStup = await createSKU('curry', 10, 'curry', stupSkladiste);
+
+  const piletinaHadziSKU = await createSKU('piletina', 10, 'piletina', hadziabdinicaSkladiste);
+  const rizaHadziSKU = await createSKU('riza', 10, 'riza', hadziabdinicaSkladiste);
+  const curryHadziSKU = await createSKU('curry', 10, 'curry', hadziabdinicaSkladiste);
+
+  await createSKURules(piletinaHadzi, piletinaSastojakPiletina, piletinaHadziSKU);
+  await createSKURules(piletinaRiza, piletinaRizaSastojakPiletina, rizaHadziSKU);
+  await createSKURules(piletinaCurry, piletinaCurrySastojakPiletina, curryHadziSKU);
+
+  await createSKURules(piletinaStup, piletinaSastojakStup, piletinaSkuStup);
+  await createSKURules(piletinaRizaStup, piletinaSastojakRizaStup, rizaSKUStup);
+  await createSKURules(piletinaCurryStup, piletinaSastojakCurryStup, currySKUStup);
+
+
+
+  /// daj mi sve iteme koje imam u skladistu na stupu
+
+  const warehouseItems = await Warehouse.findAll({
+    where: {
+      id: stupSkladiste.id
+    },
+    include: [
+      {
+        model: Location,
+        attributes: ['name'],
+        through: {
+          attributes: []
+        },
+        include: [
+          {
+            model: Variant,
+            as: 'Variants',
+            attributes: ['name'],
+            through: {
+              attributes: []
+            },
+
+          },
+          {
+
+
+
+            model: VariantLocations,
+            attributes: ['id'],
+            include: [
+              {
+                model: VariantIngredients,
+                required: false,
+                include: [
+                  {
+                    model: SKURule,
+                    required: false,
+                    attributes: ['id'],
+                    include: [
+
+                      { model: SKU, attributes: ['id', 'name'] }
+                    ]
+                  }
+                ]
+              }
+            ]
 
 
 
 
 
+          }
+
+        ]
+      }
+
+    ]
+  });
 
 
-
-
+  console.log(JSON.stringify(warehouseItems, null, 2));
   console.log('All products created');
 };
 

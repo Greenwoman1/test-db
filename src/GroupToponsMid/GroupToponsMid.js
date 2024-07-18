@@ -11,8 +11,18 @@ class GroupToponsMid extends Model {
           defaultValue: UUIDV4
 
         },
-        rules: {
-          type: DataTypes.JSON
+        min: {
+          type: DataTypes.INTEGER,
+          allowNull: false
+
+        },
+        max: {
+          type: DataTypes.INTEGER,
+          allowNull: false
+        },
+        disabled: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false
         }
       },
       {
@@ -26,8 +36,7 @@ class GroupToponsMid extends Model {
   }
 
   static associateModel(models) {
-    // GroupToponsMid.hasMany(00);
-
+    GroupToponsMid.hasOne(models.ToponSKURule);
   }
 }
 

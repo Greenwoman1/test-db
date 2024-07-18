@@ -45,8 +45,7 @@ class GroupOption extends Model {
   }
 
   static associateModel(models) {
-
-    GroupOption.belongsTo(models.Variant);
+    GroupOption.belongsTo(models.VariantLocations);
     GroupOption.hasMany(models.Option);
   }
 }

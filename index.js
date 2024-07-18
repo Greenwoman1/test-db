@@ -2,15 +2,15 @@ const express = require('express');
 const path = require('path'); // Add this line
 const bodyParser = require('body-parser'); // Add this line
 const sequelize = require('./sequelize');
-const variantRoute = require('./src/Variant/variantRoute');
-const productRoute = require('./src/Product/productRoute');
-const skuRoute = require('./src/SKU/SKURoute');
-const toponsRoute = require('./src/Topons/toponsRoute');
-const userRoute = require('./src/User/userRoute');
-const groupRuleRoute = require('./src/GroupRule/groupRoute');
-const locationRoute = require('./src/Location/locationRoute');
-const comboRoute = require('./src/Combo/comboRoute');
-const orderRoute = require('./src/Order/route');
+// const variantRoute = require('./src/Variant/variantRoute');
+// const productRoute = require('./src/Product/productRoute');
+// const skuRoute = require('./src/SKU/SKURoute');
+// const toponsRoute = require('./src/Topons/toponsRoute');
+// const userRoute = require('./src/User/userRoute');
+// const groupRuleRoute = require('./src/GroupRule/groupRoute');
+// const locationRoute = require('./src/Location/locationRoute');
+// const comboRoute = require('./src/Combo/comboRoute');
+// const orderRoute = require('./src/Order/route');
 const redisClient = require('./redisClient');
 const { seed } = require('./src/seed');
 const init = require('./helpers/initModels');
@@ -40,15 +40,15 @@ sequelize.authenticate()
 
 app.use(express.json());
 
-app.use('/user', userRoute);
-app.use('/product', productRoute);
-app.use('/variant', variantRoute);
-app.use('/groupRules', groupRuleRoute);
-app.use('/sku', skuRoute);
-app.use('/topons', toponsRoute);
-app.use('/locations', locationRoute);
-app.use('/combo', comboRoute);
-app.use('/order', orderRoute);
+// app.use('/user', userRoute);
+// app.use('/product', productRoute);
+// app.use('/variant', variantRoute);
+// app.use('/groupRules', groupRuleRoute);
+// app.use('/sku', skuRoute);
+// app.use('/topons', toponsRoute);
+// app.use('/locations', locationRoute);
+// app.use('/combo', comboRoute);
+// app.use('/order', orderRoute);
 
 
 app.get('/redis-test', (req, res) => {

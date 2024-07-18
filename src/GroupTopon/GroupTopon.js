@@ -1,29 +1,29 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class Option extends Model {
+class GroupTopon extends Model {
   static associateModel(models) {
-    Option.belongsToMany(models.OrderItems, { through: 'ProductO' });
-    Option.belongsTo(models.GroupOptions);
+
+    GroupTopon.belongsTo(models.VariantLocations)
+    GroupTopon.belongsToMany(models.Topons, { through: 'GroupToponsMid' })
   }
 
   static initModel() {
-    Option.init(
+    GroupTopon.init(
       {
         id: {
           type: DataTypes.UUID,
-          defaultValue: UUIDV4,
           primaryKey: true,
-          allowNull: false,
+          defaultValue: DataTypes.UUIDV4
         },
-        name: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        }
+        rules: {
+          type: DataTypes.JSON
+
+        },
       },
       {
         sequelize,
-        modelName: 'Option',
+        modelName: 'GroupTopon',
         timestamps: true,
         createdAt: false,
       },
@@ -31,4 +31,4 @@ class Option extends Model {
   }
 }
 
-module.exports = Option;
+module.exports = GroupTopon;

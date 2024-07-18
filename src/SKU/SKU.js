@@ -3,11 +3,12 @@ const sequelize = require('../../sequelize');
 
 class SKU extends Model {
   static associateModel(models) {
-    SKU.hasMany(models.VariantSKURule);
-    SKU.hasMany(models.IngredientSKURule);
+
+    SKU.hasMany(models.SKURule);
     SKU.belongsToMany(models.Topons, { through: 'ToponSKUs', foreignKey: 'SkuId' });
     SKU.belongsToMany(models.Variant, { through: 'VariantSKUs', foreignKey: 'SkuId' });
     SKU.belongsTo(models.Warehouse);
+    SKU.hasMany(models.ToponSKURule);
   }
 
   static initModel() {
@@ -26,7 +27,11 @@ class SKU extends Model {
         stock: {
           type: DataTypes.STRING,
           allowNull: false,
-        }
+        },
+        allowMinus: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+        },
       },
       {
         sequelize,

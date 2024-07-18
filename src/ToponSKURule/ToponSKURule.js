@@ -3,9 +3,9 @@ const sequelize = require('../../sequelize');
 const { getSKUById } = require('../SKU/skuController');
 const SKU = require('../SKU/SKU');
 
-class IngredientSKURule extends Model {
+class ToponSKURule extends Model {
   static initModel() {
-    IngredientSKURule.init(
+    ToponSKURule.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -13,11 +13,23 @@ class IngredientSKURule extends Model {
           primaryKey: true,
           allowNull: false,
         },
+        unit: {
+          type: DataTypes.STRING(64),
+          allowNull: false,
+        },
+        quantity: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        disabled: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+        },
 
       },
       {
         sequelize,
-        modelName: 'IngredientSKURule',
+        modelName: 'ToponSKURule',
         timestamps: true,
         createdAt: false,
       }
@@ -25,11 +37,11 @@ class IngredientSKURule extends Model {
   }
 
   static associateModel(models) {
-    IngredientSKURule.belongsTo(models.VariantIngredients);
-    IngredientSKURule.belongsTo(models.SKU);
 
+    ToponSKURule.belongsTo(models.GroupToponsMid);
+    ToponSKURule.belongsTo(models.SKU);
 
   }
 }
 
-module.exports = IngredientSKURule;
+module.exports = ToponSKURule;

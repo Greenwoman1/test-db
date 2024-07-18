@@ -7,8 +7,8 @@ class Ingredients extends Model {
 
 
   static associateModel(models) {
-    Ingredients.belongsToMany(models.Variant, { through: 'VariantIngredients' });
-
+    Ingredients.belongsToMany(models.VariantLocations, { through: 'VariantIngredients' });
+    Ingredients.hasMany(models.VariantIngredients)
   }
   static initModel() {
     Ingredients.init(

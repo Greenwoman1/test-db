@@ -24,8 +24,13 @@ class VariantLocations extends Model {
   static associateModel(models) {
 
 
-    VariantLocations.hasOne(models.VariantSKURule);
+    VariantLocations.hasOne(models.SKURule);
 
+    VariantLocations.hasMany(models.VariantIngredients);
+    VariantLocations.belongsTo(models.Location);
+
+    VariantLocations.hasMany(models.GroupTopon)
+    VariantLocations.belongsTo(models.Variant, { as: 'Variant' });
   }
 }
 
