@@ -1,22 +1,19 @@
 const { DataTypes, Model, UUIDV4, BelongsTo } = require('sequelize');
 const sequelize = require('../../sequelize');
 const { Op } = require('sequelize');
-const PriceHistory = require('../PriceHistory/PriceHistory');
 
 class Variant extends Model {
 
 
   static associateModel(models) {
-    Variant.belongsToMany(models.Product, { through: 'ComboVariants', as: 'comboVariants', foreignKey: 'VariantId' });
     Variant.belongsTo(models.Product, { as: 'Product' });
-    Variant.hasMany(models.PriceHistory, { foreignKey: 'itemId', constraints: false });
     Variant.hasMany(models.GroupOptions);
     // Variant.hasMany(models.ComboVariants, { foreignKey: 'VariantId' });
     Variant.belongsToMany(models.Location, { through: 'Location' });
     Variant.hasMany(models.VariantLocations, { as: 'VL', foreignKey: 'VariantId' });
     Variant.hasMany(models.VariantIngredients);
     Variant.hasMany(models.LinkedVariants);
-
+    Variant.hasMany(models.VariantPrice)
 
   }
 

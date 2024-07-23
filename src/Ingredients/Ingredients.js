@@ -1,6 +1,5 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
-const PriceHistory = require('../PriceHistory/PriceHistory');
 const { Op } = require('sequelize');
 
 class Ingredients extends Model {

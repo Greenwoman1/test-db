@@ -1,6 +1,5 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
-const PriceHistory = require('../PriceHistory/PriceHistory');
 const { Op } = require('sequelize');
 
 class Topons extends Model {
@@ -8,7 +7,7 @@ class Topons extends Model {
 
   static associateModel(models) {
     // Topons.belongsToMany(models.OrderItems, { through: 'ProductT' });
-    Topons.hasMany(models.PriceHistory, { foreignKey: 'itemId', constraints: false });
+    Topons.hasMany(models.ToponPrice);
     Topons.hasMany(models.GroupToponsMid);
 
 

@@ -26,7 +26,9 @@ const {
   VariantLocations,
   Warehouse,
   WarehouseLocations,
-  LinkedVariants
+  LinkedVariants,
+  ToponPrice,
+  VariantPrice
 
 
 } = require("../src");
@@ -44,7 +46,8 @@ async function initModels() {
     // Order,
     // OrderItems,
     // OrderItemsCombo,
-    PriceHistory,
+    ToponPrice,
+    VariantPrice,
     Product,
     ProductO,
     ProductT,
@@ -85,7 +88,8 @@ async function associateModels() {
     // 'Order': Order,
     // 'OrderItems': OrderItems,
     // 'OrderItemsCombo': OrderItemsCombo,
-    'PriceHistory': PriceHistory,
+    'VariantPrice': VariantPrice,
+    'ToponPrice': ToponPrice,
     'Product': Product,
     'ProductO': ProductO,
     'ProductT': ProductT,

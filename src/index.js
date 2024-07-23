@@ -6,11 +6,11 @@ const Variant = require('./Variant/Variant');
 const SKU = require('./SKU/SKU');
 const Location = require('./Location/Location');
 const Image = require('./Image/Image');
-const PriceHistory = require('./PriceHistory/PriceHistory');
 const GroupToponsMid = require('./GroupToponsMid/GroupToponsMid');
 const Order = require('./Order/Order');
 const OrderItems = require('./OrderItems/OrderItems');
-
+const ToponPrice = require('./ToponPrice/ToponPrice');
+const VariantPrice = require('./VariantPrice/VariantPrice');
 const ProductO = require('./ProductO/ProductO');
 const ProductT = require('./ProductT/ProductT');
 const UserLocation = require('./UserLocation/UserLocation');
@@ -40,7 +40,9 @@ module.exports = {
   // Order,
   // OrderItems,
   // OrderItemsCombo,
-  PriceHistory,
+  ToponPrice,
+  VariantPrice,
+  
   Product,
   ProductO,
   ProductT,

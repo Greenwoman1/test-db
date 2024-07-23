@@ -1113,7 +1113,7 @@ const seed = async () => {
   const ledToponSKURule = await createToponSKURule(rucak2GroupToponsled, ledSKU);
 
 
-  
+
 
 
   const getToponsForVariant = async (variantId) => {
@@ -1223,8 +1223,13 @@ const seed = async () => {
 
 
   const piletinCurrySastojciRules = await getSKURulesForVariantIngredients(piletinaCurryVariant.id);
-  console.log(JSON.stringify(piletinCurrySastojciRules, null, 2));
+  // console.log(JSON.stringify(piletinCurrySastojciRules, null, 2));
   // console.log(JSON.stringify(toponiZaKolu, null, 2));
+
+
+  /// check if is disabled or not
+
+
   console.log('All products created');
 };
 
