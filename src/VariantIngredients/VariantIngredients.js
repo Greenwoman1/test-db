@@ -22,7 +22,7 @@ class VariantIngredients extends Model {
   }
 
   static associateModel(models) {
-    VariantIngredients.belongsTo(models.VariantLocations);
+    VariantIngredients.belongsTo(models.Variant);
 
     VariantIngredients.belongsTo(models.Ingredients);
     VariantIngredients.hasOne(models.SKURule);

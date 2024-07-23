@@ -26,11 +26,10 @@ class VariantLocations extends Model {
 
     VariantLocations.hasOne(models.SKURule);
 
-    VariantLocations.hasMany(models.VariantIngredients);
     VariantLocations.belongsTo(models.Location);
 
     VariantLocations.hasMany(models.GroupTopon)
-    VariantLocations.belongsTo(models.Variant, { as: 'Variant' });
+    VariantLocations.belongsTo(models.Variant, { as: 'VL', foreignKey: 'VariantId' });
   }
 }
 

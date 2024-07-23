@@ -7,9 +7,6 @@ const SKU = require('./SKU/SKU');
 const Location = require('./Location/Location');
 const Image = require('./Image/Image');
 const PriceHistory = require('./PriceHistory/PriceHistory');
-const Combo = require('./Combo/Combo');
-const ComboItems = require('./ComboItems/ComboItems');
-const ComboVariants = require('./ComboVariants/ComboVariants');
 const GroupToponsMid = require('./GroupToponsMid/GroupToponsMid');
 const Order = require('./Order/Order');
 const OrderItems = require('./OrderItems/OrderItems');
@@ -28,12 +25,11 @@ const VariantIngredients = require('./VariantIngredients/VariantIngredients');
 const GroupTopon = require('./GroupTopon/GroupTopon');
 const ToponSKURule = require('./ToponSKURule/ToponSKURule');
 const Topons = require('./Topons/Topons');
+const LinkedVariants = require('./LinkedVariants/LinkedVariants');
 
 module.exports = {
   Balance,
-  Combo,
-  ComboItems,
-  ComboVariants,
+
   GroupOptions,
   GroupTopon,
   GroupToponsMid,
@@ -41,9 +37,9 @@ module.exports = {
   Ingredients,
   Location,
   Option,
-  Order,
-  OrderItems,
-  OrderItemsCombo,
+  // Order,
+  // OrderItems,
+  // OrderItemsCombo,
   PriceHistory,
   Product,
   ProductO,
@@ -58,7 +54,8 @@ module.exports = {
   VariantIngredients,
   VariantLocations,
   Warehouse,
-  WarehouseLocations
+  WarehouseLocations,
+  LinkedVariants
 
 
 

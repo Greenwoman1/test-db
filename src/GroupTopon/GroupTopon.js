@@ -5,7 +5,7 @@ class GroupTopon extends Model {
   static associateModel(models) {
 
     GroupTopon.belongsTo(models.VariantLocations)
-    GroupTopon.belongsToMany(models.Topons, { through: 'GroupToponsMid' })
+    GroupTopon.hasMany(models.GroupToponsMid)
   }
 
   static initModel() {

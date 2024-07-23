@@ -1,6 +1,6 @@
 const { name } = require('ejs');
 const { saveProductFromJson, createProduct } = require('./Product/productController');
-const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, OrderItems, ProductO, ProductT, OrderItemsCombo, User, Balance, Ingredients, WarehouseLocations, Warehouse, VariantSKURule, IngredientSKURule, VariantLocations, VariantIngredients } = require('./index');
+const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, OrderItems, ProductO, ProductT, OrderItemsCombo, User, Balance, Ingredients, WarehouseLocations, Warehouse, VariantSKURule, IngredientSKURule, VariantLocations, VariantIngredients, GroupTopon, GroupToponsMid, LinkedVariants, ToponSKURule } = require('./index');
 const { handleVariants } = require('./Product/utils');
 const { Json } = require('sequelize/lib/utils');
 const { Sequelize } = require('sequelize');
@@ -8,7 +8,7 @@ const sequelize = require('../sequelize');
 
 const redisClient = require('../redisClient');
 const { AcceptOrder } = require('./Order/utils');
-const { describe } = require('./User/User');
+const { describe, min } = require('./User/User');
 
 const seed = async () => {
 
@@ -795,8 +795,8 @@ const seed = async () => {
 
 
   ///dodaj satojak na varijantu 
-  const addIngredientToVariant = async (variantLocation, ingredient) => {
-    return await VariantIngredients.create({ VariantLocationId: variantLocation.id, IngredientId: ingredient.id });
+  const addIngredientToVariant = async (variant, ingredient) => {
+    return await VariantIngredients.create({ VariantId: variant.id, IngredientId: ingredient.id });
   }
 
   /// add variant to location 
@@ -882,17 +882,11 @@ const seed = async () => {
   const piletinaRizaStup = await addVariantToLocation(piletinaRizaVariant, stup);
   const piletinaCurryStup = await addVariantToLocation(piletinaCurryVariant, stup);
 
-
-
-  const piletinaSastojakStup = await addIngredientToVariant(piletinaStup, piletina);
-  const piletinaSastojakRizaStup = await addIngredientToVariant(piletinaRizaStup, riza);
-  const piletinaSastojakCurryStup = await addIngredientToVariant(piletinaCurryStup, curry);
-
-
-  const piletinaSastojakPiletina = await addIngredientToVariant(piletinaHadzi, piletina);
-  const piletinaRizaSastojakPiletina = await addIngredientToVariant(piletinaRiza, riza);
-  const piletinaCurrySastojakPiletina = await addIngredientToVariant(piletinaCurry, curry);
-
+  const piletinaPiletina = await addIngredientToVariant(piletinaObicnaVariant, piletina);
+  const pieltinaRizaRiza = await addIngredientToVariant(piletinaRizaVariant, riza);
+  const piletinaRizaPiletina = addIngredientToVariant(piletinaRizaVariant, piletina);
+  const piletinaCurryCurry = await addIngredientToVariant(piletinaCurryVariant, curry);
+  const piletinaCurryPiletina = await addIngredientToVariant(piletinaCurryVariant, piletina);
 
   const piletinaSkuStup = await createSKU('piletina', 10, 'piletina', stupSkladiste);
   const rizaSKUStup = await createSKU('riza', 10, 'riza', stupSkladiste);
@@ -902,67 +896,146 @@ const seed = async () => {
   const rizaHadziSKU = await createSKU('riza', 10, 'riza', hadziabdinicaSkladiste);
   const curryHadziSKU = await createSKU('curry', 10, 'curry', hadziabdinicaSkladiste);
 
-  await createSKURules(piletinaHadzi, piletinaSastojakPiletina, piletinaHadziSKU);
-  await createSKURules(piletinaRiza, piletinaRizaSastojakPiletina, rizaHadziSKU);
-  await createSKURules(piletinaCurry, piletinaCurrySastojakPiletina, curryHadziSKU);
+  await createSKURules(piletinaHadzi, piletinaPiletina, piletinaHadziSKU);
+  await createSKURules(piletinaRiza, pieltinaRizaRiza, rizaHadziSKU);
+  await createSKURules(piletinaCurry, piletinaCurryPiletina, curryHadziSKU);
 
-  await createSKURules(piletinaStup, piletinaSastojakStup, piletinaSkuStup);
-  await createSKURules(piletinaRizaStup, piletinaSastojakRizaStup, rizaSKUStup);
-  await createSKURules(piletinaCurryStup, piletinaSastojakCurryStup, currySKUStup);
+  await createSKURules(piletinaStup, piletinaPiletina, piletinaSkuStup);
+  await createSKURules(piletinaRizaStup, pieltinaRizaRiza, rizaSKUStup);
+  await createSKURules(piletinaCurryStup, piletinaCurryPiletina, currySKUStup);
+
+
+  const createTopon = async (name) => {
+    return await Topons.create({ name: name });
+  }
+
+
+  const createVariantGroup = async (variantLocation) => {
+    return await GroupTopon.create({ VariantLocationId: variantLocation.id, rules: "{select: multipleselect}" });
+  }
+
+  const [secer, mlijeko, so, biber, limun, led] = await Promise.all([
+    createTopon('secer'),
+    createTopon('mlijeko'),
+    createTopon('so'),
+    createTopon('biber'),
+    createTopon('limun'),
+    createTopon('led'),
+
+  ])
+
+  /// rabela groupTopons
+  /// kola stup
+
+  const kolaStupGroup = await createVariantGroup(kolaStup);
+
+
+  const kolaHadziabdinicaGroup = await createVariantGroup(kolaHadziabdinica);
+
+  /// kolaLightStup
+
+
+  const kolaLightStupGroup = await createVariantGroup(kolaLightStup);
+
+  /// kolalighthadzi
+
+  const kolaLightHadziGroup = await createVariantGroup(kolaLightHadziabdinica)
+
+
+
+  const createGroupTopon = async (group, topon) => {
+
+    return await GroupToponsMid.create({ GroupToponId: group.id, ToponId: topon.id, disabled: false, min: 0, max: 10, default: 0 });
+
+  }
+
+
+
+  /// tabela GroupToponsMid
+
+  const groupToponMidMlijeko = await createGroupTopon(kolaStupGroup, mlijeko);
+  const groupToponMidSo = await createGroupTopon(kolaStupGroup, so);
+  const groupToponMidBiber = await createGroupTopon(kolaStupGroup, biber);
+  const groupToponMidLimun = await createGroupTopon(kolaHadziabdinicaGroup, limun);
+  const groupToponMidLed = await createGroupTopon(kolaHadziabdinicaGroup, secer);
+
+
+
+  const groupToponMidMlijekoLight = await createGroupTopon(kolaLightStupGroup, mlijeko);
+  const groupToponMidSoLight = await createGroupTopon(kolaLightStupGroup, so);
+  const groupToponMidBiberLight = await createGroupTopon(kolaLightStupGroup, biber);
+  const groupToponMidLimunLight = await createGroupTopon(kolaLightStupGroup, limun);
+  const groupToponMidLedLight = await createGroupTopon(kolaLightStupGroup, led);
+
+  const groupToponMidMlijekoLightHadzi = await createGroupTopon(kolaLightHadziGroup, mlijeko);
+  const groupToponMidSoLightHadzi = await createGroupTopon(kolaLightHadziGroup, so);
+  const groupToponMidBiberLightHadzi = await createGroupTopon(kolaLightHadziGroup, biber);
+  const groupToponMidLimunLightHadzi = await createGroupTopon(kolaLightHadziGroup, limun);
+  const groupToponMidLedLightHadzi = await createGroupTopon(kolaLightHadziGroup, secer);
+
+
+
+  const allTopons = await Variant.findAll({
+
+    include: [
+      {
+        model: VariantLocations,
+        as: 'VL',
+        include: [
+          {
+            model: GroupTopon,
+            include: [
+              {
+                model: GroupToponsMid,
+                include: [
+                  { model: Topons }
+                ]
+              }
+            ]
+          }
+        ]
+
+
+      },
+    ]
+  });
+
+  // console.log(JSON.stringify(allTopons, null, 2));
+
+
+
+
+
 
 
 
   /// daj mi sve iteme koje imam u skladistu na stupu
 
-  const warehouseItems = await Warehouse.findAll({
-    where: {
-      id: stupSkladiste.id
-    },
+  const warehouseItems = await SKU.findAll({
+    where: { WarehouseId: hadziabdinicaSkladiste.id },
+
     include: [
       {
-        model: Location,
-        attributes: ['name'],
-        through: {
-          attributes: []
-        },
+        model: SKURule,
+        attributes: [],
+        as: 'SKURules',
         include: [
           {
-            model: Variant,
-            as: 'Variants',
-            attributes: ['name'],
-            through: {
-              attributes: []
-            },
-
+            model: VariantLocations,
+            required: false,
+            include: [
+              { model: Variant, as: 'VL' }
+            ]
           },
           {
-
-
-
-            model: VariantLocations,
-            attributes: ['id'],
+            model: VariantIngredients,
+            required: false,
             include: [
               {
-                model: VariantIngredients,
-                required: false,
-                include: [
-                  {
-                    model: SKURule,
-                    required: false,
-                    attributes: ['id'],
-                    include: [
-
-                      { model: SKU, attributes: ['id', 'name'] }
-                    ]
-                  }
-                ]
+                model: Ingredients,
+                required: false
               }
             ]
-
-
-
-
-
           }
 
         ]
@@ -972,7 +1045,184 @@ const seed = async () => {
   });
 
 
-  console.log(JSON.stringify(warehouseItems, null, 2));
+
+  /// 
+
+  const createCombo = async (name) => {
+
+    return await Product.create({ name: name, type: 'combo', description: 'description', })
+  }
+
+  const rucak = await createCombo('rucak');
+
+  const rucak1 = await createProductVariant('rucak1', rucak);
+
+  const rucak2 = await createProductVariant('rucak2', rucak);
+
+  const rucak1loc = await addVariantToLocation(rucak1, stup);
+
+  const rucak2loc = await addVariantToLocation(rucak2, hadziabdinica);
+
+  const addVarianttocombo = async (varCombo, varLoc) => {
+    return await LinkedVariants.create({ VariantId: varCombo.id, VariantLocationId: varLoc.id })
+  }
+
+
+  const kolaRucak1 = await addVarianttocombo(rucak1, kolaStup)
+  const pieltinaRucak1 = await addVarianttocombo(rucak1, piletinaStup);
+
+
+
+  const kolaRucak2 = await addVarianttocombo(rucak2, kolaLightStup)
+  const pieltinaRucak2 = await addVarianttocombo(rucak2, piletinaHadzi);
+
+
+  const rucak1Group = await createVariantGroup(rucak1loc);
+  const rucak2Group = await createVariantGroup(rucak2loc);
+
+
+
+  const rucak1GroupToponsmlijeko = await createGroupTopon(rucak1Group, mlijeko);
+  const rucak1GroupToponsso = await createGroupTopon(rucak1Group, so);
+
+
+  const rucak2GroupToponsmlijeko = await createGroupTopon(rucak2Group, mlijeko);
+  const rucak2GroupToponsso = await createGroupTopon(rucak2Group, so);
+  const rucak2GroupToponsbiber = await createGroupTopon(rucak2Group, biber);
+  const rucak2GroupToponslimun = await createGroupTopon(rucak2Group, limun);
+  const rucak2GroupToponsled = await createGroupTopon(rucak2Group, led);
+
+  const createToponSKURule = async (groupToponMid, SKU) => {
+    return await ToponSKURule.create({ GroupToponsMidId: groupToponMid.id, SKUId: SKU.id, unit: 'kg', quantity: 1, disabled: false })
+
+  }
+
+  const mlijekoSKU = await createSKU('mlijeko', 10, 10, stupSkladiste);
+  const soSKU = await createSKU('so', 10, 10, stupSkladiste);
+  const biberSKU = await createSKU('biber', 10, 10, stupSkladiste);
+  const limunSKU = await createSKU('limun', 10, 10, stupSkladiste);
+  const ledSKU = await createSKU('led', 10, 10, stupSkladiste);
+
+
+
+  const mlijekoToponSKURule = await createToponSKURule(rucak1GroupToponsmlijeko, mlijekoSKU);
+  const soToponSKURule = await createToponSKURule(rucak1GroupToponsso, soSKU);
+
+  const biberToponSKURule = await createToponSKURule(rucak2GroupToponsbiber, biberSKU);
+  const limunToponSKURule = await createToponSKURule(rucak2GroupToponslimun, limunSKU);
+  const ledToponSKURule = await createToponSKURule(rucak2GroupToponsled, ledSKU);
+
+
+
+  const getToponsForVariant = async (variantId) => {
+
+    return await Topons.findAll({
+      include: [
+        {
+          model: GroupToponsMid,
+          required: true,
+          include: [
+            {
+              model: GroupTopon,
+              required: true,
+              include: [
+                {
+                  model: VariantLocations,
+                  required: true,
+                  include: [
+                    {
+                      model: Variant,
+                      as: 'VL',
+                      attributes: ['name'],
+                      required: true,
+                      where: { id: variantId },
+                    }
+                  ]
+
+                }]
+
+            }
+          ]
+
+        }
+      ]
+    })
+  }
+
+
+  const toponiZaKolu = await getToponsForVariant(kola.id);
+
+
+
+
+  const getToponByVariantLocation = async (variantId, locationId) => {
+
+    return await Topons.findAll({
+      include: [
+        {
+          model: GroupToponsMid,
+          required: true,
+          include: [
+            {
+              model: GroupTopon,
+              required: true,
+              include: [
+                {
+                  model: VariantLocations,
+                  where: { LocationId: locationId },
+                  required: true,
+                  include: [
+                    {
+                      model: Variant,
+                      as: 'VL',
+                      attributes: ['name'],
+                      required: true,
+                      where: { id: variantId },
+                    }
+                  ]
+
+                }]
+
+            }
+          ]
+
+        }
+      ]
+    })
+
+  }
+
+
+  // const toponsiKolaStup = await getToponByVariantLocation(kola.id, stup.id);
+
+  // console.log(JSON.stringify(toponsiKolaStup, null, 2));
+
+
+  const getSKURulesForVariantIngredients = async (variantId) => {
+    return await Variant.findAll({
+      where: { id: variantId },
+      include: [
+        {
+          model: VariantIngredients,
+          required: false,
+          include: [
+            { model: Ingredients, required: true },
+            {
+              model: SKURule,
+              required: false
+            }
+          ]
+        }
+      ]
+    })
+
+
+  }
+
+
+  const piletinCurrySastojciRules = await getSKURulesForVariantIngredients(piletinaCurryVariant.id);
+  console.log(JSON.stringify(piletinCurrySastojciRules, null, 2));
+  // console.log(JSON.stringify(toponiZaKolu, null, 2));
   console.log('All products created');
 };
 

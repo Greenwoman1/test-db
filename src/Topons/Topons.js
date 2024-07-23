@@ -7,9 +7,10 @@ class Topons extends Model {
 
 
   static associateModel(models) {
-    Topons.belongsToMany(models.OrderItems, { through: 'ProductT' });
+    // Topons.belongsToMany(models.OrderItems, { through: 'ProductT' });
     Topons.hasMany(models.PriceHistory, { foreignKey: 'itemId', constraints: false });
-    Topons.belongsToMany(models.GroupTopon, { through: 'GroupToponsMid' });
+    Topons.hasMany(models.GroupToponsMid);
+
 
 
   }
@@ -26,15 +27,7 @@ class Topons extends Model {
           type: DataTypes.STRING,
           allowNull: false,
         },
-        minValue: {
-          type: DataTypes.INTEGER,
-        },
-        maxValue: {
-          type: DataTypes.INTEGER,
-        },
-        defaultValue: {
-          type: DataTypes.INTEGER,
-        },
+
 
       },
       {

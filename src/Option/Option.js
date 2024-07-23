@@ -3,7 +3,7 @@ const sequelize = require('../../sequelize');
 
 class Option extends Model {
   static associateModel(models) {
-    Option.belongsToMany(models.OrderItems, { through: 'ProductO' });
+    // Option.belongsToMany(models.OrderItems, { through: 'ProductO' });
     Option.belongsTo(models.GroupOptions);
   }
 

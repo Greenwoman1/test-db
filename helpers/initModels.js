@@ -1,9 +1,6 @@
 const sequelize = require("../sequelize");
 const {
   Balance,
-  Combo,
-  ComboItems,
-  ComboVariants,
   GroupOptions,
   GroupTopon,
   GroupToponsMid,
@@ -11,9 +8,9 @@ const {
   Ingredients,
   Location,
   Option,
-  Order,
-  OrderItems,
-  OrderItemsCombo,
+  // Order,
+  // OrderItems,
+  // OrderItemsCombo,
   PriceHistory,
   Product,
   ProductO,
@@ -28,7 +25,8 @@ const {
   VariantIngredients,
   VariantLocations,
   Warehouse,
-  WarehouseLocations
+  WarehouseLocations,
+  LinkedVariants
 
 
 } = require("../src");
@@ -36,9 +34,6 @@ const {
 async function initModels() {
   const models = [
     Balance,
-    Combo,
-    ComboItems,
-    ComboVariants,
     GroupOptions,
     GroupTopon,
     GroupToponsMid,
@@ -46,9 +41,9 @@ async function initModels() {
     Ingredients,
     Location,
     Option,
-    Order,
-    OrderItems,
-    OrderItemsCombo,
+    // Order,
+    // OrderItems,
+    // OrderItemsCombo,
     PriceHistory,
     Product,
     ProductO,
@@ -63,7 +58,8 @@ async function initModels() {
     VariantIngredients,
     VariantLocations,
     Warehouse,
-    WarehouseLocations
+    WarehouseLocations,
+    LinkedVariants
 
   ];
 
@@ -79,9 +75,6 @@ async function associateModels() {
 
     'Balance': Balance,
 
-    'Combo': Combo,
-    'ComboItems': ComboItems,
-    'ComboVariants': ComboVariants,
     'GroupOptions': GroupOptions,
     'GroupTopon': GroupTopon,
     'GroupToponsMid': GroupToponsMid,
@@ -89,9 +82,9 @@ async function associateModels() {
     'Ingredients': Ingredients,
     'Location': Location,
     'Option': Option,
-    'Order': Order,
-    'OrderItems': OrderItems,
-    'OrderItemsCombo': OrderItemsCombo,
+    // 'Order': Order,
+    // 'OrderItems': OrderItems,
+    // 'OrderItemsCombo': OrderItemsCombo,
     'PriceHistory': PriceHistory,
     'Product': Product,
     'ProductO': ProductO,
@@ -106,7 +99,8 @@ async function associateModels() {
     'VariantIngredients': VariantIngredients,
     'VariantLocations': VariantLocations,
     'Warehouse': Warehouse,
-    'WarehouseLocations': WarehouseLocations
+    'WarehouseLocations': WarehouseLocations,
+    'LinkedVariants': LinkedVariants
   }
 
   for (const [key, model] of Object.entries(models)) {

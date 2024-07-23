@@ -43,7 +43,7 @@ class User extends Model {
   }
 
   static associateModel(models) {
-    User.hasMany(models.Order);
+    // User.hasMany(models.Order);
     User.hasMany(models.UserLocation);
     User.hasMany(models.Balance);
   }
