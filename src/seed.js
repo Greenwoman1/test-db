@@ -1113,6 +1113,8 @@ const seed = async () => {
   const ledToponSKURule = await createToponSKURule(rucak2GroupToponsled, ledSKU);
 
 
+  
+
 
   const getToponsForVariant = async (variantId) => {
 
