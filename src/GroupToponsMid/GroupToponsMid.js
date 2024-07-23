@@ -37,8 +37,8 @@ class GroupToponsMid extends Model {
 
   static associateModel(models) {
     GroupToponsMid.hasOne(models.ToponSKURule);
-    GroupToponsMid.belongsTo(models.Topons);
     GroupToponsMid.belongsTo(models.GroupTopon);
+    GroupToponsMid.belongsTo(models.ToponLocations);
   }
 }
 

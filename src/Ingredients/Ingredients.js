@@ -6,8 +6,7 @@ class Ingredients extends Model {
 
 
   static associateModel(models) {
-    Ingredients.belongsToMany(models.Variant, { through: 'VariantIngredients' });
-    Ingredients.hasMany(models.VariantIngredients)
+    Ingredients.hasMany(models.IngredientLocations, { as : 'IL', foreignKey: 'IngredientId' });
   }
   static initModel() {
     Ingredients.init(

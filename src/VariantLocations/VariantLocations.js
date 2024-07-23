@@ -10,6 +10,7 @@ class VariantLocations extends Model {
           primaryKey: true,
           defaultValue: UUIDV4
         },
+     
 
       },
 
@@ -24,12 +25,16 @@ class VariantLocations extends Model {
   static associateModel(models) {
 
 
-    VariantLocations.hasOne(models.SKURule);
+    VariantLocations.hasOne(models.VariantSKURule);
 
     VariantLocations.belongsTo(models.Location);
 
-    VariantLocations.hasMany(models.GroupTopon)
+
     VariantLocations.belongsTo(models.Variant, { as: 'VL', foreignKey: 'VariantId' });
+
+    VariantLocations.hasMany(models.GroupTopon)
+    VariantLocations.hasMany(models.GroupOptions)
+    VariantLocations.hasMany(models.VariantIngredients)
   }
 }
 

@@ -16,7 +16,8 @@ const {
   ProductO,
   ProductT,
   SKU,
-  SKURule,
+  VariantSKURule, 
+  IngredientSKURule,
   Topons,
   ToponSKURule,
   User,
@@ -28,7 +29,9 @@ const {
   WarehouseLocations,
   LinkedVariants,
   ToponPrice,
-  VariantPrice
+  VariantPrice,
+  ToponLocations,
+  IngredientLocations
 
 
 } = require("../src");
@@ -52,7 +55,9 @@ async function initModels() {
     ProductO,
     ProductT,
     SKU,
-    SKURule,
+
+    VariantSKURule,
+    IngredientSKURule,
     Topons,
     ToponSKURule,
     User,
@@ -62,7 +67,11 @@ async function initModels() {
     VariantLocations,
     Warehouse,
     WarehouseLocations,
-    LinkedVariants
+    LinkedVariants,
+
+    ToponLocations,
+
+    IngredientLocations
 
   ];
 
@@ -94,7 +103,9 @@ async function associateModels() {
     'ProductO': ProductO,
     'ProductT': ProductT,
     'SKU': SKU,
-    'SKURule': SKURule,
+
+    'VariantSKURule': VariantSKURule,
+    'IngredientSKURule': IngredientSKURule,
     'Topons': Topons,
     'ToponSKURule': ToponSKURule,
     'User': User,
@@ -104,7 +115,11 @@ async function associateModels() {
     'VariantLocations': VariantLocations,
     'Warehouse': Warehouse,
     'WarehouseLocations': WarehouseLocations,
-    'LinkedVariants': LinkedVariants
+    'LinkedVariants': LinkedVariants,
+
+    'ToponLocations': ToponLocations,
+
+    'IngredientLocations': IngredientLocations
   }
 
   for (const [key, model] of Object.entries(models)) {

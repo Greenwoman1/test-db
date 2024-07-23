@@ -4,7 +4,7 @@ const sequelize = new Sequelize('postgres', 'user', 'password', {
   host: 'localhost',
   port: 5432,
   dialect: 'postgres',
-  // logging: false
+  logging: false
 });
 
 module.exports = sequelize

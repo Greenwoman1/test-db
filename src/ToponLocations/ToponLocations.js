@@ -1,35 +1,31 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class VariantIngredients extends Model {
+class ToponLocations extends Model {
   static initModel() {
-    VariantIngredients.init(
+    ToponLocations.init(
       {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
           defaultValue: UUIDV4
-        }
+        },
+     
 
       },
 
       {
         sequelize,
-        modelName: 'VariantIngredients',
+        modelName: 'ToponLocations',
         timestamps: true,
       }
     );
   }
 
   static associateModel(models) {
-    VariantIngredients.belongsTo(models.VariantLocations);
-    VariantIngredients.belongsTo(models.IngredientLocations);
 
-
-    VariantIngredients.hasOne(models.IngredientSKURule);
-
-
-  }
+ToponLocations.hasMany(models.GroupToponsMid);  }
 }
 
-module.exports = VariantIngredients;
+module.exports = ToponLocations;
+  

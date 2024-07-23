@@ -16,7 +16,9 @@ const ProductT = require('./ProductT/ProductT');
 const UserLocation = require('./UserLocation/UserLocation');
 const OrderItemsCombo = require('./OrderItemsCombo/OrderItemsCombo');
 const Balance = require('./Balance/balance');
-const SKURule = require('./SKURule/SKURule');
+
+const VariantSKURule = require('./VariantSKURule/VariantSKURule');
+const IngredientSKURule = require('./IngredientSKURule/IngredientSKURule');
 const Ingredients = require('./Ingredients/Ingredients');
 const Warehouse = require('./Warehouse/Warehouse');
 const WarehouseLocations = require('./WarehouseLocations/WarehouseLocations');
@@ -26,6 +28,8 @@ const GroupTopon = require('./GroupTopon/GroupTopon');
 const ToponSKURule = require('./ToponSKURule/ToponSKURule');
 const Topons = require('./Topons/Topons');
 const LinkedVariants = require('./LinkedVariants/LinkedVariants');
+const ToponLocations = require('./ToponLocations/ToponLocations');
+const IngredientLocations = require('./IngredientLocations/IngredientLocations');
 
 module.exports = {
   Balance,
@@ -47,7 +51,9 @@ module.exports = {
   ProductO,
   ProductT,
   SKU,
-  SKURule,
+
+  VariantSKURule, 
+  IngredientSKURule,
   Topons,
   ToponSKURule,
   User,
@@ -57,7 +63,12 @@ module.exports = {
   VariantLocations,
   Warehouse,
   WarehouseLocations,
-  LinkedVariants
+  LinkedVariants,
+
+  ToponLocations,
+  IngredientLocations
+
+
 
 
 

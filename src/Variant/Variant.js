@@ -7,11 +7,9 @@ class Variant extends Model {
 
   static associateModel(models) {
     Variant.belongsTo(models.Product, { as: 'Product' });
-    Variant.hasMany(models.GroupOptions);
     // Variant.hasMany(models.ComboVariants, { foreignKey: 'VariantId' });
-    Variant.belongsToMany(models.Location, { through: 'Location' });
+    Variant.belongsToMany(models.Location, { through: 'VariantLocations' });
     Variant.hasMany(models.VariantLocations, { as: 'VL', foreignKey: 'VariantId' });
-    Variant.hasMany(models.VariantIngredients);
     Variant.hasMany(models.LinkedVariants);
     Variant.hasMany(models.VariantPrice)
 
