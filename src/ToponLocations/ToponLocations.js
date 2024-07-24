@@ -10,7 +10,7 @@ class ToponLocations extends Model {
           primaryKey: true,
           defaultValue: UUIDV4
         },
-     
+
 
       },
 
@@ -24,8 +24,9 @@ class ToponLocations extends Model {
 
   static associateModel(models) {
 
-ToponLocations.hasMany(models.GroupToponsMid);  }
+    ToponLocations.hasMany(models.GroupToponsMid);
+    ToponLocations.belongsTo(models.Topons, { as: 'TL', foreignKey: 'ToponId' });
+  }
 }
 
 module.exports = ToponLocations;
-  

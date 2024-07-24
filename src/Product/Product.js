@@ -4,14 +4,9 @@ const { Op } = require('sequelize');
 
 class Product extends Model {
   static associateModel(model) {
-    Product.hasMany(model.Variant, { as: 'Variants' });
+    Product.hasMany(model.Variant);
 
-    Product.belongsToMany(model.Variant, {
-      through: 'ComboVariants',
-      as: 'comboVariants',
-      foreignKey: 'ProductId',
-
-    });
+   
 
 
 

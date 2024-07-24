@@ -1,6 +1,11 @@
 const { createSKU } = require('./SKU/skuController');
 const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, OrderItems, ProductO, ProductT, OrderItemsCombo, User, Balance, Ingredients, WarehouseLocations, Warehouse, VariantSKURule, IngredientSKURule, VariantLocations, VariantIngredients, GroupTopon, GroupToponsMid, LinkedVariants, ToponSKURule, ToponLocations, IngredientLocations } = require('./index');
 
+const { Op } = require('sequelize');
+
+
+
+
 
 
 const createLocation = async (name) => {
@@ -35,7 +40,7 @@ const createWarehouse = async (names) => {
 
 const createSKUs = (name, warehouses) => {
   const skuPromises = warehouses.map(warehouse => {
-    return SKU.create({ name: name, WarehouseId: warehouse.id, allowMinus: false, stock: 0 });
+    return SKU.create({ name: name, WarehouseId: warehouse.id, allowMinus: false, stock: 50 });
   });
 
   return Promise.all(skuPromises);
@@ -47,13 +52,21 @@ const addVariantToLocation = async (variant, location, sku) => {
   const vl = await VariantLocations.create({ LocationId: location.id, VariantId: variant.id });
   let skuVariantRule
   if (sku) {
-    skuVariantRule = await VariantSKURule.create({ VariantLocationId: vl.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false });
+    skuVariantRule = await VariantSKURule.create({ VariantLocationId: vl.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false, name: variant.name });
     return [vl, skuVariantRule];
   }
 
 
   return [vl];
 }
+
+const addWarehouseToLocations = async (warehouses, location) => {
+
+  const locations = warehouses.map(warehouse => {
+    return WarehouseLocations.create({ WarehouseId: warehouse.id, LocationId: location.id });
+  })
+}
+
 const createTopons = async (names) => {
   const toponPromises = names.map(name => {
     return Topons.create({ name: name });
@@ -78,8 +91,9 @@ const createGroup = async (name, variantLocation) => {
 }
 
 const addToponToVariantLocation = async (group, toponLocation, sku) => {
-  const gtm = await GroupToponsMid.create({ ToponLocationsId: toponLocation.id, GroupToponId: group.id, disabled: false, min: 0, max: 10, default: 0 });
-  const sr = await VariantSKURule.create({ GroupToponsMidId: gtm.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false });
+
+  const gtm = await GroupToponsMid.create({ ToponLocationId: toponLocation.id, GroupToponId: group.id, min: 0, max: 10, default: 0, disabled: false });
+  const sr = await ToponSKURule.create({ GroupToponsMidId: gtm.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false, name: sku.name });
 
 }
 
@@ -108,14 +122,497 @@ const addIngredientToLocation = async (ingredient, locations) => {
 }
 
 
-const addIngredientToVariant = async (locationIngredient, variantLocation, sku) => {
+const addIngredientToVariant = async (locationIngredient, variantLocation, sku, IngredientDisabled = false) => {
 
   const vi = await VariantIngredients.create({ IngredientLocationId: locationIngredient.id, VariantLocationId: variantLocation.id });
-  const sr = await IngredientSKURule.create({ VariantIngredientId: vi.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false });
+  const sr = await IngredientSKURule.create({ VariantIngredientId: vi.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: IngredientDisabled, name: sku.name });
 
 
 }
 
+
+const addVariantsToComboVariant = async (variant, variantLocations) => {
+  const var1 = await LinkedVariants.create({ VariantId: variant.id, VariantLocationsId: variantLocations[0].id });
+  const var2 = await LinkedVariants.create({ VariantId: variant.id, VariantLocationsId: variantLocations[1].id });
+
+
+  return [var1, var2];
+}
+
+
+
+const getVariants = async (productId) => {
+
+  const variants = await Variant.findAll({ where: { ProductId: productId } });
+  return variants;
+
+}
+
+
+
+const getVariantLocations = async (variantId) => {
+
+  return await Variant.findAll({
+    where: { id: variantId },
+    include: [
+      { model: VariantLocations, as: 'VL', include: [{ model: Location }] }
+    ]
+
+  })
+}
+
+
+
+
+// console.log(JSON.stringify(variantLocations, null, 2));
+// console.log(JSON.stringify(piletinaVar, null, 2));
+
+const getVariantLocationIngredients = async (variantLocationId) => {
+
+  return await VariantLocations.findAll({
+    logging: console.log,
+    where: { id: variantLocationId },
+    include: [{ model: VariantIngredients, include: [{ model: IngredientLocations, include: [{ model: Ingredients, as: 'IL' }] }] }]
+  })
+}
+
+
+// const variantLocationIngredients = await getVariantLocationIngredients(piletinaCurryStup.id);
+// console.log(JSON.stringify(variantLocationIngredients, null, 2));
+
+const getVariantLocationIngredientsRules = async (variantLocationId) => {
+
+  return await VariantLocations.findAll({
+    logging: console.log,
+    where: { id: variantLocationId },
+    include: [{ model: VariantIngredients, include: [{ model: IngredientLocations, include: [{ model: Ingredients, as: 'IL' }] }, { model: IngredientSKURule }] }]
+  })
+}
+
+
+
+// const variantLocationIngredientsRules = await getVariantLocationIngredientsRules(piletinaCurryStup.id);
+
+// console.log(JSON.stringify(variantLocationIngredientsRules, null, 2));
+
+
+// combo rucak ?????????????????????????????????????????????
+
+const isToponAviableatLocation = async (toponId, locationId) => {
+
+  return await ToponLocations.findOne({
+    logging: console.log,
+    where: { ToponId: toponId, LocationId: locationId }
+
+  })
+}
+
+
+
+
+
+const getToponsVariantLocation = async (variantLocationId) => {
+  const topons = await VariantLocations.findAll({
+    logging: console.log,
+    where: { id: variantLocationId },
+    include: [
+      {
+        model: GroupTopon,
+        include: [
+          {
+            model: GroupToponsMid,
+            include: [{ model: ToponLocations, include: [{ model: Topons, as: 'TL' }] }]
+
+          }
+        ]
+      }
+    ]
+  }
+
+  )
+
+
+  return topons
+}
+
+
+
+
+
+const getProductsAtLocation = async (locationId) => {
+  const products = await Product.findAll({
+    attributes: ['id', 'name'],
+    include: [{
+      model: Variant,
+      attributes: ['id', 'name'],
+      include: [{
+
+        model: VariantLocations,
+        as: 'VL',
+        attributes: [],
+        where: { LocationId: locationId }
+      }]
+    }]
+  })
+}
+
+
+const getVariantsAtLocation = async (locationId) => {
+
+  const variants = await Variant.findAll({
+    attributes: ['id', 'name'],
+    include: [{
+      model: VariantLocations,
+      as: 'VL',
+      attributes: [],
+      where: { LocationId: locationId }
+    }]
+  }
+  )
+
+}
+
+
+/// koje su varijante dostupne na lokaciji
+
+
+const getAvailableVariants = async () => {
+  const availableVariants = await Variant.findAll({
+    logging: console.log,
+    attributes: ['name'],
+    include: [
+      {
+        model: VariantLocations,
+        attributes: ['id'],
+        as: 'VL',
+        include: [
+          {
+            model: Location,
+            attributes: ['name'],
+            required: true
+          },
+          {
+            model: VariantSKURule,
+            required: false,
+            where: { disabled: false },
+            include: [
+              {
+                model: SKU,
+                attributes: ['name'],
+                required: true,
+                where: {
+                  [Op.and]: [
+                    { allowMinus: false },
+
+                    {
+                      stock: {
+                        [Op.gt]: 0
+                      }
+                    }
+                  ]
+
+                }
+              }
+            ]
+          },
+          {
+            model: VariantIngredients,
+            required: false,
+            attributes: ['id'],
+            include: [
+              {
+                model: IngredientSKURule,
+                attributes: ['disabled'],
+                required: true,
+
+                include: [
+                  {
+                    model: SKU,
+                    attributes: ['name', 'stock', 'allowMinus'],
+                    required: true,
+                    where: {
+
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    where: {
+      [Op.or]: [
+        {
+          '$VL.VariantSKURule.SKU.id$': {
+            [Op.ne]: null
+          }
+        },
+        {
+          '$VL.VariantIngredients.IngredientSKURule.SKU.id$': {
+            [Op.ne]: null
+          }
+        }
+      ]
+    }
+  });
+
+
+  return availableVariants
+    .map(variant => {
+      const availableLocations = variant.VL.filter(location => {
+        if (location.VariantSKURule) {
+          const sku = location.VariantSKURule.SKU;
+          if (sku.disabled || (!sku.allowMinus && sku.stock <= 0)) {
+            return false;
+          }
+        }
+
+        const ingredientsAvailable = location.VariantIngredients.every(ingredient => {
+          const ingredientSKU = ingredient.IngredientSKURule.SKU;
+          return !ingredient.IngredientSKURule.disabled || (!ingredientSKU.allowMinus && ingredientSKU.stock <= 0);
+        });
+
+        return ingredientsAvailable;
+      });
+
+
+
+      if (availableLocations.length > 0) {
+        return {
+          id: availableLocations[0].id,
+          name: variant.name,
+          location: availableLocations.map(location => location.Location.name)
+        };
+      }
+      return null;
+    })
+    .filter(variant => variant !== null);
+};
+
+
+const getAviableVariantsAtLocation = async (locationId) => {
+  const availableVariants = await Variant.findAll({
+    logging: console.log,
+    attributes: ['name'],
+    include: [
+      {
+        model: VariantLocations,
+        attributes: ['id'],
+        as: 'VL',
+        include: [
+          {
+            model: Location,
+            where: { id: locationId },
+            attributes: ['name'],
+            required: true
+          },
+          {
+            model: VariantSKURule,
+            required: false,
+            where: { disabled: false },
+            include: [
+              {
+                model: SKU,
+                attributes: ['name'],
+                required: true,
+                where: {
+                  [Op.and]: [
+                    { allowMinus: false },
+
+                    {
+                      stock: {
+                        [Op.gt]: 0
+                      }
+                    }
+                  ]
+
+                }
+              }
+            ]
+          },
+          {
+            model: VariantIngredients,
+            required: false,
+            attributes: ['id'],
+            include: [
+              {
+                model: IngredientSKURule,
+                attributes: ['disabled'],
+                required: true,
+
+                include: [
+                  {
+                    model: SKU,
+                    attributes: ['name', 'stock', 'allowMinus'],
+                    required: true,
+                    where: {
+
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    where: {
+      [Op.or]: [
+        {
+          '$VL.VariantSKURule.SKU.id$': {
+            [Op.ne]: null
+          }
+        },
+        {
+          '$VL.VariantIngredients.IngredientSKURule.SKU.id$': {
+            [Op.ne]: null
+          }
+        }
+      ]
+    }
+  });
+
+
+  return availableVariants
+    .map(variant => {
+      const availableLocations = variant.VL.filter(location => {
+        if (location.VariantSKURule) {
+          const sku = location.VariantSKURule.SKU;
+          if (sku.disabled || (!sku.allowMinus && sku.stock <= 0)) {
+            return false;
+          }
+        }
+
+        const ingredientsAvailable = location.VariantIngredients.every(ingredient => {
+          const ingredientSKU = ingredient.IngredientSKURule.SKU;
+          return !ingredient.IngredientSKURule.disabled || (!ingredientSKU.allowMinus && ingredientSKU.stock <= 0);
+        });
+
+        return ingredientsAvailable;
+      });
+
+
+
+      if (availableLocations.length > 0) {
+        return {
+          id: availableLocations[0].id,
+          name: variant.name,
+          location: availableLocations.map(location => location.Location.name)
+        };
+      }
+      return null;
+    })
+    .filter(variant => variant !== null);
+
+}
+
+
+
+const getProductByLocation = async (variantId, LocationId) => {
+
+  const varijanta = await VariantLocations.findAll({
+    where: {
+      VariantId: variantId,
+      LocationId: LocationId
+    },
+    include: [
+      {
+        model: VariantSKURule,
+        required: false,
+        where: { disabled: false },
+        include: [
+          {
+            model: SKU,
+            attributes: ['name'],
+            required: true,
+            where: {
+              [Op.and]: [
+                { allowMinus: false },
+
+                {
+                  stock: {
+                    [Op.gt]: 0
+                  }
+                }
+              ]
+
+            }
+          }
+        ]
+      },
+      {
+        model: VariantIngredients,
+        required: false,
+        attributes: ['id'],
+        include: [
+          {
+            model: IngredientSKURule,
+            attributes: ['disabled'],
+            required: true,
+
+            include: [
+              {
+                model: SKU,
+                attributes: ['name', 'stock', 'allowMinus'],
+                required: true,
+                where: {
+
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+
+  })
+  return varijanta;
+
+}
+
+
+
+const getProductsFromWarehouse = async (warehouseId) => {
+
+  const items = await SKU.findAll({
+
+    where: { WarehouseId: warehouseId },
+    include: [
+      {
+        model: VariantSKURule,
+        required: false,
+        include: [
+          {
+            model: VariantLocations, include: [{
+              model: Variant, as: 'VL', 
+            }]
+          }
+        ]
+      },
+      { 
+        model: IngredientSKURule,
+        required: false,
+        include: [
+          {
+            model: VariantIngredients,
+            required: false,
+            include: [{
+              model: VariantLocations, 
+              include: [{
+                model: Variant, as: 'VL',
+              }] 
+            }]
+          }
+        ]
+      }
+    ]
+  })
+
+
+
+  return  items 
+}
 
 const seed = async () => {
 
@@ -130,6 +627,9 @@ const seed = async () => {
 
 
   const [skladisteStup, skladisteHadziabdinica] = await createWarehouse(['stup', 'hadziabdinica']);
+
+
+  await addWarehouseToLocations([skladisteStup, skladisteHadziabdinica], lokacijaStup);
 
 
   const [skuStupMakijato, skuHadziabdinicaMakijato] = await createSKUs('makijato', [skladisteStup, skladisteHadziabdinica]);
@@ -161,15 +661,15 @@ const seed = async () => {
 
   const [mlijekoStupSKU, mlijekoHadziabdinicaSKU] = await createSKUs('mlijeko', [skladisteStup, skladisteHadziabdinica]);
 
-  const secerHadziabdinicaSKU = await createSKUs('secer', [skladisteHadziabdinica]);
+  const [secerHadziabdinicaSKU] = await createSKUs('secer', [skladisteHadziabdinica]);
 
   const [soHadziabdinicaSKU, soStupSKU] = await createSKUs('so', [skladisteHadziabdinica, skladisteStup]);
 
   const [biberHadziabdinicaSKU, biberStupSKU] = await createSKUs('biber', [skladisteHadziabdinica, skladisteStup]);
 
-  const limunHadziabdinicaSKU = await createSKUs('limun', [skladisteHadziabdinica]);
+  const [limunHadziabdinicaSKU] = await createSKUs('limun', [skladisteHadziabdinica]);
 
-  const ledHadziabdinicaSKU = await createSKUs('led', [skladisteHadziabdinica]);
+  const [ledHadziabdinicaSKU] = await createSKUs('led', [skladisteHadziabdinica]);
 
 
 
@@ -238,77 +738,166 @@ const seed = async () => {
   // await addIngredientToVariant(piletinaStup, piletinaCurry, rizaStupSKU);
 
 
-  const getVariants = async (productId) => {
-
-    const variants = await Variant.findAll({ where: { ProductId: productId } });
-    return variants;
-
-  }
-
-
-
-  const getVariantLocations = async (variantId) => {
-
-    return await Variant.findAll({
-      where: { id: variantId },
-      include: [
-        { model: VariantLocations, as: 'VL', include: [{ model: Location }] }
-      ]
-
-    })
-  }
-
-
-
   const piletinaVar = await getVariants(piletinaMeal.id);
 
 
   const variantLocations = await getVariantLocations(piletinaObicna.id);
 
 
-  // console.log(JSON.stringify(variantLocations, null, 2));
-  // console.log(JSON.stringify(piletinaVar, null, 2));
-
-  const getVariantLocationIngredients = async (variantLocationId) => {
-
-    return await VariantLocations.findAll({
-      logging: console.log,
-      where: { id: variantLocationId },
-      include: [{ model: VariantIngredients, include: [{ model: IngredientLocations,  include: [{ model: Ingredients , as : 'IL' }] }] }]
-    })
-  }
-
-
-  // const variantLocationIngredients = await getVariantLocationIngredients(piletinaCurryStup.id);
-  // console.log(JSON.stringify(variantLocationIngredients, null, 2));
-
-  const getVariantLocationIngredientsRules = async (variantLocationId) => {
-
-    return await VariantLocations.findAll({
-      logging: console.log,
-      where: { id: variantLocationId },
-      include: [{ model: VariantIngredients, include: [{ model: IngredientLocations,  include: [{ model: Ingredients , as : 'IL' }] }, { model: IngredientSKURule }] }]
-    })
-  }
+  // const aviable = await isToponAviableatLocation(led.id, lokacijaHadziabdinica.id);
+  // console.log(aviable);
+  const [kola, [kola1, kola2]] = await createProduct('kola', ["kola1", "kola2"]);
 
 
 
-  // const variantLocationIngredientsRules = await getVariantLocationIngredientsRules(piletinaCurryStup.id);
-
-  // console.log(JSON.stringify(variantLocationIngredientsRules, null, 2));
+  const [rucak, [rucakS, rucakH]] = await createProduct('rucak', ["rucak1 stup", "rucak 1 hadzi"]);
 
 
-  const isToponAviableatLocation = async (toponId, locationId) => {
+  const [rucak1Kafa, rucak1Piletina] = await addVariantsToComboVariant(rucakS, [vlStupMakijato, piletinaObicnaStup])
 
-    return await ToponLocations.findOne({
-      logging: console.log,
-      where: { ToponId: toponId, LocationId: locationId }
+  const [rucak2Kafa, rucak2Piletina] = await addVariantsToComboVariant(rucakH, [vlHadziabdinicaMakijato, piletinaHadziabdinica])
 
-    })
-  }
 
-  const aviable = await isToponAviableatLocation(led.id, lokacijaHadziabdinica.id);
-  console.log(aviable);
+  const [rucakStup, skuRuleRucakStup] = await addVariantToLocation(rucakS, lokacijaStup, null);
+
+
+  const [rucakHadziabdinica, skuRuleRucakHadziabdinica] = await addVariantToLocation(rucakH, lokacijaHadziabdinica, null);
+
+
+  const groupRucakStup = await createGroup('rucakStup', rucakStup);
+
+  const groupRucakHadziabdinica = await createGroup('rucakHadziabdinica', rucakHadziabdinica);
+
+
+  await addToponToVariantLocation(groupRucakStup, soStup, soStupSKU)
+
+  await addToponToVariantLocation(groupRucakHadziabdinica, soHadziabdinica, soHadziabdinicaSKU)
+
+
+  await addToponToVariantLocation(groupRucakStup, biberStup, biberStupSKU)
+
+  await addToponToVariantLocation(groupRucakHadziabdinica, biberHadziabdinica, biberHadziabdinicaSKU)
+
+
+  /// palacinke 
+
+
+
+  const palacinkeSastojci = await createIngredient(['ulje', 'kakao', 'pzp', 'bijeliKrem', 'mrvice']);
+
+  const [ulje, kakao, pzp, bijeliKrem, mrvice] = palacinkeSastojci;
+
+  const [uljeStup, uljeHadziabdinica] = await addIngredientToLocation(ulje, [lokacijaStup, lokacijaHadziabdinica]);
+
+  const [kakaoStup, kakaoHadziabdinica] = await addIngredientToLocation(kakao, [lokacijaStup, lokacijaHadziabdinica]);
+
+  const [pzpStup, pzpHadziabdinica] = await addIngredientToLocation(pzp, [lokacijaStup, lokacijaHadziabdinica]);
+
+  const [bijeliKremHadziabdinica, bijelKremStup] = await addIngredientToLocation(bijeliKrem, [lokacijaHadziabdinica, lokacijaStup]);
+
+  const [mrviceStup] = await addIngredientToLocation(mrvice, [lokacijaHadziabdinica]);
+
+
+
+  const [uljeStupSKU, uljeHadziabdinicaSKU] = await createSKUs('ulje', [skladisteStup, skladisteHadziabdinica]);
+
+  const [kakaoStupSKU, kakaoHadziabdinicaSKU] = await createSKUs('kakao', [skladisteStup, skladisteHadziabdinica]);
+
+  const [pzpStupSKU, pzpHadziabdinicaSKU] = await createSKUs('pzp', [skladisteStup, skladisteHadziabdinica]);
+
+  const [bijeliKremHadziabdinicaSKU] = await createSKUs('bijeliKrem', [skladisteHadziabdinica]);
+
+  const [mrviceStupSKU] = await createSKUs('mrvice', [skladisteStup]);
+
+
+
+  const [palacinke, [palacinkeLight, palacinkeCockolate]] = await createProduct('palacinke', ["palacinkeLight", "palacinkeCockolate"]);
+
+
+  const [palacinkeLightStup, palacinkeLightStupSKU] = await addVariantToLocation(palacinkeLight, lokacijaStup, null);
+
+  const [palacinkeCockolateStup, palacinkeCockolateStupSKU] = await addVariantToLocation(palacinkeCockolate, lokacijaStup, null);
+
+
+  const [palacinkeLightHadziabdinica, palacinkeLightHadziabdinicaSKU] = await addVariantToLocation(palacinkeLight, lokacijaHadziabdinica, null);
+
+
+
+
+  await addIngredientToVariant(uljeStup, palacinkeLightStup, uljeStupSKU);
+
+
+  await addIngredientToVariant(kakaoStup, palacinkeLightStup, kakaoStupSKU, true);
+
+  await addIngredientToVariant(pzpStup, palacinkeLightStup, pzpStupSKU);
+
+  await addIngredientToVariant(bijeliKremHadziabdinica, palacinkeCockolateStup, bijeliKremHadziabdinicaSKU, true);
+
+  await addIngredientToVariant(mrviceStup, palacinkeLightHadziabdinica, mrviceStupSKU);
+
+
+
+  await addIngredientToVariant(uljeHadziabdinica, palacinkeLightHadziabdinica, uljeHadziabdinicaSKU);
+
+  await addIngredientToVariant(kakaoHadziabdinica, palacinkeLightHadziabdinica, kakaoHadziabdinicaSKU);
+
+  await addIngredientToVariant(pzpHadziabdinica, palacinkeLightHadziabdinica, pzpHadziabdinicaSKU);
+
+  await addIngredientToVariant(bijeliKremHadziabdinica, palacinkeLightHadziabdinica, bijeliKremHadziabdinicaSKU);
+
+
+
+  await addIngredientToVariant(uljeStup, palacinkeCockolateStup, uljeStupSKU);
+
+  await addIngredientToVariant(kakaoStup, palacinkeCockolateStup, kakaoStupSKU);
+
+  await addIngredientToVariant(pzpStup, palacinkeCockolateStup, pzpStupSKU);
+
+
+
+
+
+  const groupPalacinkeLightStup = await createGroup('palacinkeLight', palacinkeLightStup);
+
+  const groupPalacinkeCockolateStup = await createGroup('palacinkeCockolate', palacinkeCockolateStup);
+
+  const groupPalacinkeLightHadziabdinica = await createGroup('palacinkeLight', palacinkeLightHadziabdinica);
+
+
+  await addToponToVariantLocation(groupPalacinkeLightHadziabdinica, secerHadziabdinica, secerHadziabdinicaSKU)
+  await addToponToVariantLocation(groupPalacinkeLightHadziabdinica, limunHadziabdinica, limunHadziabdinicaSKU)
+  await addToponToVariantLocation(groupPalacinkeLightStup, soStup, soStupSKU);
+
+
+
+  // const proizvodiStup = await getProductsAtLocation(lokacijaStup.id);
+
+
+  // const varijanteStup = await getVariantsAtLocation(lokacijaStup.id);
+
+
+  // const aviableVariants = await getAvailableVariants();
+
+  // const aviableVariantsAtStup = await getAviableVariantsAtLocation(lokacijaHadziabdinica.id);
+
+
+  // console.log(JSON.stringify(aviableVariantsAtStup, null, 2))
+
+
+  // const productPalacinkeLightAtStup = await getProductByLocation(palacinkeLight.id, lokacijaHadziabdinica.id);
+
+  // console.log(JSON.stringify(productPalacinkeLightAtStup, null, 2))
+
+
+  const itemsAtStupWarehouse = await getProductsFromWarehouse(skladisteStup.id);
+
+  console.log(JSON.stringify(itemsAtStupWarehouse, null, 2))
+
+  // const topons = await getToponsVariantLocation(rucakStup.id);
+
+
+  // console.log(JSON.stringify(topons, null, 2));
+
 
   console.log('All products created');
 };

@@ -6,7 +6,7 @@ class Variant extends Model {
 
 
   static associateModel(models) {
-    Variant.belongsTo(models.Product, { as: 'Product' });
+    Variant.belongsTo(models.Product);
     // Variant.hasMany(models.ComboVariants, { foreignKey: 'VariantId' });
     Variant.belongsToMany(models.Location, { through: 'VariantLocations' });
     Variant.hasMany(models.VariantLocations, { as: 'VL', foreignKey: 'VariantId' });

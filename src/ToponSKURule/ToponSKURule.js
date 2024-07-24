@@ -13,6 +13,10 @@ class ToponSKURule extends Model {
           primaryKey: true,
           allowNull: false,
         },
+        name: {
+          type: DataTypes.STRING(64),
+          allowNull: false,
+        },
         unit: {
           type: DataTypes.STRING(64),
           allowNull: false,
