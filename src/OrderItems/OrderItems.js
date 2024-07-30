@@ -7,10 +7,9 @@ class OrderItems extends Model {
 
   static associateModel(models) {
     OrderItems.belongsTo(models.Order);
-    OrderItems.belongsTo(models.Variant);
-    OrderItems.belongsToMany(models.Topons, { through: 'ProductT' });
-    OrderItems.belongsToMany(models.Option, { through: 'ProductO' });
-    OrderItems.hasMany(models.OrderItemsCombo);
+    OrderItems.belongsTo(models.VariantLocations);
+    OrderItems.belongsToMany(models.ToponLocations, { through: 'OrderItemTopons' });
+    OrderItems.belongsToMany(models.Option, { through: 'OrderItemOptions' });
 
 
 
@@ -31,6 +30,11 @@ class OrderItems extends Model {
         quantity: {
           type: DataTypes.INTEGER,
         },
+        ProductId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+        },
+        
 
       },
       {

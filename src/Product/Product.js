@@ -5,8 +5,9 @@ const { Op } = require('sequelize');
 class Product extends Model {
   static associateModel(model) {
     Product.hasMany(model.Variant);
+    Product.belongsTo(model.Category);
 
-   
+
 
 
 

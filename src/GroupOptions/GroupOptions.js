@@ -19,13 +19,7 @@ class GroupOption extends Model {
             min: 4
           }
         },
-        type: {
-          type: DataTypes.STRING(64),
-          allowNull: false,
-          validate: {
-            min: 4
-          }
-        },
+
         rules: {
           type: DataTypes.STRING(64),
           allowNull: false,

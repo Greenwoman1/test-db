@@ -6,7 +6,6 @@ class Topons extends Model {
 
 
   static associateModel(models) {
-    // Topons.belongsToMany(models.OrderItems, { through: 'ProductT' });
     Topons.hasMany(models.ToponPrice);
     Topons.belongsToMany(models.Location, { through: 'ToponLocations' });
     Topons.hasMany(models.ToponLocations, { as: 'TL' , foreignKey: 'ToponId' });

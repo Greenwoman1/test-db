@@ -7,7 +7,7 @@ class Order extends Model {
   static associateModel(models) {
     Order.belongsTo(models.User);
     Order.hasMany(models.OrderItems);
-    Order.hasMany(models.OrderItemsCombo);
+    Order.belongsTo(models.Location);
 
   }
 
@@ -32,10 +32,6 @@ class Order extends Model {
           type: DataTypes.DECIMAL(10, 2),
         },
 
-        LocationId: {
-          type: DataTypes.UUID,
-          allowNull: false,
-        }
       },
       {
         sequelize,

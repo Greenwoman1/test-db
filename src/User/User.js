@@ -26,11 +26,32 @@ class User extends Model {
             },
           },
         },
-
+        email: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true
+        },
+        role: {
+          type: DataTypes.STRING,
+          allowNull: false
+        },
         password: {
           type: DataTypes.STRING,
           allowNull: false,
         },
+        shippingAddress: {
+          type: DataTypes.STRING
+        },
+        /// posebna tabela
+
+      
+        
+        /// id paymenta 
+
+        /// payment tabela: method, userId, primary, active 
+
+        
+
       },
       {
         sequelize,
@@ -43,9 +64,10 @@ class User extends Model {
   }
 
   static associateModel(models) {
-    // User.hasMany(models.Order);
+    User.hasMany(models.Order);
     User.hasMany(models.UserLocation);
     User.hasMany(models.Balance);
+    User.hasMany(models.UserPayment);
   }
 }
 

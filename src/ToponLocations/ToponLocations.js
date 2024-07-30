@@ -26,7 +26,9 @@ class ToponLocations extends Model {
 
     ToponLocations.hasMany(models.GroupToponsMid);
     ToponLocations.belongsTo(models.Topons, { as: 'TL', foreignKey: 'ToponId' });
+    ToponLocations.belongsTo(models.Location);
   }
 }
 
 module.exports = ToponLocations;
+ 

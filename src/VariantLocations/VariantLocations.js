@@ -10,6 +10,10 @@ class VariantLocations extends Model {
           primaryKey: true,
           defaultValue: UUIDV4
         },
+        disabled: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false
+        }
      
 
       },
@@ -28,7 +32,7 @@ class VariantLocations extends Model {
     VariantLocations.hasOne(models.VariantSKURule);
 
     VariantLocations.belongsTo(models.Location);
-
+    VariantLocations.hasMany(models.LinkedVariants);
 
     VariantLocations.belongsTo(models.Variant, { as: 'VL', foreignKey: 'VariantId' });
 

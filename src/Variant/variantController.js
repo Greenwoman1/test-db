@@ -1,81 +1,154 @@
-const { Variant, Price, SKU, Location } = require('../index');
+const { Variant, Price, SKU, Location, VariantLocations, VariantIngredients, IngredientLocations, Ingredients } = require('../index');
 const { Image } = require('../index');
-const createVariant = async (req, res) => {
-  try {
-    const { name } = req.body;
-    const newVariant = await Variant.create({ name });
-    res.status(201).json(newVariant);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
-const getVariants = async (req, res) => {
-  try {
-    const variants = await Variant.findAll();
-    res.status(200).json(variants);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
-const getVariantById = async (req, res) => {
+
+const getVariantLocations = async (req, res) => {
+  const variantId = req.params.variantId;
   try {
-    const variantId = req.params.id;
     const variant = await Variant.findByPk(variantId);
     if (!variant) {
-      return res.status(404).json({ message: 'Variant not found' });
+      res.status(404).json({ message: "Variant not found" });
+      return;
     }
 
-    const sku = Variant.findByPk(variantId, {
+    const locations = await Variant.findAll({
+      where: { id: variantId },
+      include: [
+        { model: Location, attributes: ['id', 'name'], through: { attributes: [] } },
+      ]
+    });
+
+    res.status(200).json(locations);
+  } catch (error) {
+    res.status(500).json({ error, message: "Internal server error" });
+  }
+
+
+}
+
+
+const getVariantAddons = async (req, res) => {
+  const variantLocationId = req.params.variantLocationId;
+
+  try {
+    const variantLocation = await VariantLocations.findOne({
+      where: { id: variantLocationId },
+
+      attributes: ['id'],
+      as: 'VL',
       include: [
         {
-          model: Location,
-
+          model: GroupOptions,
+          required: false,
+          attributes: ['name', 'rules'],
           include: [
             {
-              model: SKU,
-              attributes: ['stock']
+              model: Option,
+              attributes: ['name']
             }
           ]
+        },
+        {
+          model: GroupTopon,
+          required: false,
+          attributes: ['id'],
+          include: [
+            {
+              model: GroupToponsMid,
+              attributes: ['id'],
+              include: [
+                {
+                  model: ToponLocations,
+                  attributes: ['id'],
+                  include: [
+                    {
+                      as: 'TL',
+                      model: Topons,
+                      attributes: ['name']
+
+                    }
+                  ]
+                }
+              ]
+
+            }
+
+          ]
+
         }
+
       ]
+
+    });
+
+    if (!variantLocation) {
+      res.status(404).json({ message: "Variant location not found" });
+      return;
+    }
+
+    res.status(200).json(variantLocation);
+
+  } catch (error) {
+    res.status(500).json({ error, message: "Internal server error" });
+  }
+}
+
+
+const getVariantLocationIngredients = async (req, res) => {
+  const variantLocationId = req.params.variantLocationId;
+  try {
+    const ingredients = await VariantLocations.findAll({
+      logging: console.log,
+      where: { id: variantLocationId },
+      include: [{ model: VariantIngredients, include: [{ model: IngredientLocations, include: [{ model: Ingredients, as: 'IL' }] }] }]
     })
 
-    res.status(200).json(sku);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
-const updateVariant = async (req, res) => {
-  try {
-    const variantId = req.params.id;
-    const { name } = req.body;
-    const variant = await Variant.findByPk(variantId);
-    if (!variant) {
-      return res.status(404).json({ message: 'Variant not found' });
-    }
-    await variant.update({ name });
-    res.status(200).json({ message: 'Variant updated successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+    res.status(200).json(ingredients);
 
-const deleteVariant = async (req, res) => {
-  try {
-    const variantId = req.params.id;
-    const variant = await Variant.findByPk(variantId);
-    if (!variant) {
-      return res.status(404).json({ message: 'Variant not found' });
-    }
-    await variant.destroy();
-    res.status(200).json({ message: 'Variant deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error, message: "Internal server error" });
   }
-};
+
+}
+
+const getAviableVariants = async (req, res) => {
+  try {
+    const availableVariants = await Variant.findAll({
+      logging: console.log,
+      attributes: [
+        'id',
+        'name',
+        [literal('"VL->Location"."name"'), 'Location']],
+      include: [
+        {
+          model: VariantLocations,
+          attributes: [],
+          as: 'VL',
+          include: [
+            {
+              model: Location,
+              attributes: [],
+              required: true
+            },
+
+
+          ]
+        }
+      ],
+
+    });
+
+
+    res.status(200).json(availableVariants);
+
+  } catch (error) {
+    res.status(500).json({ error, message: "Internal server error" });
+  }
+}
+
+// #region image, price
 
 const uploadImage = async (req, res) => {
   try {
@@ -108,7 +181,6 @@ const uploadImage = async (req, res) => {
   }
 };
 
-
 const getPrice = async (req, res) => {
   try {
     const { variantId } = req.params;
@@ -137,13 +209,15 @@ const setPrice = async (req, res) => {
   }
 }
 
+// #endregion
+
 module.exports = {
-  createVariant,
-  getVariants,
-  getVariantById,
-  updateVariant,
-  deleteVariant,
+  getVariantLocations,
+  getVariantAddons,
+  getVariantLocationIngredients,
+  getAviableVariants,
   uploadImage,
   getPrice,
   setPrice
+
 };

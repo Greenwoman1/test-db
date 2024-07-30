@@ -8,15 +8,14 @@ const {
   Ingredients,
   Location,
   Option,
-  // Order,
-  // OrderItems,
+  Order,
+  OrderItems,
   // OrderItemsCombo,
-  PriceHistory,
   Product,
-  ProductO,
-  ProductT,
+  OrderItemOptions,
+  OrderItemTopons,
   SKU,
-  VariantSKURule, 
+  VariantSKURule,
   IngredientSKURule,
   Topons,
   ToponSKURule,
@@ -31,7 +30,10 @@ const {
   ToponPrice,
   VariantPrice,
   ToponLocations,
-  IngredientLocations
+  IngredientLocations,
+  Category,
+  UserPayment,
+  Payment
 
 
 } = require("../src");
@@ -46,14 +48,14 @@ async function initModels() {
     Ingredients,
     Location,
     Option,
-    // Order,
-    // OrderItems,
+    Order,
+    OrderItems,
     // OrderItemsCombo,
     ToponPrice,
     VariantPrice,
     Product,
-    ProductO,
-    ProductT,
+    OrderItemOptions,
+    OrderItemTopons,
     SKU,
 
     VariantSKURule,
@@ -71,7 +73,13 @@ async function initModels() {
 
     ToponLocations,
 
-    IngredientLocations
+    IngredientLocations,
+
+    Category,
+
+    UserPayment,
+
+    Payment
 
   ];
 
@@ -94,14 +102,14 @@ async function associateModels() {
     'Ingredients': Ingredients,
     'Location': Location,
     'Option': Option,
-    // 'Order': Order,
-    // 'OrderItems': OrderItems,
+    'Order': Order,
+    'OrderItems': OrderItems,
     // 'OrderItemsCombo': OrderItemsCombo,
     'VariantPrice': VariantPrice,
     'ToponPrice': ToponPrice,
     'Product': Product,
-    'ProductO': ProductO,
-    'ProductT': ProductT,
+    'OrderItemOptions': OrderItemOptions,
+    'OrderItemTopons': OrderItemTopons,
     'SKU': SKU,
 
     'VariantSKURule': VariantSKURule,
@@ -119,7 +127,14 @@ async function associateModels() {
 
     'ToponLocations': ToponLocations,
 
-    'IngredientLocations': IngredientLocations
+    'IngredientLocations': IngredientLocations,
+
+    'Category': Category,
+
+    'UserPayment': UserPayment,
+
+    'Payment': Payment
+
   }
 
   for (const [key, model] of Object.entries(models)) {

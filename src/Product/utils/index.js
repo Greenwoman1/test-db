@@ -1,17 +1,83 @@
 
 const { name } = require("ejs");
-const { Product, Variant, Topons, GroupOption, Option, GroupRule, VariantLocation, Location, SKURule, SKU, ComboItem, Price, PriceHistory, GroupTopons, GroupOptions, GroupToponsMid, Combo, ComboItems, ComboVariants, VariantSKUs } = require("../../index");
+const { Product, Variant, Topons, GroupOption, Option, GroupRule, VariantLocation, Location, SKURule, SKU, ComboItem, Price, PriceHistory, GroupTopons, GroupOptions, GroupToponsMid, Combo, ComboItems, ComboVariants, VariantSKUs, VariantSKURule, VariantLocations, IngredientSKURule, LinkedVariants, GroupTopon, ToponSKURule } = require("../../index");
 
 
-const createProduct = async (productJson) => {
-  const p = await Product.create({
-    name: productJson.name,
-    description: productJson.description,
-    type: productJson.type,
-    comboPrice: productJson.price ? productJson.price : null
-  });
-
-  return p;
+const createProduct = async (settings) => {
+  const createProduct = async (settings) => {
+    const { name, type, variants, description, CategoryId } = settings;
+    const product = await Product.create({ name, type, description, CategoryId });
+  
+    for (const variant of variants) {
+      const variante = await Variant.create({ name: variant.name, ProductId: product.id });
+  
+      for (const varLoc of variant.locations) {
+        const { LocationId, skuRules, ingredients, topons, options, comboItems } = varLoc;
+        const varloc = await VariantLocations.create({ VariantId: variante.id, LocationId, disabled: false });
+  
+        if (skuRules) {
+          await handleSkuRules(varloc.id, skuRules);
+        } else if (ingredients) {
+          await handleIngredients(varloc.id, ingredients);
+        } else if (comboItems) {
+          await handleComboItems(variante.id, comboItems);
+        }
+  
+        if (topons) {
+          await handleTopons(varloc.id, topons);
+        }
+  
+        if (options) {
+          await handleOptions(varloc.id, options);
+        }
+      }
+    }
+  
+    return product;
+  };
+  
+  const handleSkuRules = async (variantLocationId, skuRules) => {
+    const { name, unit, quantity, disabled, skuId } = skuRules;
+    await VariantSKURule.create({ VariantLocationId: variantLocationId, name, unit, quantity, disabled, SKUId: skuId });
+  };
+  
+  const handleIngredients = async (variantLocationId, ingredients) => {
+    for (const ing of ingredients) {
+      const varing = await VariantIngredients.create({ VariantLocationId: variantLocationId, IngredientId: ing.id });
+      const { name, unit, quantity, disabled, SKUId } = ing.skuRules;
+      await IngredientSKURule.create({ VariantIngredientId: varing.id, name, unit, quantity, disabled, SKUId: SKUId });
+    }
+  };
+  
+  const handleComboItems = async (variantId, comboItems) => {
+    for (const item of comboItems) {
+      await LinkedVariants.create({ VariantId: variantId, VariantLocationId: item });
+    }
+  };
+  
+  const handleTopons = async (variantLocationId, topons) => {
+    for (const top of topons) {
+      const { interfaceRules, minTopon, maxTopon, topons: innerTopons } = top;
+      const gt = await GroupTopon.create({ VariantLocationId: variantLocationId, rules: interfaceRules });
+  
+      for (const t of innerTopons) {
+        const gtmid = await GroupToponsMid.create({ GroupToponId: gt.id, ToponLocationId: t.ToponId, min: minTopon, max: maxTopon, default: 0, disabled: false });
+        const { name, unit, quantity, disabled, SKUId } = t.skuRules;
+        await ToponSKURule.create({ GroupToponsMidId: gtmid.id, name, unit, quantity, disabled, SKUId: SKUId });
+      }
+    }
+  };
+  
+  const handleOptions = async (variantLocationId, options) => {
+    for (const opt of options) {
+      const go = await GroupOptions.create({ VariantLocationId: variantLocationId, name: opt.name, rules: opt.rules });
+      for (const o of opt.options) {
+        await Option.create({ name: o, GroupOptionId: go.id });
+      }
+    }
+  };
+  
+  module.exports = router;
 };
 
 const handleComboItems = async (product, t) => {

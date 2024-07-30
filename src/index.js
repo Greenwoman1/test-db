@@ -11,10 +11,7 @@ const Order = require('./Order/Order');
 const OrderItems = require('./OrderItems/OrderItems');
 const ToponPrice = require('./ToponPrice/ToponPrice');
 const VariantPrice = require('./VariantPrice/VariantPrice');
-const ProductO = require('./ProductO/ProductO');
-const ProductT = require('./ProductT/ProductT');
 const UserLocation = require('./UserLocation/UserLocation');
-const OrderItemsCombo = require('./OrderItemsCombo/OrderItemsCombo');
 const Balance = require('./Balance/balance');
 
 const VariantSKURule = require('./VariantSKURule/VariantSKURule');
@@ -30,6 +27,12 @@ const Topons = require('./Topons/Topons');
 const LinkedVariants = require('./LinkedVariants/LinkedVariants');
 const ToponLocations = require('./ToponLocations/ToponLocations');
 const IngredientLocations = require('./IngredientLocations/IngredientLocations');
+const Category = require('./Category/Category');
+const UserPayment = require('./UserPayment/UserPayment');
+const OrderItemOptions = require('./OrderItemOptions/OrderItemOptions');
+const OrderItemTopons = require('./OrderItemTopons/OrderItemTopons');
+const Payment = require('./Payment/Payment');
+
 
 module.exports = {
   Balance,
@@ -41,15 +44,15 @@ module.exports = {
   Ingredients,
   Location,
   Option,
-  // Order,
-  // OrderItems,
+  Order,
+  OrderItems,
   // OrderItemsCombo,
   ToponPrice,
   VariantPrice,
   
   Product,
-  ProductO,
-  ProductT,
+  OrderItemOptions,
+  OrderItemTopons,
   SKU,
 
   VariantSKURule, 
@@ -66,7 +69,11 @@ module.exports = {
   LinkedVariants,
 
   ToponLocations,
-  IngredientLocations
+  IngredientLocations,
+  Category,
+  UserPayment,
+
+  Payment
 
 
 

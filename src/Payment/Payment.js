@@ -1,35 +1,30 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
-const Order = require('../Order/Order');
+const bcrypt = require('bcrypt');
+const User = require('../User/User');
 
-class OrderItemsCombo extends Model {
-
-
-  static associateModel(models) {
-
-    OrderItemsCombo.belongsTo(models.OrderItems);
-    OrderItemsCombo.belongsTo(models.Order);
-    OrderItemsCombo.belongsTo(models.ComboVariants);
-
-
-  }
-
-
+class Payment extends Model {
   static initModel() {
-    OrderItemsCombo.init(
+    Payment.init(
       {
         id: {
           type: DataTypes.UUID,
           defaultValue: UUIDV4,
           primaryKey: true,
           allowNull: false,
-        },
+        }
+      
+  
+        /// id paymenta 
 
+        /// payment tabela: method, PaymentId, primary, active 
+
+        
 
       },
       {
         sequelize,
-        modelName: 'OrderItemsCombo',
+        modelName: 'Payment',
         timestamps: true,
         createdAt: false,
         updatedAt: 'updateTimestamp',
@@ -37,7 +32,12 @@ class OrderItemsCombo extends Model {
     );
   }
 
+  static associateModel(models) {
 
+    Payment.hasMany(models.UserPayment);
+
+  }
 }
 
-module.exports = OrderItemsCombo;
+
+module.exports = Payment;

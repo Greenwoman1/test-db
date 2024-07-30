@@ -1,7 +1,7 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class ProductT extends Model {
+class OrderItemTopons extends Model {
 
 
   static associateModel(models) {
@@ -11,7 +11,7 @@ class ProductT extends Model {
 
 
   static initModel() {
-    ProductT.init(
+    OrderItemTopons.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -28,7 +28,7 @@ class ProductT extends Model {
       },
       {
         sequelize,
-        modelName: 'ProductT',
+        modelName: 'OrderItemTopons',
         timestamps: true,
         createdAt: false,
         updatedAt: 'updateTimestamp',
@@ -39,4 +39,4 @@ class ProductT extends Model {
 
 }
 
-module.exports = ProductT;
+module.exports = OrderItemTopons;
