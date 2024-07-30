@@ -5,7 +5,8 @@ class OrderItemOptions extends Model {
 
 
   static associateModel(models) {
-    
+    OrderItemOptions.belongsTo(models.OrderItems);
+    OrderItemOptions.belongsTo(models.Option);
 
 
 

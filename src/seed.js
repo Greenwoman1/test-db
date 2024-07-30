@@ -1,3 +1,4 @@
+const { getOrderDetails } = require('./Order/utils');
 const { createSKU } = require('./SKU/skuController');
 const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, OrderItems, ProductO, ProductT, OrderItemsCombo, User, Balance, Ingredients, WarehouseLocations, Warehouse, VariantSKURule, IngredientSKURule, VariantLocations, VariantIngredients, GroupTopon, GroupToponsMid, LinkedVariants, ToponSKURule, ToponLocations, IngredientLocations, UserPayment, UserLocation, OrderItemOptions, OrderItemTopons, Category } = require('./index');
 
@@ -878,6 +879,23 @@ const addToponToOrderItem = async (orderItem, topons) => {
 
 
 
+const createOrderJson = async (order ) => {
+  const o = await Order.create({ UserId: order.userId, LocationId: order.locationId, status: 'pending', totalPrice: 13.5 });
+
+  for (const item of order.items) {
+    const OI = await OrderItems.create({ OrderId: o.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
+    for (const option of item.options) {
+      await OrderItemOptions.create({ OrderItemId: OI.id, OptionId: option });
+    }
+    for (const topon of item.topons) {
+      await OrderItemTopons.create({ OrderItemId: OI.id, ToponLocationId: topon.id, quantity: topon.quantity });
+    }
+  }
+  
+}
+
+
+
 // #endregion
 
 
@@ -996,7 +1014,7 @@ const getProductRules = async (productId) => {
 
 */
 
-const createProdct = async (settings) => {k
+const createProdct = async (settings) => {
 
 
   const { name, type, variants, description, CategoryId } = settings
@@ -1483,7 +1501,7 @@ const seed = async () => {
   const productVariantAndTopon = await getVariantOptionsAndTopons(variants[0].id);
   
 
-  console.log(JSON.stringify(productVariantAndTopon, null, 2))
+  // console.log(JSON.stringify(productVariantAndTopon, null, 2))
 
 
   // const RucakRules = await getProductRules(kola.id);
@@ -1493,10 +1511,10 @@ const seed = async () => {
 
 
 
-  // const order = await getOrderInfo(orderSaraKolaRucak.id);
+  const order = await getOrderDetails(orderSaraKolaRucak.id);
 
 
-  // console.log(JSON.stringify(order, null, 2))
+  console.log(JSON.stringify(order, null, 2))
 
 
 

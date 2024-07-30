@@ -5,6 +5,8 @@ class Option extends Model {
   static associateModel(models) {
     // Option.belongsToMany(models.OrderItems, { through: 'ProductO' });
     Option.belongsTo(models.GroupOptions);
+    Option.hasMany(models.OrderItemOptions);
+    Option.belongsToMany(models.OrderItems, { through: 'OIO' });
   }
 
   static initModel() {

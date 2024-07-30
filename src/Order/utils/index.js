@@ -1,7 +1,7 @@
 const { name } = require("ejs");
 
 
-const { Order, OrderItems, PriceHistory, ProductT, ProductO, OrderItemsCombo, Topons, Variant, ComboVariants, Product, Balance, User, Option, SKU, Location, ComboItems } = require("../..");
+const { Order, OrderItems, PriceHistory, ProductT, ProductO, OrderItemsCombo, Topons, Variant, ComboVariants, Product, Balance, User, Option, SKU, Location, ComboItems, VariantLocations, OrderItemOptions, OrderItemTopons, ToponLocations } = require("../..");
 const { getVariantSKU } = require("../../Variant/utils");
 const { updateSKU } = require("../../SKU/utils");
 const { setBalance } = require("../../Balance/utils");
@@ -134,51 +134,71 @@ const getOrderDetails = async (orderId) => {
     include: [
       {
         model: User,
-        attributes: ['id', 'firstName', 'lastName'],
+        attributes: ['id'],
         required: false
       },
       {
         model: OrderItems,
-        attributes: ['id', 'quantity', 'OrderId', 'VariantId'],
+        attributes: ['id', 'quantity', 'ProductId'],
         include: [
           {
-            model: Variant,
-            attributes: ['id', 'name', 'ProductId']
+            model: VariantLocations,
+            attributes: ['id']
           },
           {
-            model: Option,
-            attributes: ['id', 'name'],
-            through: { attributes: [] }
-          },
-          {
-            model: Topons,
-            attributes: ['id', 'name'],
-            through: { attributes: [] }
-          },
-          {
-            model: OrderItemsCombo,
-            attributes: ['id', 'ComboVariantId', 'OrderId', 'OrderItemId'],
-            required: false,
+            model: OrderItemOptions,
+            attributes: ['id'],
             include: [
               {
-                model: ComboVariants,
-                attributes: ['id', 'ProductId', 'VariantId'],
+                model: Option,
+                attributes: ['id']
+              }
+            ]
+          },
+          {
+            model: OrderItemTopons,
+            attributes: ['id', 'quantity'],
+            include: [
+              {
+                model: ToponLocations,
+                attributes: ['id'],
                 include: [
                   {
-                    model: Product,
-                    as: 'PCV',
-                    attributes: ['name'],
+                    model: Topons,
+                    as: 'TL',
+                    attributes: ['id']
                   }
                 ]
               }
             ]
-          }
+
+          },
+
+
         ]
       }
     ]
   });
 
-  return orderDetails;
+
+  console.log(JSON.stringify(orderDetails, null, 2));
+  const transformedOrder = {
+    userId: orderDetails.UserId,
+    locationId: orderDetails.LocationId,
+    orderItems: orderDetails.OrderItems?.map(orderItem => ({
+      productId: orderItem.ProductId,
+      variantLocationId: orderItem.VariantLocation.id,
+      quantity: orderItem.quantity,
+      options: orderItem.OrderItemOptions?.map(option => option.Option.id),
+      topons: orderItem.OrderItemTopons?.map(topon => ({
+        toponId: topon.TL.id,
+        quantity: topon.quantity
+      }))
+    }))
+  };
+
+  return transformedOrder;
+
 }
 
 const processOrder = async (order) => {

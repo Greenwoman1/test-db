@@ -6,7 +6,7 @@ const {
 } = require('./utils/index');
 
 
-const list = async (req, res) => {
+const list = async (req, res) => {k
 
   try {
 
@@ -24,7 +24,6 @@ const list = async (req, res) => {
   }
 
 }
-
 
 const getProductById = async (req, res) => {
   try {

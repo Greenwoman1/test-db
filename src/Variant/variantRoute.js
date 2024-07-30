@@ -20,7 +20,7 @@ router.get('/:variantId/locations', variantController.getVariantLocations);
 
 router.get('/:variantLocationId/addons', variantController.getVariantAddons);
 
-router.get('/aviable', variantController.getAviableVariants);
+router.get('/', variantController.getAviableVariants);
 
 router.get('/:variantLocationId/ingredients', variantController.getVariantLocationIngredients);
 

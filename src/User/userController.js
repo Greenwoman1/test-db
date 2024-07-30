@@ -97,16 +97,7 @@ const getOrderDetailsForUser = async (req, res) => {
             {
               model: Topons,
               through: { attributes: [] },
-              include: [
-                {
-                  model: PriceHistory,
-                  where: {
-                    itemType: 'Topon'
-                  },
-                  required: false
-
-                }
-              ]
+            
             }
           ]
         }
