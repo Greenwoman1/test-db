@@ -68,6 +68,15 @@ class User extends Model {
     User.hasMany(models.UserLocation);
     User.hasMany(models.Balance);
     User.hasMany(models.UserPayment);
+
+    User.hasMany(models.WaiterBreak);
+
+
+
+    User.belongsToMany(models.Role, { through: 'UserRole' });
+    User.belongsToMany(models.Permissions, { through: 'UserPermission' });
+    User.hasOne(models.UserAdditionalInfo);
+  
   }
 }
 

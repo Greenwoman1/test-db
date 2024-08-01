@@ -42,8 +42,8 @@ class ToponSKURule extends Model {
 
   static associateModel(models) {
 
-    ToponSKURule.belongsTo(models.GroupToponsMid);
-    ToponSKURule.belongsTo(models.SKU);
+    ToponSKURule.belongsTo(models.GroupToponsMid, {as : 'GT_Rule', foreignKey: 'GroupToponMidId'});
+    ToponSKURule.belongsTo(models.SKU, { as : 'TSKU', foreignKey: 'SKUId' });
 
   }
 }

@@ -32,6 +32,14 @@ const UserPayment = require('./UserPayment/UserPayment');
 const OrderItemOptions = require('./OrderItemOptions/OrderItemOptions');
 const OrderItemTopons = require('./OrderItemTopons/OrderItemTopons');
 const Payment = require('./Payment/Payment');
+const WaiterBreak = require('./WaiterBreak/WaiterBreak');
+const Role = require('./Role/Role');
+const Permissions = require('./Permissions/Permissions');
+const RolePermission = require('./RolePermission/RolePermission');
+const UserRole = require('./UserRole/UserRole');
+const UserPermission = require('./UserPermission/UserPermission');
+const UserAdditionalInfo = require('./UserAdditionalInfo/UserAdditionalInfo');
+const OrderItemIngredients = require('./OrderItemIngredients/OrderItemIngredients');
 
 
 module.exports = {
@@ -73,7 +81,21 @@ module.exports = {
   Category,
   UserPayment,
 
-  Payment
+  Payment,
+  WaiterBreak,
+  Permissions,
+  Role,
+  RolePermission,
+
+  
+  UserRole,
+
+  UserPermission,
+  UserAdditionalInfo,
+
+  OrderItemIngredients
+
+
 
 
 

@@ -3,8 +3,9 @@ const redisClient = require("../../redisClient");
 const sequelize = require('../../sequelize');
 const { getBalance, setBalance } = require("../Balance/utils");
 const { getVariantSKU } = require("../Variant/utils");
+const { create } = require("./Order");
 
-const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments } = require("./utils");
+const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, updateSKU } = require("./utils");
 
 /* const getOrders = async (req, res) => {
   try {
@@ -149,6 +150,10 @@ const createOrder = async (req, res) => {
 
     for (const item of order.items) {
       const OI = await OrderItems.create({ OrderId: o.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
+      const productType = await Product.findOne({ where: { id: item.productId }, attributes: ['type'] });
+
+      console.log(productType);
+
       for (const option of item.options) {
         await OrderItemOptions.create({ OrderItemId: OI.id, OptionId: option });
       }
@@ -175,20 +180,15 @@ const proccessOrder = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    const orderAdj = req.body;
-    if (Object.keys(orderAdj).length === 0) {
-      await AcceptOrder(orderId);
 
-    }
+
+    const object = req.body;
+
 
     const result = await sequelize.transaction(async (t) => {
-      await setBalance(order.UserId, +order.totalPrice, 'Order-adjustment', 'Order adjusted', order.id, t);
-
-      const newOrder = await orderAdjustments(orderAdj, orderId, t);
-      await order.update({ status: "adjustment" }, { transaction: t });
-
-      return newOrder;
+      const newOrder = createOrderJson(object);
     });
+
 
     const orderDetails = await getOrderDetails(result.id);
     res.status(200).json(orderDetails);
@@ -197,6 +197,38 @@ const proccessOrder = async (req, res) => {
   }
 }
 
+
+const acceptOrder = async (req, res) => {
+
+  try {
+    const result = await sequelize.transaction(async (t) => {
+      const { orderId } = req.params;
+      const order = await Order.findByPk(orderId, { transaction: t });
+      if (!order) {
+        throw new Error('Order not found');
+      }
+      const orderInfo = await getOrderDetails(orderId);
+
+
+      await updateSKU(orderInfo.items);
+
+      
+
+
+
+
+      await setBalance(order.UserId, +order.totalPrice, 'Order-acceptance', 'Order accepted', order.id);
+      await order.update({ status: "accepted" }, { transaction: t });
+    });
+
+
+
+
+    res.status(200).json({ message: "Order accepted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
 
 
 const rejectOrder = async (req, res) => {

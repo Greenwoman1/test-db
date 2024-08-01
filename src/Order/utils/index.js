@@ -1,9 +1,8 @@
 const { name } = require("ejs");
 
 
-const { Order, OrderItems, PriceHistory, ProductT, ProductO, OrderItemsCombo, Topons, Variant, ComboVariants, Product, Balance, User, Option, SKU, Location, ComboItems, VariantLocations, OrderItemOptions, OrderItemTopons, ToponLocations } = require("../..");
+const { Order, OrderItems, PriceHistory, ProductT, ProductO, OrderItemsCombo, Topons, Variant, ComboVariants, Product, Balance, User, Option, SKU, Location, ComboItems, VariantLocations, OrderItemOptions, OrderItemTopons, ToponLocations, VariantSKURule, VariantIngredients, IngredientSKURule, ToponSKURule, GroupToponsMid, LinkedVariants, OrderItemIngredients } = require("../..");
 const { getVariantSKU } = require("../../Variant/utils");
-const { updateSKU } = require("../../SKU/utils");
 const { setBalance } = require("../../Balance/utils");
 
 
@@ -53,82 +52,132 @@ const getOrderTotalPrice = async (orderJson) => {
 
   return totalPrice
 }
-const createOrderJson = async (orderJson, order, t) => {
+const createOrderJson = async (order) => {
+
   try {
+    const o = await Order.create({ UserId: order.userId, LocationId: order.locationId, status: 'pending', totalPrice: 13.5 });
 
+    const promises = [];
 
-    for (const item of orderJson.orderItems) {
-      if (item.type === 'single') {
-        const orderItem = await OrderItems.create({
-          OrderId: order.id,
-          VariantId: item.variantId,
-          quantity: item.quantity
-        }, { transaction: t });
+    for (const item of order.items) {
+      const OI = await OrderItems.create({ OrderId: o.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
 
-        for (const option of item.options) {
-          await ProductO.create({
-            OrderItemId: orderItem.id,
-            OptionId: option.optionId
-          }, { transaction: t });
-        }
+      const pType = await Product.findOne({ where: { id: item.productId }, attributes: ['type'] });
 
-        for (const topon of item.topons) {
-          await ProductT.create({
-            OrderItemId: orderItem.id,
-            ToponId: topon.toponId,
-            quantity: topon.quantity
-          }, { transaction: t });
-        }
-      } else if (item.type === 'combo') {
-        const comboVariants = [];
-        for (const comboVariant of item.comboVariants) {
-          const orderItemCombo = await OrderItems.create({
-            OrderId: order.id,
-            VariantId: comboVariant.variantId,
-            quantity: item.quantity
-          }, { transaction: t });
+      console.log(pType.type)
+      switch (pType.type) {
+        case 'single':
+          const singleIngredientPromise = VariantLocations.findOne({
+            where: { id: item.vlId },
+            attributes: ['id'],
+            include: [
+              {
+                model: VariantIngredients,
+                as: 'VL_VI',
+                required: false,
+                attributes: ['id'],
+              }
+            ]
+          }).then(ingredients => {
+            const ingredientPromises = ingredients.VL_VI.map(ingredient =>
+              OrderItemIngredients.create({ OrderItemId: OI.id, VariantIngredientId: ingredient.id })
+            );
+            return Promise.all(ingredientPromises);
+          });
+          promises.push(singleIngredientPromise);
+          break;
 
-          comboVariants.push(orderItemCombo);
+        case 'combo':
+          const comboIngredientPromise = VariantLocations.findOne({
+            where: { id: item.vlId },
+            attributes: ['id'],
+            include: [
+              {
+                model: Variant,
+                as: 'VL',
+                attributes: ['id'],
+                include: [{
+                  model: LinkedVariants,
+                  as: 'LinkVar',
+                  required: false,
+                  attributes: ['id'],
+                  include: [{
+                    model: VariantLocations,
 
-          for (const option of comboVariant.options) {
-            await ProductO.create({
-              OrderItemId: orderItemCombo.id,
-              OptionId: option.optionId
-            }, { transaction: t });
-          }
+                    attributes: ['id'],
+                    include: [
+                      {
+                        as: 'VL_VI',
+                        required: false,
+                        attributes: ['id'],
+                        model: VariantIngredients
+                      }]
+                  }]
+                }],
+              }
+            ]
+          }).then(variantLocationsInOrderItem => {
+            const promises = variantLocationsInOrderItem.VL.LinkVar.map(vl => {
+              const ingredientPromises = vl.VariantLocation.VL_VI.map(ingredient =>
+                OrderItemIngredients.create({ OrderItemId: OI.id, VariantIngredientId: ingredient.id })
+              );
+              return Promise.all(ingredientPromises);
+            });
+            return Promise.all(promises);
+          });
+          promises.push(comboIngredientPromise);
 
-          for (const topon of comboVariant.topons) {
-            await ProductT.create({
-              OrderItemId: orderItemCombo.id,
-              ToponId: topon.toponId,
-              quantity: topon.quantity
-            }, { transaction: t });
-          }
-        }
+          // Add promises for options and topons
+          item.options.forEach(option => {
+            const optionPromise = OrderItemOptions.create({ OrderItemId: OI.id, OptionId: option });
+            promises.push(optionPromise);
+          });
 
-        for (const comboVariant of comboVariants) {
-          const cv = await ComboVariants.findOne({ where: { ProductId: item.productId, VariantId: comboVariant.VariantId } });;
-          await OrderItemsCombo.create({
-            OrderItemId: comboVariant.id,
-            ComboVariantId: cv.id,
-            OrderId: order.id
-          }, { transaction: t });
-        }
+          item.topons.forEach(topon => {
+            const toponPromise = OrderItemTopons.create({ OrderItemId: OI.id, GroupToponsMidId: topon.id, quantity: topon.quantity });
+            promises.push(toponPromise);
+          });
+
+          break;
       }
     }
 
-    return order;
+    await Promise.all(promises);
 
-    // return result;
 
+    return o;
   } catch (error) {
-    console.error("Error while creating order:", error);
+    console.log(error);
   }
 };
+
+
+
+
+// Example usage:
+const order = {
+  userId: 1,
+  locationId: 2,
+  items: [
+    {
+      vlId: 1,
+      productId: 1,
+      quantity: 2,
+      options: [1, 2],
+      topons: [
+        { id: 1, quantity: 1 },
+        { id: 2, quantity: 1 }
+      ]
+    }
+  ]
+};
+
+
 
 const getOrderDetails = async (orderId) => {
 
   const orderDetails = await Order.findOne({
+    logging: console.log,
     where: { id: orderId },
     attributes: ['id', 'status', 'totalPrice', 'LocationId', 'UserId'],
     include: [
@@ -160,12 +209,12 @@ const getOrderDetails = async (orderId) => {
             attributes: ['id', 'quantity'],
             include: [
               {
-                model: ToponLocations,
+                model: GroupToponsMid,
                 attributes: ['id'],
                 include: [
                   {
-                    model: Topons,
-                    as: 'TL',
+                    model: ToponLocations,
+
                     attributes: ['id']
                   }
                 ]
@@ -173,6 +222,17 @@ const getOrderDetails = async (orderId) => {
             ]
 
           },
+          {
+            model: OrderItemIngredients,
+            attributes: ['id'],
+            required: false,
+            include: [
+              {
+                model: VariantIngredients,
+                attributes: ['id']
+              }
+            ]
+          }
 
 
         ]
@@ -181,67 +241,32 @@ const getOrderDetails = async (orderId) => {
   });
 
 
-  console.log(JSON.stringify(orderDetails, null, 2));
   const transformedOrder = {
     userId: orderDetails.UserId,
     locationId: orderDetails.LocationId,
     orderItems: orderDetails.OrderItems?.map(orderItem => ({
       productId: orderItem.ProductId,
-      variantLocationId: orderItem.VariantLocation.id,
+      vlId: orderItem.VariantLocation.id,
       quantity: orderItem.quantity,
       options: orderItem.OrderItemOptions?.map(option => option.Option.id),
       topons: orderItem.OrderItemTopons?.map(topon => ({
-        toponId: topon.TL.id,
+        toponId: topon.GroupToponsMid.id,
         quantity: topon.quantity
+      })),
+      ingredients: orderItem.OrderItemIngredients?.map(topon => ({
+        ingredientId: topon.VariantIngredient.id,
+
       }))
     }))
   };
+
 
   return transformedOrder;
 
 }
 
-const processOrder = async (order) => {
-
-}
-
-const AcceptOrder = async (orderId) => {
-  try {
-    await Order.update(
-      { status: "done" },
-      { where: { id: orderId } }
-    );
-    const order = await Order.findOne({ where: { id: orderId } });
-
-    console.log(JSON.stringify(order));
-
-    const variants = await OrderItems.findOne({
-      where: { OrderId: orderId },
-      attributes: ['id', 'quantity'],
-      include: [
-        {
-          model: Variant,
-          attributes: ['id'],
-          include: [
-            {
-              model: SKU,
-              through: { attributes: [] },
-              attributes: ['id', 'stock'],
-              where: { LocationId: order.LocationId }
-            }
-          ]
-        }
-      ]
-    });
 
 
-    await updateSKU(variants)
-
-
-  } catch (error) {
-    console.error("Error while updating order:", error);
-  }
-}
 
 
 const orderAdjustments = async (adjustments, orderId, t) => {
@@ -321,6 +346,7 @@ const orderAdjustments = async (adjustments, orderId, t) => {
   }
 
 
+
   ///aplicate adjustments
 
   for (const adjustment of Adjustments) {
@@ -370,7 +396,6 @@ const orderAdjustments = async (adjustments, orderId, t) => {
     ]
   });
 
-
   const mappedData = data.map(orderItem => {
     const variantPrice = parseFloat(orderItem.Variant.Prices[0].price);
 
@@ -390,98 +415,188 @@ const orderAdjustments = async (adjustments, orderId, t) => {
       topons: topons
     };
   });
+}
 
 
-
-  const calculateTotalPrice = async (data) => {
-    return data.reduce((total, item) => {
-      const toponsTotal = item.topons.reduce((subTotal, topon) => {
-        return subTotal + (topon.price * topon.quantity);
-      }, 0);
-
-      const itemTotal = (item.price + toponsTotal) * item.quantity;
-      return total + itemTotal;
+const calculateTotalPrice = async (data) => {
+  return data.reduce((total, item) => {
+    const toponsTotal = item.topons.reduce((subTotal, topon) => {
+      return subTotal + (topon.price * topon.quantity);
     }, 0);
-  };
 
-  const updateSKU = async () => {
-    mappedData.forEach(async (item) => {
-      item.topons.forEach(async (topon) => {
-        await updateToponSKU(topon.id, topon.quantity, order.LocationId, t);
-      });
-      console.log(item.id, item.quantity)
-      await updateVariantSKU(item.id, item.quantity, order.LocationId, t);
-    });
+    const itemTotal = (item.price + toponsTotal) * item.quantity;
+    return total + itemTotal;
+  }, 0);
+};
+
+
+
+
+
+
+const updateSKU = async (items) => {
+
+  const rulesSKUSingle = (id) => {
+    return new Promise((resolve, reject) => {
+
+      VariantLocations.findOne({
+        where: { id: id },
+        attributes: ['id'],
+        include: [
+          {
+            model: VariantSKURule,
+            as: 'VL_Rule',
+            required: false,
+            attributes: ['id', 'quantity', 'SKUId', 'unit']
+          },
+          {
+            model: VariantIngredients,
+            as: 'VL_VI',
+            required: false,
+            attributes: ['id'],
+            include: [
+              {
+                model: IngredientSKURule,
+                as: 'VI_Rule',
+                required: false,
+                attributes: ['id', 'quantity', 'SKUId', 'unit']
+              }
+            ]
+          }
+        ]
+      }).then(rules => resolve(rules))
+
+
+    })
+  }
+  const rulesSKUCombo = (id) => {
+    return new Promise((resolve, reject) => {
+
+      VariantLocations.findOne({
+        where: { id: id },
+        attributes: ['id'],
+        include: [
+          {
+            model: Variant,
+            required: false,
+            as: 'VL',
+            attributes: ['id'],
+            include: [
+              {
+                model: LinkedVariants,
+                as: 'LinkVar',
+                attributes: ['id'],
+                include: [
+                  {
+                    model: VariantLocations,
+                    attributes: ['id'],
+                    include: [
+                      {
+                        model: VariantSKURule,
+                        as: 'VL_Rule',
+                        required: false,
+                        attributes: ['id', 'quantity', 'SKUId', 'unit']
+                      },
+                      {
+                        model: VariantIngredients,
+                        as: 'VL_VI',
+
+                        required: false,
+                        attributes: ['id'],
+                        include: [
+                          {
+                            as:   'VI_Rule',  
+                            model: IngredientSKURule,
+                            attributes: ['id', 'quantity', 'SKUId', 'unit']
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }).then(rules => resolve(rules))
+
+    })
   }
 
-  await updateSKU();
 
-  const totalPrice = await calculateTotalPrice(mappedData);
+  const rulesSKUTopon = (id) => {
+    return new Promise((resolve, reject) => {
+      GroupToponsMid.findOne({
+        where: { id: id },
+        attributes: ['id'],
+        include: [
+          {
+            model: ToponSKURule,
+            as: 'GT_Rule',
+            required: false,
+            attributes: ['id', 'quantity', 'SKUId', 'unit']
+          }
+        ]
+      }).then(rules => resolve(rules))
 
-  await setBalance(order.UserId, -totalPrice, 'Order-adjustment', 'Order adjusted', order.id);
-  console.log("Total Price:", totalPrice)
-  console.log(JSON.stringify(mappedData, null, 2));
+    })
 
-  await Order.update({ totalPrice: totalPrice }, { where: { id: order.id } }, { transaction: t });
-
-  return order
+  }
 
 
+
+  const promises = []
+
+  for (const item of items) {
+    const pType = await Product.findOne({ where: { id: item.productId }, attributes: ['type'] })
+    
+    switch (pType.type) {
+      case 'single':
+        const singleIngredientPromise = rulesSKUSingle(item.vlId).then(rules => {
+          item.data = rules
+          return rules
+        })
+
+        promises.push(singleIngredientPromise)
+
+        break;
+
+      case 'combo':
+
+        const comboIngredientPromise = rulesSKUCombo(item.vlId).then(rules => {
+          item.data = rules
+          return rules
+        })
+
+        promises.push(comboIngredientPromise)
+
+        break;
+
+    }
+
+    for (const topon of item.topons) {
+      const temp = rulesSKUTopon(topon.toponId).then(rules => {
+        topon.data = rules
+        return rules
+      })
+
+      promises.push(temp)
+    }
+
+
+
+    const skuInfo = {}
+
+    
+
+
+
+
+  }
+  await Promise.all(promises)
+
+console.log((JSON.stringify(items, null, 2)))
 }
 
 
-
-const updateToponSKU = async (toponId, quantity, locationId, t) => {
-  const topon = await Topons.findOne({ where: { id: toponId } });
-  const location = await Location.findOne({ where: { id: locationId } });
-  const sku = await Topons.findByPk(topon.id,
-    {
-      attributes: ['id', 'name'],
-      include: [
-        {
-          model: SKU,
-          through: { attributes: [] },
-          where: { LocationId: locationId },
-        }
-      ]
-    });
-
-
-
-
-  const updatedSKU = await updateSKU(sku.SKUs[0].id, -quantity, sku.SKUs[0].LocationId, t);
-
-
-
-}
-
-const updateVariantSKU = async (variantId, quantity, locationId, t) => {
-  const variant = await Variant.findOne({ where: { id: variantId } });
-  console.log(variant, "variant")
-  const location = await Location.findOne({ where: { id: locationId } });
-  console.log(variantId, quantity, locationId)
-  console.log(JSON.stringify(variant, null, 2))
-  const sku = await Variant.findByPk(variant.id,
-    {
-      attributes: ['id', 'name'],
-      include: [
-        {
-          model: SKU,
-          through: { attributes: [] },
-          where: { LocationId: locationId },
-        }
-      ]
-    });
-  console.log(JSON.stringify(sku.SKUs.id))
-  const updatedSKU = await updateSKU(sku.SKUs[0].id, -quantity, sku.SKUs[0].LocationId, t);
-
-
-  console.log(JSON.stringify(sku, null, 2), "SKU")
-
-
-
-
-}
-
-
-module.exports = { createOrderJson, getOrderDetails, getOrderTotalPrice, processOrder, AcceptOrder, orderAdjustments };
+module.exports = { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, updateSKU };

@@ -8,10 +8,12 @@ class OrderItems extends Model {
   static associateModel(models) {
     OrderItems.belongsTo(models.Order);
     OrderItems.belongsTo(models.VariantLocations);
-    OrderItems.belongsToMany(models.ToponLocations, { through: 'OIT' });
-    OrderItems.belongsToMany(models.Option, { through: 'OIO' });
+    // OrderItems.belongsToMany(models.GroupToponsMid, { through: 'OrderItemTopons', as: 'OIT' });
+    // OrderItems.belongsToMany(models.Option, { through: 'OrderItemOptions', as : 'OIO' });
     OrderItems.hasMany(models.OrderItemOptions);
     OrderItems.hasMany(models.OrderItemTopons);
+
+    OrderItems.hasMany(models.OrderItemIngredients);
 
 
 

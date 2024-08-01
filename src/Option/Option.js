@@ -6,7 +6,7 @@ class Option extends Model {
     // Option.belongsToMany(models.OrderItems, { through: 'ProductO' });
     Option.belongsTo(models.GroupOptions);
     Option.hasMany(models.OrderItemOptions);
-    Option.belongsToMany(models.OrderItems, { through: 'OIO' });
+    // Option.belongsToMany(models.OrderItems, { through: 'OrderItemOptions', as: 'OIO' });
   }
 
   static initModel() {

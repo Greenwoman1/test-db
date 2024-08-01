@@ -10,7 +10,7 @@ class Variant extends Model {
     // Variant.hasMany(models.ComboVariants, { foreignKey: 'VariantId' });
     Variant.belongsToMany(models.Location, { through: 'VariantLocations' });
     Variant.hasMany(models.VariantLocations, { as: 'VL', foreignKey: 'VariantId' });
-    Variant.hasMany(models.LinkedVariants);
+    Variant.hasMany(models.LinkedVariants, { foreignKey: 'VariantId', as: 'LinkVar' });
     Variant.hasMany(models.VariantPrice)
 
   }

@@ -22,11 +22,13 @@ class VariantIngredients extends Model {
   }
 
   static associateModel(models) {
-    VariantIngredients.belongsTo(models.VariantLocations);
-    VariantIngredients.belongsTo(models.IngredientLocations);
+    VariantIngredients.belongsTo(models.VariantLocations, {as: 'VL_VI', foreignKey: 'VariantLocationId'});
+    VariantIngredients.belongsTo(models.IngredientLocations, {as: 'IL_VI', foreignKey: 'IngredientLocationId'} );
 
 
-    VariantIngredients.hasOne(models.IngredientSKURule);
+    VariantIngredients.hasOne(models.IngredientSKURule, {as: 'VI_Rule', foreignKey: 'VariantIngredientId'});
+
+    VariantIngredients.hasMany(models.OrderItemIngredients);
 
 
   }

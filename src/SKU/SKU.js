@@ -4,12 +4,12 @@ const sequelize = require('../../sequelize');
 class SKU extends Model {
   static associateModel(models) {
 
-    SKU.hasMany(models.VariantSKURule);
-    SKU.hasMany(models.IngredientSKURule);
-    SKU.belongsToMany(models.Topons, { through: 'ToponSKUs', foreignKey: 'SkuId' });
-    SKU.belongsToMany(models.Variant, { through: 'VariantSKUs', foreignKey: 'SkuId' });
+    SKU.hasMany(models.VariantSKURule, { as: 'VSKU', foreignKey: 'SKUId' });
+    SKU.hasMany(models.IngredientSKURule, { as: 'IKU', foreignKey: 'SKUId' });
+    SKU.belongsToMany(models.Topons, { through: 'ToponSKUs', foreignKey: 'SKUId' });
+    SKU.belongsToMany(models.Variant, { through: 'VariantSKUs', foreignKey: 'SKUId' });
     SKU.belongsTo(models.Warehouse);
-    SKU.hasMany(models.ToponSKURule);
+    SKU.hasMany(models.ToponSKURule, { as: 'TSKU', foreignKey: 'SKUId' });
   }
 
   static initModel() {

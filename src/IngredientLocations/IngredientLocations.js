@@ -23,7 +23,7 @@ class IngredientLocations extends Model {
   }
 
   static associateModel(models) {
-    IngredientLocations.hasMany(models.VariantIngredients);
+    IngredientLocations.hasMany(models.VariantIngredients, {as: 'IL_VI', foreignKey: 'IngredientLocationId' } );
     IngredientLocations.belongsTo(models.Ingredients, { as : 'IL', foreignKey: 'IngredientId' });
   }
 }

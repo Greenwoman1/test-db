@@ -42,8 +42,8 @@ class VariantSKURule extends Model {
 
   static associateModel(models) {
 
-    VariantSKURule.belongsTo(models.SKU);
-    VariantSKURule.belongsTo(models.VariantLocations)
+    VariantSKURule.belongsTo(models.SKU, { as: 'VSKU', foreignKey: 'SKUId' });
+    VariantSKURule.belongsTo(models.VariantLocations, { as: 'VL_Rule', foreignKey: 'VariantLocationId' });
 
 
   }

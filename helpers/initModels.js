@@ -33,7 +33,15 @@ const {
   IngredientLocations,
   Category,
   UserPayment,
-  Payment
+  Payment,
+  OrderItemIngredients,
+  WaiterBreak,
+  Role,
+  Permissions,
+  RolePermission,
+  UserRole,
+  UserPermission,
+  UserAdditionalInfo
 
 
 } = require("../src");
@@ -50,7 +58,7 @@ async function initModels() {
     Option,
     Order,
     OrderItems,
-    // OrderItemsCombo,
+    OrderItemIngredients,
     ToponPrice,
     VariantPrice,
     Product,
@@ -79,7 +87,17 @@ async function initModels() {
 
     UserPayment,
 
-    Payment
+    Payment,
+    WaiterBreak,
+    Role,
+    Permissions,
+    
+  RolePermission,
+
+  UserRole,
+
+  UserPermission,
+  UserAdditionalInfo
 
   ];
 
@@ -104,7 +122,7 @@ async function associateModels() {
     'Option': Option,
     'Order': Order,
     'OrderItems': OrderItems,
-    // 'OrderItemsCombo': OrderItemsCombo,
+
     'VariantPrice': VariantPrice,
     'ToponPrice': ToponPrice,
     'Product': Product,
@@ -133,7 +151,23 @@ async function associateModels() {
 
     'UserPayment': UserPayment,
 
-    'Payment': Payment
+    'Payment': Payment,
+
+
+    'WaiterBreak': WaiterBreak,
+
+    'Role': Role,
+
+    'Permissions': Permissions,
+
+    'RolePermission': RolePermission,
+
+    'UserRole': UserRole,
+
+    'UserPermission': UserPermission,
+
+    'UserAdditionalInfo': UserAdditionalInfo,
+    'OrderItemIngredients': OrderItemIngredients
 
   }
 

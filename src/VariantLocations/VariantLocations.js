@@ -29,16 +29,20 @@ class VariantLocations extends Model {
   static associateModel(models) {
 
 
-    VariantLocations.hasOne(models.VariantSKURule);
+    VariantLocations.hasOne(models.VariantSKURule, { as: 'VL_Rule', foreignKey: 'VariantLocationId' });
 
     VariantLocations.belongsTo(models.Location);
-    VariantLocations.hasMany(models.LinkedVariants);
+    VariantLocations.hasMany(models.LinkedVariants, { as: 'LinkVar', foreignKey: 'VariantLocationId' });
+
+
 
     VariantLocations.belongsTo(models.Variant, { as: 'VL', foreignKey: 'VariantId' });
 
+
     VariantLocations.hasMany(models.GroupTopon)
     VariantLocations.hasMany(models.GroupOptions)
-    VariantLocations.hasMany(models.VariantIngredients)
+    VariantLocations.hasMany(models.VariantIngredients, { as : 'VL_VI', foreignKey: 'VariantLocationId' })
+
   }
 }
 
