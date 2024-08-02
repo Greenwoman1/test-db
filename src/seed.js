@@ -1,5 +1,5 @@
 const { getOrderDetails, getOrderSKURules, createOrderJson, updateSKU } = require('./Order/utils');
-const { Product, Variant, Topons, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, OrderItems, ProductO, ProductT, OrderItemsCombo, User, Balance, Ingredients, WarehouseLocations, Warehouse, VariantSKURule, IngredientSKURule, VariantLocations, VariantIngredients, GroupTopon, GroupToponsMid, LinkedVariants, ToponSKURule, ToponLocations, IngredientLocations, UserPayment, UserLocation, OrderItemOptions, OrderItemTopons, Category } = require('./index');
+const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, Ingredient, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem } = require('./index');
 
 const { Op, fn, col, literal } = require('sequelize');
 
@@ -55,7 +55,7 @@ const createSKUs = (name, warehouses) => {
 
 const addVariantToLocation = async (variant, location, sku) => {
 
-  const vl = await VariantLocations.create({ LocationId: location.id, VariantId: variant.id, disabled: false }); 77
+  const vl = await VariantLocation.create({ LocationId: location.id, VariantId: variant.id, disabled: false }); 77
   let skuVariantRule
   if (sku) {
     skuVariantRule = await VariantSKURule.create({ VariantLocationId: vl.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false, name: variant.name });
@@ -69,13 +69,13 @@ const addVariantToLocation = async (variant, location, sku) => {
 const addWarehouseToLocations = async (warehouses, location) => {
 
   const locations = warehouses.map(warehouse => {
-    return WarehouseLocations.create({ WarehouseId: warehouse.id, LocationId: location.id });
+    return WarehouseLocation.create({ WarehouseId: warehouse.id, LocationId: location.id });
   })
 }
 
 const createTopons = async (names) => {
   const toponPromises = names.map(name => {
-    return Topons.create({ name: name });
+    return Topon.create({ name: name });
   })
 
   return Promise.all(toponPromises);
@@ -85,7 +85,7 @@ const createTopons = async (names) => {
 
 const addToponToLocations = async (topons, location) => {
   const locations = topons.map(topon => {
-    return ToponLocations.create({ ToponId: topon.id, LocationId: location.id });
+    return ToponLocation.create({ ToponId: topon.id, LocationId: location.id });
   })
 
   return Promise.all(locations);
@@ -99,7 +99,7 @@ const createGroup = async (name, variantLocation) => {
 const addToponToVariantLocation = async (group, toponLocation, sku) => {
 
   const gtm = await GroupToponsMid.create({ ToponLocationId: toponLocation.id, GroupToponId: group.id, min: 0, max: 10, default: 0, disabled: false });
-  const sr = await ToponSKURule.create({ GroupToponsMidId: gtm.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false, name: sku.name });
+  const sr = await ToponSKURule.create({ GroupToponMidId: gtm.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false, name: sku.name });
 
 
   return gtm
@@ -122,7 +122,7 @@ const addOptionToVariantLocation = async (group, options) => {
 const createIngredient = async (names) => {
 
   const ingredientPromises = names.map(name => {
-    return Ingredients.create({ name: name });
+    return Ingredient.create({ name: name });
   })
 
 
@@ -134,7 +134,7 @@ const createIngredient = async (names) => {
 const addIngredientToLocation = async (ingredient, locations) => {
 
   const ingredientPromises = locations.map(location => {
-    return IngredientLocations.create({ LocationId: location.id, IngredientId: ingredient.id });
+    return IngredientLocation.create({ LocationId: location.id, IngredientId: ingredient.id });
   })
 
 
@@ -145,7 +145,7 @@ const addIngredientToLocation = async (ingredient, locations) => {
 
 const addIngredientToVariant = async (locationIngredient, variantLocation, sku, IngredientDisabled = false) => {
 
-  const vi = await VariantIngredients.create({ IngredientLocationId: locationIngredient.id, VariantLocationId: variantLocation.id });
+  const vi = await VariantIngredient.create({ IngredientLocationId: locationIngredient.id, VariantLocationId: variantLocation.id });
   const sr = await IngredientSKURule.create({ VariantIngredientId: vi.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: IngredientDisabled, name: sku.name });
 
 
@@ -153,8 +153,8 @@ const addIngredientToVariant = async (locationIngredient, variantLocation, sku, 
 
 
 const addVariantsToComboVariant = async (variant, variantLocations) => {
-  const var1 = await LinkedVariants.create({ VariantId: variant.id, VariantLocationId: variantLocations[0].id });
-  const var2 = await LinkedVariants.create({ VariantId: variant.id, VariantLocationId: variantLocations[1].id });
+  const var1 = await LinkedVariant.create({ VariantId: variant.id, VariantLocationId: variantLocations[0].id });
+  const var2 = await LinkedVariant.create({ VariantId: variant.id, VariantLocationId: variantLocations[1].id });
 
 
   return [var1, var2];
@@ -176,7 +176,7 @@ const getVariantLocations = async (variantId) => {
   return await Variant.findAll({
     where: { id: variantId },
     include: [
-      { model: VariantLocations, as: 'VL', include: [{ model: Location }] }
+      { model: VariantLocation, as: 'VL', include: [{ model: Location }] }
     ]
 
   })
@@ -189,7 +189,7 @@ const getVariantOptionsAndTopons = async (variantId) => {
     logging: console.log,
     include: [
       {
-        model: VariantLocations,
+        model: VariantLocation,
         attributes: [['id', 'id']],
         as: 'VL',
         include: [
@@ -214,12 +214,12 @@ const getVariantOptionsAndTopons = async (variantId) => {
                 attributes: ['id'],
                 include: [
                   {
-                    model: ToponLocations,
+                    model: ToponLocation,
                     attributes: ['id'],
                     include: [
                       {
                         as: 'TL',
-                        model: Topons,
+                        model: Topon,
                         attributes: [['name', 't']],
 
                       }
@@ -248,40 +248,40 @@ const getVariantOptionsAndTopons = async (variantId) => {
 // console.log(JSON.stringify(variantLocations, null, 2));
 // console.log(JSON.stringify(piletinaVar, null, 2));
 
-const getVariantLocationIngredients = async (variantLocationId) => {
+const getVariantLocationIngredient = async (variantLocationId) => {
 
-  return await VariantLocations.findAll({
+  return await VariantLocation.findAll({
     logging: console.log,
     where: { id: variantLocationId },
-    include: [{ model: VariantIngredients, include: [{ model: IngredientLocations, include: [{ model: Ingredients, as: 'IL' }] }] }]
+    include: [{ model: VariantIngredient, include: [{ model: IngredientLocation, include: [{ model: Ingredient, as: 'InLoc' }] }] }]
   })
 }
 
 
-// const variantLocationIngredients = await getVariantLocationIngredients(piletinaCurryStup.id);
-// console.log(JSON.stringify(variantLocationIngredients, null, 2));
+// const variantLocationIngredient = await getVariantLocationIngredient(piletinaCurryStup.id);
+// console.log(JSON.stringify(variantLocationIngredient, null, 2));
 
-const getVariantLocationIngredientsRules = async (variantLocationId) => {
+const getVariantLocationIngredientRules = async (variantLocationId) => {
 
-  return await VariantLocations.findAll({
+  return await VariantLocation.findAll({
     logging: console.log,
     where: { id: variantLocationId },
-    include: [{ model: VariantIngredients, include: [{ model: IngredientLocations, include: [{ model: Ingredients, as: 'IL' }] }, { model: IngredientSKURule }] }]
+    include: [{ model: VariantIngredient, include: [{ model: IngredientLocation, include: [{ model: Ingredient, as: 'InLoc' }] }, { model: IngredientSKURule }] }]
   })
 }
 
 
 
-// const variantLocationIngredientsRules = await getVariantLocationIngredientsRules(piletinaCurryStup.id);
+// const variantLocationIngredientRules = await getVariantLocationIngredientRules(piletinaCurryStup.id);
 
-// console.log(JSON.stringify(variantLocationIngredientsRules, null, 2));
+// console.log(JSON.stringify(variantLocationIngredientRules, null, 2));
 
 
 // combo rucak ?????????????????????????????????????????????
 
 const isToponAviableatLocation = async (toponId, locationId) => {
 
-  return await ToponLocations.findOne({
+  return await ToponLocation.findOne({
     logging: console.log,
     where: { ToponId: toponId, LocationId: locationId }
 
@@ -293,7 +293,7 @@ const isToponAviableatLocation = async (toponId, locationId) => {
 
 
 const getToponsVariantLocation = async (variantLocationId) => {
-  const topons = await VariantLocations.findAll({
+  const topons = await VariantLocation.findAll({
     logging: console.log,
     where: { id: variantLocationId },
     include: [
@@ -302,7 +302,7 @@ const getToponsVariantLocation = async (variantLocationId) => {
         include: [
           {
             model: GroupToponsMid,
-            include: [{ model: ToponLocations, include: [{ model: Topons, as: 'TL' }] }]
+            include: [{ model: ToponLocation, include: [{ model: Topon, as: 'TL' }] }]
 
           }
         ]
@@ -328,7 +328,7 @@ const getProductsAtLocation = async (locationId) => {
       attributes: ['id', 'name'],
       include: [{
 
-        model: VariantLocations,
+        model: VariantLocation,
         as: 'VL',
         attributes: [],
         where: { LocationId: locationId }
@@ -345,7 +345,7 @@ const getVariantsAtLocation = async (locationId) => {
   const variants = await Variant.findAll({
     attributes: ['id', 'name'],
     include: [{
-      model: VariantLocations,
+      model: VariantLocation,
       as: 'VL',
       attributes: [],
       where: { LocationId: locationId }
@@ -368,7 +368,7 @@ const getAvailableVariantsManual = async () => {
       [literal('"VL->Location"."name"'), 'Location']],
     include: [
       {
-        model: VariantLocations,
+        model: VariantLocation,
         attributes: [],
         as: 'VL',
         include: [
@@ -401,7 +401,7 @@ const getAvailableVariantsManual = async () => {
             ]
           },
           {
-            model: VariantIngredients,
+            model: VariantIngredient,
             required: false,
             attributes: [],
             include: [
@@ -430,14 +430,14 @@ const getAvailableVariantsManual = async () => {
           }
         },
         {
-          '$VL.VariantIngredients.IngredientSKURule.SKU.id$': {
+          '$VL.VariantIngredient.IngredientSKURule.SKU.id$': {
             [Op.ne]: null
           }
         }
       ]
     },
     group: ['Variant.id', 'Variant.name', 'VL->Location.id', 'VL->Location.name'],
-    having: literal('COUNT(CASE WHEN "VL->VariantIngredients->IngredientSKURule"."disabled" = TRUE THEN 1 ELSE NULL END) = 0')
+    having: literal('COUNT(CASE WHEN "VL->VariantIngredient->IngredientSKURule"."disabled" = TRUE THEN 1 ELSE NULL END) = 0')
   });
 
   return availableVariants
@@ -455,7 +455,7 @@ const getAviableVariants = async () => {
       [literal('"VL->Location"."name"'), 'Location']],
     include: [
       {
-        model: VariantLocations,
+        model: VariantLocation,
         attributes: [],
         as: 'VL',
         include: [
@@ -479,7 +479,7 @@ const getAviableVariantsAtLocation = async (locationId) => {
     attributes: ['name'],
     include: [
       {
-        model: VariantLocations,
+        model: VariantLocation,
         attributes: ['id'],
         as: 'VL',
         where: { LocationId: locationId },
@@ -503,7 +503,7 @@ const getProductByLocation = async (LocationId) => {
     include: [{
       model: Variant,
       include: [{
-        model: VariantLocations,
+        model: VariantLocation,
         as: 'VL',
         where: { LocationId: LocationId }
       }]
@@ -528,7 +528,7 @@ const getProductsFromWarehouse = async (warehouseId) => {
         required: false,
         include: [
           {
-            model: VariantLocations, include: [{
+            model: VariantLocation, include: [{
               model: Variant, as: 'VL',
             }]
           }
@@ -539,10 +539,10 @@ const getProductsFromWarehouse = async (warehouseId) => {
         required: false,
         include: [
           {
-            model: VariantIngredients,
+            model: VariantIngredient,
             required: false,
             include: [{
-              model: VariantLocations,
+              model: VariantLocation,
               include: [{
                 model: Variant, as: 'VL',
               }]
@@ -562,29 +562,29 @@ const getProductsFromWarehouse = async (warehouseId) => {
 
 const getProductByIngredient = async (ingredientId) => {
 
-  // const proizvodi = await Ingredients.findAll({
+  // const proizvodi = await Ingredient.findAll({
   //   logging: console.log,
   //   where: { id: ingredientId },
   //   // raw: true,
   //   attributes: [
 
 
-  //     [literal('"IL->VariantIngredients->VariantLocation->VL->Product"."id"'), 'id'],
-  //     [literal('"IL->VariantIngredients->VariantLocation->VL->Product"."name"'), 'name'],
+  //     [literal('"InLoc->VariantIngredient->VariantLocation->VL->Product"."id"'), 'id'],
+  //     [literal('"InLoc->VariantIngredient->VariantLocation->VL->Product"."name"'), 'name'],
 
   //   ],
   //   include: [{
-  //     model: IngredientLocations,
+  //     model: IngredientLocation,
   //     attributes: [],
-  //     as: 'IL',
+  //     as: 'InLoc',
   //     include: [
   //       {
-  //         model: VariantIngredients,
+  //         model: VariantIngredient,
   //         required: true,
   //         attributes: [],
   //         include: [{
   //           attributes: [],
-  //           model: VariantLocations,
+  //           model: VariantLocation,
   //           include: [{
   //             attributes: [],
   //             model: Variant, as: 'VL',
@@ -594,7 +594,7 @@ const getProductByIngredient = async (ingredientId) => {
   //       },
   //     ]
   //   }],
-  //   group: ['IL->VariantIngredients->VariantLocation->VL->Product.id', 'IL->VariantIngredients->VariantLocation->VL->Product.name', 'Ingredients.id', 'Ingredients.name'],
+  //   group: ['InLoc->VariantIngredient->VariantLocation->VL->Product.id', 'InLoc->VariantIngredient->VariantLocation->VL->Product.name', 'Ingredient.id', 'Ingredient.name'],
   // })
 
   const proizvodi = await Product.findAll({
@@ -607,22 +607,22 @@ const getProductByIngredient = async (ingredientId) => {
       attributes: [],
       required: true,
       include: [{
-        model: VariantLocations,
+        model: VariantLocation,
         attributes: [],
         required: true,
         as: 'VL',
         include: [{
-          model: VariantIngredients,
+          model: VariantIngredient,
           attributes: [],
           required: true,
           include: [{
-            model: IngredientLocations,
+            model: IngredientLocation,
             attributes: [],
             where: { IngredientId: ingredientId },
             include: [{
-              as: 'IL',
+              as: 'InLoc',
               attributes: [],
-              model: Ingredients
+              model: Ingredient
             }]
 
           }]
@@ -640,7 +640,7 @@ const getProductByIngredient = async (ingredientId) => {
 
 const getProductByTopon = async (toponId) => {
 
-  const proizvodi = await Topons.findAll({
+  const proizvodi = await Topon.findAll({
     logging: console.log,
     where: { id: toponId },
     attributes: [
@@ -650,7 +650,7 @@ const getProductByTopon = async (toponId) => {
 
 
     include: [{
-      model: ToponLocations,
+      model: ToponLocation,
       attributes: [],
       as: 'TL',
       include: [
@@ -662,7 +662,7 @@ const getProductByTopon = async (toponId) => {
               model: GroupTopon,
               attributes: [],
               include: [{
-                model: VariantLocations, attributes: [], include: [{
+                model: VariantLocation, attributes: [], include: [{
                   model: Variant, as: 'VL', attributes: [], include: [{
                     model: Product, attributes: []
                   }]
@@ -673,20 +673,20 @@ const getProductByTopon = async (toponId) => {
         },
       ]
     }],
-    group: ['TL->GroupToponsMids->GroupTopon->VariantLocation->VL->Product.id', 'TL->GroupToponsMids->GroupTopon->VariantLocation->VL->Product.name', 'Topons.id', 'Topons.name'],
+    group: ['TL->GroupToponsMids->GroupTopon->VariantLocation->VL->Product.id', 'TL->GroupToponsMids->GroupTopon->VariantLocation->VL->Product.name', 'Topon.id', 'Topon.name'],
   })
   return proizvodi
 }
 
 
-const gettoponLocations = async (toponId) => {
+const getToponLocation = async (toponId) => {
 
-  const topons = await Topons.findAll({
+  const topons = await Topon.findAll({
     attributes: ['id', 'name'],
     raw: true,
     where: { id: toponId },
     include: [{
-      model: ToponLocations,
+      model: ToponLocation,
       attributes: [],
       as: 'TL',
       include: [{
@@ -702,11 +702,11 @@ const gettoponLocations = async (toponId) => {
 
 const getToponsAtLocation = async (locationId) => {
 
-  const topons = await Topons.findAll({
+  const topons = await Topon.findAll({
     attributes: ['id', 'name'],
     raw: true,
     include: [{
-      model: ToponLocations,
+      model: ToponLocation,
       where: { LocationId: locationId },
 
       attributes: [],
@@ -722,7 +722,7 @@ const getToponsAtLocation = async (locationId) => {
 
 const getToponGroups = async (toponId) => {
 
-  const topons = await Topons.findAll({
+  const topons = await Topon.findAll({
     logging: console.log,
     attributes: [
       [literal('"TL->GroupToponsMids->GroupTopon->VariantLocation->VL"."id"'), 'id'],
@@ -730,7 +730,7 @@ const getToponGroups = async (toponId) => {
       [literal('"TL->GroupToponsMids->GroupTopon->VariantLocation->Location"."name"'), 'Location'],],
     where: { id: toponId },
     include: [{
-      model: ToponLocations,
+      model: ToponLocation,
       attributes: [],
       as: 'TL',
       include: [{
@@ -740,7 +740,7 @@ const getToponGroups = async (toponId) => {
           model: GroupTopon,
           attributes: [],
           include: [{
-            model: VariantLocations,
+            model: VariantLocation,
             attributes: [],
             include: [{
 
@@ -759,7 +759,7 @@ const getToponGroups = async (toponId) => {
         }]
       }]
     }],
-    group: ['TL->GroupToponsMids->GroupTopon->VariantLocation->VL.id', 'TL->GroupToponsMids->GroupTopon->VariantLocation->VL.name', 'Topons.id', 'Topons.name', 'TL->GroupToponsMids->GroupTopon->VariantLocation->Location.id', 'TL->GroupToponsMids->GroupTopon->VariantLocation->Location.name'],
+    group: ['TL->GroupToponsMids->GroupTopon->VariantLocation->VL.id', 'TL->GroupToponsMids->GroupTopon->VariantLocation->VL.name', 'Topon.id', 'Topon.name', 'TL->GroupToponsMids->GroupTopon->VariantLocation->Location.id', 'TL->GroupToponsMids->GroupTopon->VariantLocation->Location.name'],
   })
 
 
@@ -767,26 +767,26 @@ const getToponGroups = async (toponId) => {
 }
 
 
-const getVariantIngredients = async (variantId) => {
+const getVariantIngredient = async (variantId) => {
 
-  const ingredients = await Ingredients.findAll({
+  const Ingredient = await Ingredient.findAll({
     raw: true,
     logging: console.log,
     // attributes: [[literal(), 'id'], [literal(), 'name']],
-    attributes: ['id', 'name', [literal('"IL->VariantIngredients->VariantLocation->Location"."name"'), "VariantLocation"]],
+    attributes: ['id', 'name', [literal('"InLoc->VariantIngredient->VariantLocation->Location"."name"'), "VariantLocation"]],
     include: [{
-      as: 'IL',
-      model: IngredientLocations,
+      as: 'InLoc',
+      model: IngredientLocation,
       required: true,
       attributes: [],
       include: [{
         attributes: [],
         required: true,
-        model: VariantIngredients,
+        model: VariantIngredient,
         include: [{
           attributes: [],
           required: true,
-          model: VariantLocations,
+          model: VariantLocation,
           attributes: [],
           where: { VariantId: variantId },
           include: [{
@@ -804,11 +804,11 @@ const getVariantIngredients = async (variantId) => {
 
     ],
 
-    group: ["IL->VariantIngredients->VariantLocation->Location.name", "Ingredients.id", "Ingredients.name"],
+    group: ["InLoc->VariantIngredient->VariantLocation->Location.name", "Ingredient.id", "Ingredient.name"],
 
 
   })
-  return ingredients
+  return Ingredient
 
 
 
@@ -852,21 +852,21 @@ const createOrder = async (user, location) => {
 }
 
 
-const addOrderItems = async (order, items) => {
+const addOrderItem = async (order, items) => {
 
-  let orderitems = [];
+  let OrderItems = [];
   for (const item of items) {
     console.log(JSON.stringify(item, null, 2));
-    const OI = await OrderItems.create({ OrderId: order.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
-    orderitems.push(OI);
+    const OI = await OrderItem.create({ OrderId: order.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
+    OrderItems.push(OI);
   }
-  return orderitems
+  return OrderItems
 }
 
 const addOptionsToOrderItem = async (orderItem, options) => {
 
   for (const option of options) {
-    await OrderItemOptions.create({ OrderItemId: orderItem.id, OptionId: option.id });
+    await OrderItemOption.create({ OrderItemId: orderItem.id, OptionId: option.id });
   }
 }
 
@@ -884,11 +884,11 @@ const addToponToOrderItem = async (orderItem, topons) => {
 //   const o = await Order.create({ UserId: order.userId, LocationId: order.locationId, status: 'pending', totalPrice: 13.5 });
 
 //   for (const item of order.items) {
-//     const OI = await OrderItems.create({ OrderId: o.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
+//     const OI = await OrderItem.create({ OrderId: o.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
 //     for (const option of item.options) {
 
 
-//       await OrderItemOptions.create({ OrderItemId: OI.id, OptionId: option });
+//       await OrderItemOption.create({ OrderItemId: OI.id, OptionId: option });
 //     }
 //     for (const topon of item.topons) {
 //       await OrderItemTopons.create({ OrderItemId: OI.id, GroupToponsMidId: topon.id, quantity: topon.quantity });
@@ -916,7 +916,7 @@ const getProductRules = async (productId) => {
       include: [{
 
 
-        model: VariantLocations,
+        model: VariantLocation,
         as: 'VL',
         include: [{
           required: false,
@@ -925,19 +925,20 @@ const getProductRules = async (productId) => {
         {
           required: false,
 
-          model: VariantIngredients, include: [{ model: IngredientSKURule }]
+          model: VariantIngredient, include: [{ model: IngredientSKURule }]
         }
 
 
         ]
       },
       {
-        model: LinkedVariants,
+        model: LinkedVariant,
         as: 'LinkVar',
 
         include: [{
 
-          model: VariantLocations,
+          model: VariantLocation,
+          as: 'VL_LV',
           include: [{
             required: false,
             model: VariantSKURule
@@ -945,7 +946,7 @@ const getProductRules = async (productId) => {
           {
             required: false,
 
-            model: VariantIngredients, include: [{ model: IngredientSKURule }]
+            model: VariantIngredient, include: [{ model: IngredientSKURule }]
           }]
 
         }]
@@ -1031,8 +1032,8 @@ const createProdct = async (settings) => {
     const variante = await Variant.create({ name: variant.name, ProductId: product.id })
     for (const varLoc of variant.locations) {
 
-      const { LocationId, skuRules, ingredients, topons, options, comboItems } = varLoc
-      const varloc = await VariantLocations.create({ VariantId: variante.id, LocationId, disabled: false })
+      const { LocationId, skuRules, Ingredient, topons, options, comboItems } = varLoc
+      const varloc = await VariantLocation.create({ VariantId: variante.id, LocationId, disabled: false })
       if (skuRules) {
         const { name, unit, quantity, disabled, skuId } = skuRules
 
@@ -1047,14 +1048,14 @@ const createProdct = async (settings) => {
         for (const item of comboItems) {
 
           console.log(item)
-          await LinkedVariants.create({ VariantId: variante.id, VariantLocationId: item })
+          await LinkedVariant.create({ VariantId: variante.id, VariantLocationId: item })
         }
 
       }
-      if (ingredients) {
+      if (Ingredient) {
 
-        for (const ing of ingredients) {
-          const varing = await VariantIngredients.create({ VariantLocationId: varloc.id, IngredientId: ing.id })
+        for (const ing of Ingredient) {
+          const varing = await VariantIngredient.create({ VariantLocationId: varloc.id, IngredientId: ing.id })
           const { name, unit, quantity, disabled, SKUId } = ing.skuRules
 
           await IngredientSKURule.create({ VariantIngredientId: varing.id, name, unit, quantity, disabled, SKUId: SKUId })
@@ -1074,7 +1075,7 @@ const createProdct = async (settings) => {
 
             const { name, unit, quantity, disabled, SKUId } = t.skuRules
 
-            await ToponSKURule.create({ GroupToponsMidId: gtmid.id, name, unit, quantity, disabled, SKUId: SKUId })
+            await ToponSKURule.create({ GroupToponMidId: gtmid.id, name, unit, quantity, disabled, SKUId: SKUId })
           }
         }
 
@@ -1219,10 +1220,10 @@ const seed = async () => {
   await addOptionToVariantLocation(groupOptionMakijatoStup, ['duza', 'za ponijeti', 'sa hladnim']);
 
 
-  const ingredients = await createIngredient(['brasno', 'piletina', 'curry', 'riza']);
+  const Ingredient = await createIngredient(['brasno', 'piletina', 'curry', 'riza']);
 
 
-  const [brasno, piletina, curry, riza] = ingredients;
+  const [brasno, piletina, curry, riza] = Ingredient;
 
   const [brasnoStup, brasnoHadziabdinica] = await addIngredientToLocation(brasno, [lokacijaStup, lokacijaHadziabdinica]);
 
@@ -1406,7 +1407,7 @@ const seed = async () => {
 
 
 
-  const saraKolaOrderItem = await addOrderItems(orderSaraKolaRucak, [
+  const saraKolaOrderItem = await addOrderItem(orderSaraKolaRucak, [
     { vlId: kolaStup.id, productId: kola.id },
     { vlId: rucakStup.id, productId: rucak.id },
   ])
@@ -1541,59 +1542,55 @@ const seed = async () => {
   const order1 = await createOrderJson(order);
 
   const order1details = await getOrderDetails(order1.id);
-  await updateSKU(order1details.orderItems)
+  console.log(JSON.stringify(order1details, null, 2))
+  const items = await updateSKU(order1details.OrderItems)
 
 
-  
-  const orderItem = await VariantLocations.findOne({
-    logging: console.log,
-    where: { id: rucakStup.id },
-    attributes: ['id'],
-    include: [
-      {
-        model: Variant,
-        required: false,
-        as: 'VL',
-        attributes: ['id'],
-        include: [
-          {
-            model: LinkedVariants,
-            as: 'LinkVar',
-            attributes: ['id'],
-            include: [
-              {
-                model: VariantLocations,
-                attributes: ['id'],
-                include: [
-                  {
-                    as: 'VL_Rule', 
-                    model: VariantSKURule,
-                    required: false,
-                    attributes: ['id', 'quantity', 'SKUId', 'unit']
-                  },
-                  {
-                    model: VariantIngredients,
-                    as: 'VL_VI',
-                    required: false,
-                    attributes: ['id'],
-                    include: [
-                      {
-                        as: 'VI_Rule',
-                        model: IngredientSKURule,
-                        attributes: ['id', 'quantity', 'SKUId', 'unit']
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ],
-  })
-
-  console.log(JSON.stringify(orderItem, null, 2))
+  console.log(JSON.stringify('fdsfsd', null, 2))
+console.log(JSON.stringify(items, null, 2))
+  const orderItem = await VariantLocation.findOne({
+  // logging: console.log,
+  where: { id: rucakStup.id },
+  attributes: ['id'],
+  include: [
+    {
+      association: VariantLocation.associations.VL, 
+      required: false,
+      attributes: ['id'],
+      include: [
+        {
+          association: Variant.associations.LinkVar, 
+          attributes: ['id', 'quantity'],
+          include: [
+            {
+              association: LinkedVariant.associations.VL_LV, 
+              attributes: ['id'],
+              include: [
+                {
+                  association: VariantLocation.associations.VL_Rule, 
+                  required: false,
+                  attributes: ['id', 'quantity', 'SKUId', 'unit']
+                },
+                {
+                  association: VariantLocation.associations.VL_VI, 
+                  required: false,
+                  attributes: ['id'],
+                  include: [
+                    {
+                      association: VariantIngredient.associations.VI_Rule, 
+                      attributes: ['id', 'quantity', 'SKUId', 'unit']
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+});
+  // console.log(JSON.stringify(orderItem, null, 2))
 
   // const orderInfo = await getOrderDetails(order1.id);
 
@@ -1638,7 +1635,7 @@ const seed = async () => {
 
 
 
-  // const variantLocationsInOrderItem = await VariantLocations.findOne({
+  // const variantLocationsInOrderItem = await VariantLocation.findOne({
   //   where: { id: rucakStup.id },
   //   include: [
   //     {
@@ -1646,18 +1643,18 @@ const seed = async () => {
   //       as: 'VL',
   //       attributes: ['id'],
   //       include: [{ 
-  //         model: LinkedVariants,
+  //         model: LinkedVariant,
   //         required: false,
   //         attributes: ['id'],
   //         include: [{
 
-  //           model: VariantLocations,
+  //           model: VariantLocation,
   //           attributes: ['id'], 
   //           include: [
   //             {
   //               required: false,
   //               attributes: ['id'],
-  //               model: VariantIngredients
+  //               model: VariantIngredient
   //             }]
 
   //         }]
@@ -1698,7 +1695,7 @@ const seed = async () => {
   // console.log(JSON.stringify(proizvodiSaPiletinom, null, 2))
 
 
-  // const lokacijeSecera = await gettoponLocations(secer.id);
+  // const lokacijeSecera = await getToponLocation(secer.id);
   // console.log(JSON.stringify(lokacijeSecera, null, 2))
 
 
@@ -1711,10 +1708,10 @@ const seed = async () => {
 
   // console.log(JSON.stringify(grupeZaSoStup, null, 2))
 
-  // const palacinkeIngredients = await getVariantIngredients(palacinkeLight.id);
+  // const palacinkeIngredient = await getVariantIngredient(palacinkeLight.id);
 
 
-  // console.log(JSON.stringify(palacinkeIngredients, null, 2))
+  // console.log(JSON.stringify(palacinkeIngredient, null, 2))
 
   // const proizvodiSaSecerom = await getProductByTopon(biber.id);
 

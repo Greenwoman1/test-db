@@ -27,7 +27,7 @@ class Warehouse extends Model {
   }
 
   static associateModel(models) {
-    Warehouse.belongsToMany(models.Location, { through: 'WarehouseLocations' });
+    Warehouse.belongsToMany(models.Location, { through: 'WarehouseLocation' });
     Warehouse.hasMany(models.SKU);
   }
 }

@@ -6,7 +6,7 @@ class Order extends Model {
 
   static associateModel(models) {
     Order.belongsTo(models.User);
-    Order.hasMany(models.OrderItems);
+    Order.hasMany(models.OrderItem);
     Order.belongsTo(models.Location);
 
   }

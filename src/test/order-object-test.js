@@ -9,7 +9,7 @@
       "locations": [
         {
           "LocationId": 1,
-          "ingredients": [
+          "Ingredient": [
             {
               "id": 5,
               "skuRules": {
@@ -141,7 +141,7 @@
       "locations": [
         {
           "LocationId": lokacijaStup.id,
-          "ingredients": [
+          "Ingredient": [
             {
               "id": piletinaStup.id,
               "skuRules": {
@@ -211,10 +211,11 @@
   "userId": 1,
   "locationId": 2,
   "force": true,
-  "orderItems": [
+  "OrderItem": [
     {
       "productId": 1,
       "variantLocationId": 1,
+      "type" : "single",
       "quantity": 1,
       "options": [
         1,
@@ -249,7 +250,7 @@
     "firstName": "Sara",
     "lastName": "Sara prezime"
   },
-  "OrderItems": [
+  "OrderItem": [
     {
       "id": "0c4a3908-abd5-4885-8190-756dac891f3b",
       "quantity": null,
@@ -259,7 +260,7 @@
       "VariantLocation": {
         "id": "7d415bbe-54d4-440e-a1ac-5ae488e00654"
       },
-      "OrderItemOptions": [],
+      "OrderItemOption": [],
       "OrderItemTopons": [
         {
           "id": "628098dc-5550-4cf1-8988-c689cb4323a2",
@@ -292,7 +293,7 @@
       "VariantLocation": {
         "id": "c69a4a68-9517-4eb3-bb70-5167bff78641"
       },
-      "OrderItemOptions": [],
+      "OrderItemOption": [],
       "OrderItemTopons": []
     }
   ]

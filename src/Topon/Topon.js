@@ -2,19 +2,19 @@ const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 const { Op } = require('sequelize');
 
-class Topons extends Model {
+class Topon extends Model {
 
 
   static associateModel(models) {
-    Topons.hasMany(models.ToponPrice);
-    Topons.belongsToMany(models.Location, { through: 'ToponLocations' });
-    Topons.hasMany(models.ToponLocations, { as: 'TL' , foreignKey: 'ToponId' });
+    Topon.hasMany(models.ToponPrice);
+    Topon.belongsToMany(models.Location, { through: 'ToponLocation' });
+    Topon.hasMany(models.ToponLocation, { as: 'TL' , foreignKey: 'ToponId' });
 
 
 
   }
   static initModel() {
-    Topons.init(
+    Topon.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -31,7 +31,7 @@ class Topons extends Model {
       },
       {
         sequelize,
-        modelName: 'Topons',
+        modelName: 'Topon',
         timestamps: true,
         createdAt: false,
       }
@@ -59,4 +59,4 @@ class Topons extends Model {
 
 }
 
-module.exports = Topons;
+module.exports = Topon;

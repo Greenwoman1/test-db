@@ -8,28 +8,24 @@ const Location = require('./Location/Location');
 const Image = require('./Image/Image');
 const GroupToponsMid = require('./GroupToponsMid/GroupToponsMid');
 const Order = require('./Order/Order');
-const OrderItems = require('./OrderItems/OrderItems');
 const ToponPrice = require('./ToponPrice/ToponPrice');
 const VariantPrice = require('./VariantPrice/VariantPrice');
 const UserLocation = require('./UserLocation/UserLocation');
 const Balance = require('./Balance/balance');
 
 const VariantSKURule = require('./VariantSKURule/VariantSKURule');
-const IngredientSKURule = require('./IngredientSKURule/IngredientSKURule');
-const Ingredients = require('./Ingredients/Ingredients');
+const Ingredient = require('./Ingredient/Ingredient');
 const Warehouse = require('./Warehouse/Warehouse');
-const WarehouseLocations = require('./WarehouseLocations/WarehouseLocations');
-const VariantLocations = require('./VariantLocations/VariantLocations');
-const VariantIngredients = require('./VariantIngredients/VariantIngredients');
+const WarehouseLocation = require('./WarehouseLocation/WarehouseLocation');
+const VariantLocation = require('./VariantLocation/VariantLocation');
 const GroupTopon = require('./GroupTopon/GroupTopon');
 const ToponSKURule = require('./ToponSKURule/ToponSKURule');
-const Topons = require('./Topons/Topons');
-const LinkedVariants = require('./LinkedVariants/LinkedVariants');
-const ToponLocations = require('./ToponLocations/ToponLocations');
-const IngredientLocations = require('./IngredientLocations/IngredientLocations');
+const Topon = require('./Topon/Topon');
+const LinkedVariant = require('./LinkedVariant/LinkedVariant');
+const ToponLocation = require('./ToponLocation/ToponLocation');
 const Category = require('./Category/Category');
 const UserPayment = require('./UserPayment/UserPayment');
-const OrderItemOptions = require('./OrderItemOptions/OrderItemOptions');
+const OrderItemOption = require('./OrderItemOption/OrderItemOption');
 const OrderItemTopons = require('./OrderItemTopons/OrderItemTopons');
 const Payment = require('./Payment/Payment');
 const WaiterBreak = require('./WaiterBreak/WaiterBreak');
@@ -39,8 +35,11 @@ const RolePermission = require('./RolePermission/RolePermission');
 const UserRole = require('./UserRole/UserRole');
 const UserPermission = require('./UserPermission/UserPermission');
 const UserAdditionalInfo = require('./UserAdditionalInfo/UserAdditionalInfo');
-const OrderItemIngredients = require('./OrderItemIngredients/OrderItemIngredients');
-
+const IngredientSKURule = require('./IngredientSKURule/IngredientSKURule');
+const VariantIngredient = require('./VariantIngredient/VariantIngredient');
+const OrderItemIngredient = require('./OrderItemIngredient/OrderItemIngredient');
+const IngredientLocation = require('./IngredientLocation/IngredientLocation');
+const OrderItem = require('./OrderItem/OrderItem');
 
 module.exports = {
   Balance,
@@ -49,35 +48,35 @@ module.exports = {
   GroupTopon,
   GroupToponsMid,
   Image,
-  Ingredients,
+  Ingredient,
   Location,
   Option,
   Order,
-  OrderItems,
-  // OrderItemsCombo,
+  OrderItem,
+  // OrderItemCombo,
   ToponPrice,
   VariantPrice,
   
   Product,
-  OrderItemOptions,
+  OrderItemOption,
   OrderItemTopons,
   SKU,
 
   VariantSKURule, 
   IngredientSKURule,
-  Topons,
+  Topon,
   ToponSKURule,
   User,
   UserLocation,
   Variant,
-  VariantIngredients,
-  VariantLocations,
+  VariantIngredient,
+  VariantLocation,
   Warehouse,
-  WarehouseLocations,
-  LinkedVariants,
+  WarehouseLocation,
+  LinkedVariant,
 
-  ToponLocations,
-  IngredientLocations,
+  ToponLocation,
+  IngredientLocation,
   Category,
   UserPayment,
 
@@ -93,7 +92,7 @@ module.exports = {
   UserPermission,
   UserAdditionalInfo,
 
-  OrderItemIngredients
+  OrderItemIngredient
 
 
 

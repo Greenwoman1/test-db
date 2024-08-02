@@ -1,34 +1,31 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class ToponLocations extends Model {
+class IngredientLocation extends Model {
   static initModel() {
-    ToponLocations.init(
+    IngredientLocation.init(
       {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
           defaultValue: UUIDV4
         },
-
+     
 
       },
 
       {
         sequelize,
-        modelName: 'ToponLocations',
+        modelName: 'IngredientLocation',
         timestamps: true,
       }
     );
   }
 
   static associateModel(models) {
-
-    ToponLocations.hasMany(models.GroupToponsMid, { as: 'TL_Group', foreignKey: 'ToponLocationId' });
-    ToponLocations.belongsTo(models.Topons, { as: 'TL', foreignKey: 'ToponId' });
-    ToponLocations.belongsTo(models.Location);
+    IngredientLocation.hasMany(models.VariantIngredient, {as: 'VarIng', foreignKey: 'IngredientLocationId' } );
+    IngredientLocation.belongsTo(models.Ingredient, { as : 'InLoc', foreignKey: 'IngredientId' });
   }
 }
 
-module.exports = ToponLocations;
- 
+module.exports = IngredientLocation;

@@ -28,11 +28,11 @@ class Location extends Model {
 
   static associateModel(models) {
     Location.belongsToMany(models.User, { through: 'UserLocation' });
-    Location.belongsToMany(models.Variant, { through: 'VariantLocations' });
-    Location.belongsToMany(models.Warehouse, { through: 'WarehouseLocations' });
-    Location.hasMany(models.VariantLocations, { as: 'VL', foreignKey: 'LocationId' });
-    Location.belongsToMany(models.Topons, { through: 'ToponLocations' });
-    Location.belongsToMany(models.Ingredients, { through: 'IngredientLocations' });
+    Location.belongsToMany(models.Variant, { through: 'VariantLocation' });
+    Location.belongsToMany(models.Warehouse, { through: 'WarehouseLocation' });
+    Location.hasMany(models.VariantLocation, { as: 'VL', foreignKey: 'LocationId' });
+    Location.belongsToMany(models.Topon, { through: 'ToponLocation' });
+    Location.belongsToMany(models.Ingredient, { through: 'IngredientLocation' });
 
   }
 }

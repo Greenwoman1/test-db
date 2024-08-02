@@ -10,13 +10,13 @@ const createOrderItem = async (req, res) => {
     }
 };
 
-const getOrderItems = async (req, res) => {
+const getOrderItem = async (req, res) => {
     try {
-        const orderItems = await OrderItem.findAll({
+        const OrderItem = await OrderItem.findAll({
             attributes: ['id', 'orderId', 'productId', 'createdAt', 'updatedAt'],
             raw: true
         });
-        res.status(200).json(orderItems);
+        res.status(200).json(OrderItem);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -68,7 +68,7 @@ const deleteOrderItem = async (req, res) => {
 
 module.exports = {
     createOrderItem,
-    getOrderItems,
+    getOrderItem,
     getOrderItemById,
     updateOrderItem,
     deleteOrderItem

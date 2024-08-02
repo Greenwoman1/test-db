@@ -3,10 +3,10 @@ const sequelize = require('../../sequelize');
 
 class Option extends Model {
   static associateModel(models) {
-    // Option.belongsToMany(models.OrderItems, { through: 'ProductO' });
+    // Option.belongsToMany(models.OrderItem, { through: 'ProductO' });
     Option.belongsTo(models.GroupOptions);
-    Option.hasMany(models.OrderItemOptions);
-    // Option.belongsToMany(models.OrderItems, { through: 'OrderItemOptions', as: 'OIO' });
+    Option.hasMany(models.OrderItemOption);
+    // Option.belongsToMany(models.OrderItem, { through: 'OrderItemOption', as: 'OIO' });
   }
 
   static initModel() {

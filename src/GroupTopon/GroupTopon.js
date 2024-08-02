@@ -4,7 +4,7 @@ const sequelize = require('../../sequelize');
 class GroupTopon extends Model {
   static associateModel(models) {
 
-    GroupTopon.belongsTo(models.VariantLocations)
+    GroupTopon.belongsTo(models.VariantLocation)
     GroupTopon.hasMany(models.GroupToponsMid)
   }
 

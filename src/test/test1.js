@@ -10,11 +10,11 @@
         "quantity": 1,
         "data": {
           "id": "ea566b62-3f45-4be1-9bec-e88255325c0b",
-          "GT_Rule": null
+          "TSRule": null
         }
       }
     ],
-    "ingredients": [
+    "Ingredient": [
       {
         "ingredientId": "a121a2cc-25c3-4f05-822c-503150868770"
       }
@@ -65,7 +65,7 @@
     "quantity": 1,
     "options": [],
     "topons": [],
-    "ingredients": [],
+    "Ingredient": [],
     "data": {
       "id": "3c6be708-4fca-4dd4-8aa7-214e99431828",
       "VL_Rule": {

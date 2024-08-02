@@ -1,11 +1,11 @@
-const { OrderItems, Order, ItemProduct, ProductT, Variant, PriceHistory, Product, Topons, Op, User, Location, Option, OrderItemsCombo, ComboVariants, Balance, OrderItemOptions, OrderItemTopons } = require("../.");
+const { OrderItem, Order, ItemProduct, ProductT, Variant, PriceHistory, Product, Topon, Op, User, Location, Option, OrderItemCombo, ComboVariants, Balance, OrderItemOption, OrderItemTopons, VariantLocation, VariantPrice } = require("../.");
 const redisClient = require("../../redisClient");
 const sequelize = require('../../sequelize');
 const { getBalance, setBalance } = require("../Balance/utils");
 const { getVariantSKU } = require("../Variant/utils");
 const { create } = require("./Order");
 
-const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, updateSKU } = require("./utils");
+const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, updateSKU, calculateTotalPrice } = require("./utils");
 
 /* const getOrders = async (req, res) => {
   try {
@@ -27,14 +27,14 @@ const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, 
 
 //   const userId = order.userId;
 //   const locationId = order.locationId;
-//   const productIds = order.orderItems.map(item => item.productId);
-//   const variantIds = order.orderItems.flatMap(item =>
+//   const productIds = order.OrderItem.map(item => item.productId);
+//   const variantIds = order.OrderItem.flatMap(item =>
 //     item.type === 'single' ? [item.variantId] : item.comboVariants.map(cv => cv.variantId)
 //   );
-//   const optionIds = order.orderItems.flatMap(item =>
+//   const optionIds = order.OrderItem.flatMap(item =>
 //     item.type === 'single' ? item.options.map(opt => opt.optionId) : item.comboVariants.flatMap(cv => cv.options.map(opt => opt.optionId))
 //   );
-//   const toponIds = order.orderItems.flatMap(item =>
+//   const toponIds = order.OrderItem.flatMap(item =>
 //     item.type === 'single' ? item.topons.map(id => id.toponId) : item.comboVariants.flatMap(cv => cv.topons.map(top => top.toponId))
 //   );
 
@@ -45,7 +45,7 @@ const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, 
 //       Product.findAll({ where: { id: productIds } }),
 //       Variant.findAll({ where: { id: variantIds } }),
 //       Option.findAll({ where: { id: optionIds } }),
-//       Topons.findAll(),
+//       Topon.findAll(),
 //     ]);
 
 //     if (!user) {
@@ -77,19 +77,19 @@ const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, 
 //     const existingToponIds = topons.map(t => t.id);
 //     const missingToponIds = toponIds.filter(id => !existingToponIds.includes(id));
 //     if (missingToponIds.length > 0) {
-//       errors.push({ msg: `Topons with IDs (${missingToponIds.join(', ')}) do not exist`, param: 'toponIds', location: 'body' });
+//       errors.push({ msg: `Topon with IDs (${missingToponIds.join(', ')}) do not exist`, param: 'toponIds', location: 'body' });
 //     }
 
 //     const cachedBalance = await getBalance(userId);
 //     let totalPrice = 0;
 
-//     for (const item of order.orderItems) {
+//     for (const item of order.OrderItem) {
 //       if (item.type === 'single') {
 //         const v = await Variant.findByPk(item.variantId);
 //         const variantPrice = await v.getPrice(new Date());
 //         let itemTotalPrice = variantPrice * item.quantity;
 //         for (const topon of item.topons) {
-//           const t = await Topons.findByPk(topon.toponId);
+//           const t = await Topon.findByPk(topon.toponId);
 //           const toponPrice = await t.getPrice(new Date());
 //           itemTotalPrice += toponPrice * topon.quantity * item.quantity;
 //         }
@@ -102,7 +102,7 @@ const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, 
 //         comboTotalPrice += productPrice;
 //         for (const comboVariant of item.comboVariants) {
 //           for (const topon of comboVariant.topons) {
-//             const t = await Topons.findByPk(topon.toponId);
+//             const t = await Topon.findByPk(topon.toponId);
 //             const toponPrice = await t.getPrice(new Date());
 //             comboTotalPrice += toponPrice * topon.quantity;
 //           }
@@ -145,17 +145,12 @@ const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, 
 const createOrder = async (req, res) => {
   try {
     const order = req.body;
-
     const o = await Order.create({ UserId: order.userId, LocationId: order.locationId, status: 'pending', totalPrice: 13.5 });
-
     for (const item of order.items) {
-      const OI = await OrderItems.create({ OrderId: o.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
+      const OI = await OrderItem.create({ OrderId: o.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
       const productType = await Product.findOne({ where: { id: item.productId }, attributes: ['type'] });
-
-      console.log(productType);
-
       for (const option of item.options) {
-        await OrderItemOptions.create({ OrderItemId: OI.id, OptionId: option });
+        await OrderItemOption.create({ OrderItemId: OI.id, OptionId: option });
       }
       for (const topon of item.topons) {
         await OrderItemTopons.create({ OrderItemId: OI.id, ToponLocationId: topon.id, quantity: topon.quantity });
@@ -163,14 +158,19 @@ const createOrder = async (req, res) => {
     }
 
 
-    res.status(201).json({ message: 'Order created' });
+    const tp = await calculateTotalPrice(order);
 
+    o.update({ totalPrice: tp });
+
+    /// user balance update 
+
+
+
+    res.status(201).json({ message: 'Order created' });
   } catch (error) {
     res.status(500).json({ message: 'Internal Server Error' });
   }
-
 }
-
 
 const proccessOrder = async (req, res) => {
   try {
@@ -179,17 +179,29 @@ const proccessOrder = async (req, res) => {
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
-
-
-
     const object = req.body;
+
+    const prevOrder = await Order.findByPk(orderId);
+
+    await prevOrder.update({ status: "adjustment" });
+
+    /// setUserBalance + order.totalPrice
 
 
     const result = await sequelize.transaction(async (t) => {
       const newOrder = createOrderJson(object);
+
+      const tp = await calculateTotalPrice(object);
+
+      newOrder.totalPrice = tp;
+
+      newOrder.save({ transaction: t });
+
+
+      ///set user balance - order.totalPrice
+
+
     });
-
-
     const orderDetails = await getOrderDetails(result.id);
     res.status(200).json(orderDetails);
   } catch (error) {
@@ -199,7 +211,6 @@ const proccessOrder = async (req, res) => {
 
 
 const acceptOrder = async (req, res) => {
-
   try {
     const result = await sequelize.transaction(async (t) => {
       const { orderId } = req.params;
@@ -208,15 +219,7 @@ const acceptOrder = async (req, res) => {
         throw new Error('Order not found');
       }
       const orderInfo = await getOrderDetails(orderId);
-
-
       await updateSKU(orderInfo.items);
-
-      
-
-
-
-
       await setBalance(order.UserId, +order.totalPrice, 'Order-acceptance', 'Order accepted', order.id);
       await order.update({ status: "accepted" }, { transaction: t });
     });
@@ -251,4 +254,4 @@ const rejectOrder = async (req, res) => {
 }
 
 
-module.exports = { createOrder, proccessOrder, rejectOrder };
+module.exports = { createOrder, proccessOrder, rejectOrder, acceptOrder };

@@ -28,7 +28,7 @@ class ToponPrice extends Model {
   }
 
   static associateModel(models) {
-    ToponPrice.belongsTo(models.Topons);
+    ToponPrice.belongsTo(models.Topon);
 
 
   }

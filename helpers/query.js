@@ -1,4 +1,4 @@
-const { Product, Variant, GroupOption, Option, Topons } = require('../src/index');
+const { Product, Variant, GroupOption, Option, Topon } = require('../src/index');
 
 
 const productsJson = [
@@ -190,7 +190,7 @@ async function getProductSettings(productName) {
                             model: GroupOption,
                             include: [Option]
                         },
-                        Topons
+                        Topon
                     ]
                 }
             ]
@@ -213,7 +213,7 @@ async function getProductSettings(productName) {
                             name: option.name
                         }))
                     })),
-                    topons: variant.Topons.map(topon => ({
+                    topons: variant.Topon.map(topon => ({
                         name: topon.name,
                         quantity: topon.quantity
                     }))

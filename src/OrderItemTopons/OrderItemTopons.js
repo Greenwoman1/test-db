@@ -6,7 +6,7 @@ class OrderItemTopons extends Model {
 
   static associateModel(models) {
 
-    OrderItemTopons.belongsTo(models.OrderItems);
+    OrderItemTopons.belongsTo(models.OrderItem);
     OrderItemTopons.belongsTo(models.GroupToponsMid);
 
 

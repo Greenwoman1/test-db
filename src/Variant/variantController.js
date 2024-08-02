@@ -1,4 +1,4 @@
-const { Variant, Price, SKU, Location, VariantLocations, VariantIngredients, IngredientLocations, Ingredients } = require('../index');
+const { Variant, Price, SKU, Location, VariantLocation, VariantIngredient, IngredientLocation, Ingredient } = require('../index');
 const { Image } = require('../index');
 
 
@@ -32,7 +32,7 @@ const getVariantAddons = async (req, res) => {
   const variantLocationId = req.params.variantLocationId;
 
   try {
-    const variantLocation = await VariantLocations.findOne({
+    const variantLocation = await VariantLocation.findOne({
       where: { id: variantLocationId },
 
       attributes: ['id'],
@@ -59,12 +59,12 @@ const getVariantAddons = async (req, res) => {
               attributes: ['id'],
               include: [
                 {
-                  model: ToponLocations,
+                  model: ToponLocation,
                   attributes: ['id'],
                   include: [
                     {
                       as: 'TL',
-                      model: Topons,
+                      model: Topon,
                       attributes: ['name']
 
                     }
@@ -95,17 +95,17 @@ const getVariantAddons = async (req, res) => {
 }
 
 
-const getVariantLocationIngredients = async (req, res) => {
+const getVariantLocationIngredient = async (req, res) => {
   const variantLocationId = req.params.variantLocationId;
   try {
-    const ingredients = await VariantLocations.findAll({
+    const Ingredient = await VariantLocation.findAll({
       logging: console.log,
       where: { id: variantLocationId },
-      include: [{ model: VariantIngredients, include: [{ model: IngredientLocations, include: [{ model: Ingredients, as: 'IL' }] }] }]
+      include: [{ model: VariantIngredient, include: [{ model: IngredientLocation, include: [{ model: Ingredient, as: 'InLoc' }] }] }]
     })
 
 
-    res.status(200).json(ingredients);
+    res.status(200).json(Ingredient);
 
   } catch (error) {
     res.status(500).json({ error, message: "Internal server error" });
@@ -123,7 +123,7 @@ const getAviableVariants = async (req, res) => {
         [literal('"VL->Location"."name"'), 'Location']],
       include: [
         {
-          model: VariantLocations,
+          model: VariantLocation,
           attributes: [],
           as: 'VL',
           include: [
@@ -214,7 +214,7 @@ const setPrice = async (req, res) => {
 module.exports = {
   getVariantLocations,
   getVariantAddons,
-  getVariantLocationIngredients,
+  getVariantLocationIngredient,
   getAviableVariants,
   uploadImage,
   getPrice,

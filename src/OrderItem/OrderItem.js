@@ -2,18 +2,18 @@ const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 const Order = require('../Order/Order');
 
-class OrderItems extends Model {
+class OrderItem extends Model {
 
 
   static associateModel(models) {
-    OrderItems.belongsTo(models.Order);
-    OrderItems.belongsTo(models.VariantLocations);
-    // OrderItems.belongsToMany(models.GroupToponsMid, { through: 'OrderItemTopons', as: 'OIT' });
-    // OrderItems.belongsToMany(models.Option, { through: 'OrderItemOptions', as : 'OIO' });
-    OrderItems.hasMany(models.OrderItemOptions);
-    OrderItems.hasMany(models.OrderItemTopons);
+    OrderItem.belongsTo(models.Order);
+    OrderItem.belongsTo(models.VariantLocation);
+    // OrderItem.belongsToMany(models.GroupToponsMid, { through: 'OrderItemTopons', as: 'OIT' });
+    // OrderItem.belongsToMany(models.Option, { through: 'OrderItemOption', as : 'OIO' });
+    OrderItem.hasMany(models.OrderItemOption);
+    OrderItem.hasMany(models.OrderItemTopons);
 
-    OrderItems.hasMany(models.OrderItemIngredients);
+    OrderItem.hasMany(models.OrderItemIngredient);
 
 
 
@@ -23,7 +23,7 @@ class OrderItems extends Model {
 
 
   static initModel() {
-    OrderItems.init(
+    OrderItem.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -43,7 +43,7 @@ class OrderItems extends Model {
       },
       {
         sequelize,
-        modelName: 'OrderItems',
+        modelName: 'OrderItem',
         timestamps: true,
         createdAt: false,
         updatedAt: 'updateTimestamp',
@@ -54,4 +54,4 @@ class OrderItems extends Model {
 
 }
 
-module.exports = OrderItems;
+module.exports = OrderItem;

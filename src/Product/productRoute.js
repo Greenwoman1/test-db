@@ -6,14 +6,14 @@ const { validateCreateProduct, validateResults, validateProductId, validateLocat
 
 router.get('/list', productController.list);
 
-router.get('/:productId', productController.getProductById);
+router.post('/:productId', productController.createProduct);
 
 router.get('/:productId/variants', productController.getProductVariants);
 
-router.get('/:productId/locationId'), productController.getProductVariantLocation;
+router.get('/:productId', productController.getProductById);
 
-router.get('/locationId', productController.getProductsAtLocation);
+router.get('/:productId/:locationId', productController.getProductVariantLocation);
 
-
+router.get('/:productId/variants', productController.getProductVariants);
 
 module.exports = router;

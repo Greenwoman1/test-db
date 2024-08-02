@@ -2,14 +2,14 @@ const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 const { Op } = require('sequelize');
 
-class Ingredients extends Model {
+class Ingredient extends Model {
 
 
   static associateModel(models) {
-    Ingredients.hasMany(models.IngredientLocations, { as : 'IL', foreignKey: 'IngredientId' });
+    Ingredient.hasMany(models.IngredientLocation, { as : 'InLoc', foreignKey: 'IngredientId' });
   }
   static initModel() {
-    Ingredients.init(
+    Ingredient.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -26,7 +26,7 @@ class Ingredients extends Model {
       },
       {
         sequelize,
-        modelName: 'Ingredients',
+        modelName: 'Ingredient',
         timestamps: true,
         createdAt: false,
       }
@@ -37,4 +37,4 @@ class Ingredients extends Model {
 
 }
 
-module.exports = Ingredients;
+module.exports = Ingredient;

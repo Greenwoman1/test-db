@@ -3,12 +3,14 @@ const router = express.Router();
 const controller = require('./controller');
 const { validateCreateOrder, validateResults } = require('./validateOrder');
 
+router.post('/', controller.createOrder);
 
-
-
-router.post('/', validateCreateOrder, validateResults, controller.createOrder);
-router.get('/', controller.createOrder);
 router.post('/proccess/:orderId', controller.proccessOrder);
-router.post('/cancel/:orderId', controller.rejectOrder);
+
+router.post('/reject/:orderId', controller.rejectOrder);
+
+router.post('/accept/:orderId', controller.acceptOrder);
+
+
 
 module.exports = router;

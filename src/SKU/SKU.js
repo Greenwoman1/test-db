@@ -6,7 +6,7 @@ class SKU extends Model {
 
     SKU.hasMany(models.VariantSKURule, { as: 'VSKU', foreignKey: 'SKUId' });
     SKU.hasMany(models.IngredientSKURule, { as: 'IKU', foreignKey: 'SKUId' });
-    SKU.belongsToMany(models.Topons, { through: 'ToponSKUs', foreignKey: 'SKUId' });
+    SKU.belongsToMany(models.Topon, { through: 'ToponSKUs', foreignKey: 'SKUId' });
     SKU.belongsToMany(models.Variant, { through: 'VariantSKUs', foreignKey: 'SKUId' });
     SKU.belongsTo(models.Warehouse);
     SKU.hasMany(models.ToponSKURule, { as: 'TSKU', foreignKey: 'SKUId' });

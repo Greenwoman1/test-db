@@ -1,6 +1,6 @@
 
 
-const { Order, OrderItems, PriceHistory, Variant, User, Option, Topons } = require('../.');
+const { Order, OrderItem, PriceHistory, Variant, User, Option, Topon } = require('../.');
 
 const createUser = async (req, res) => {
   try {
@@ -75,7 +75,7 @@ const getOrderDetailsForUser = async (req, res) => {
       where: { UserId: userId },
       include: [
         {
-          model: OrderItems,
+          model: OrderItem,
           include: [
             {
               model: Variant,
@@ -95,7 +95,7 @@ const getOrderDetailsForUser = async (req, res) => {
 
             },
             {
-              model: Topons,
+              model: Topon,
               through: { attributes: [] },
             
             }
@@ -110,7 +110,7 @@ const getOrderDetailsForUser = async (req, res) => {
         locationId: order.locationId,
         totalPrice: order.totalPrice,
         status: order.status,
-        products: order.OrderItems.map(item => {
+        products: order.OrderItem.map(item => {
           const variant = item.Variant;
           const variantPrice = variant.Prices.length ? variant.Prices[0].price : 0;
 
@@ -120,7 +120,7 @@ const getOrderDetailsForUser = async (req, res) => {
               name: option.name,
             };
           });
-          const topons = item.Topons.map(topon => {
+          const topons = item.Topon.map(topon => {
             const toponPrice = topon.Prices.length ? topon.Prices[0].price : 0;
             return {
               id: topon.id,

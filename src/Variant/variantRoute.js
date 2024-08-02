@@ -22,7 +22,7 @@ router.get('/:variantLocationId/addons', variantController.getVariantAddons);
 
 router.get('/', variantController.getAviableVariants);
 
-router.get('/:variantLocationId/ingredients', variantController.getVariantLocationIngredients);
+router.get('/:variantLocationId/Ingredient', variantController.getVariantLocationIngredient);
 
 router.post('/upload/:variantId', upload.array("images"), variantController.uploadImage);
 

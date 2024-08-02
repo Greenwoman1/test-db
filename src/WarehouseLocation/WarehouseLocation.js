@@ -1,16 +1,16 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 
-class WarehouseLocations extends Model {
+class WarehouseLocation extends Model {
   static initModel() {
-    WarehouseLocations.init(
+    WarehouseLocation.init(
       {
 
       },
 
       {
         sequelize,
-        modelName: 'WarehouseLocations',
+        modelName: 'WarehouseLocation',
         timestamps: true,
       }
     );
@@ -24,4 +24,4 @@ class WarehouseLocations extends Model {
   }
 }
 
-module.exports = WarehouseLocations;
+module.exports = WarehouseLocation;

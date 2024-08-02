@@ -68,20 +68,20 @@ func()
 
 const singleProductIngredientPromise = (id, orderId) => {
   return new Promise((resolve, reject) => {
-    VariantLocations.findOne({
+    VariantLocation.findOne({
       where: { id: id },
       attributes: ['id'],
       include: [
         {
-          model: VariantIngredients,
+          model: VariantIngredient,
           required: false,
           attributes: ['id'],
         }
       ]
     })
-    .then(async (ingredients) => {
-      const ingredientPromises = ingredients.VariantIngredients.map(ingredient => 
-        OrderItemIngredients.create({ OrderItemId: orderId, VariantIngredientId: ingredient.id })
+    .then(async (Ingredient) => {
+      const ingredientPromises = Ingredient.VariantIngredient.map(ingredient => 
+        OrderItemIngredient.create({ OrderItemId: orderId, VariantIngredientId: ingredient.id })
       );
       
       try {
@@ -97,7 +97,7 @@ const singleProductIngredientPromise = (id, orderId) => {
 
 const comboProductIngredientPromise = (id, orderId) => {
   return new Promise((resolve, reject) => {
-    VariantLocations.findOne({
+    VariantLocation.findOne({
       where: { id: id },
       attributes: ['id'],
       include: [
@@ -106,17 +106,17 @@ const comboProductIngredientPromise = (id, orderId) => {
           as: 'VL',
           attributes: ['id'],
           include: [{
-            model: LinkedVariants,
+            model: LinkedVariant,
             required: false,
             attributes: ['id'],
             include: [{
-              model: VariantLocations,
+              model: VariantLocation,
               attributes: ['id'],
               include: [
                 {
                   required: false,
                   attributes: ['id'],
-                  model: VariantIngredients
+                  model: VariantIngredient
                 }]
             }]
           }],
@@ -124,9 +124,9 @@ const comboProductIngredientPromise = (id, orderId) => {
       ]
     })
     .then(async (variantLocationsInOrderItem) => {
-      const promises = variantLocationsInOrderItem.VL.LinkedVariants.map(vl => {
-        const ingredientPromises = vl.VariantLocation.VariantIngredients.map(ingredient => 
-          OrderItemIngredients.create({ OrderItemId: orderId, VariantIngredientId: ingredient.id })
+      const promises = variantLocationsInOrderItem.VL.LinkedVariant.map(vl => {
+        const ingredientPromises = vl.VariantLocation.VariantIngredient.map(ingredient => 
+          OrderItemIngredient.create({ OrderItemId: orderId, VariantIngredientId: ingredient.id })
         );
         return Promise.all(ingredientPromises);
       });
@@ -142,7 +142,7 @@ const comboProductIngredientPromise = (id, orderId) => {
   });
 };
 
-const processOrderItemIngredients = async (pType, item, OI) => {
+const processOrderItemIngredient = async (pType, item, OI) => {
   try {
     switch (pType.type) {
       case 'single':
@@ -162,12 +162,12 @@ const processOrderItemIngredients = async (pType, item, OI) => {
 const ingredientPromises = [];
 
 // Assuming pType, item, and OI are already defined and available
-ingredientPromises.push(processOrderItemIngredients(pType, item, OI));
+ingredientPromises.push(processOrderItemIngredient(pType, item, OI));
 
 Promise.all(ingredientPromises)
   .then(() => {
-    console.log('All ingredients processed successfully.');
+    console.log('All Ingredient processed successfully.');
   })
   .catch((err) => {
-    console.error('Error processing ingredients:', err);
+    console.error('Error processing Ingredient:', err);
   });

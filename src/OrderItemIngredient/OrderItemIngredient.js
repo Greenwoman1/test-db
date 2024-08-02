@@ -1,12 +1,16 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
+const Order = require('../Order/Order');
 
-class OrderItemOptions extends Model {
+class OrderItemIngredient extends Model {
 
 
   static associateModel(models) {
-    OrderItemOptions.belongsTo(models.OrderItems);
-    OrderItemOptions.belongsTo(models.Option);
+
+
+    OrderItemIngredient.belongsTo(models.OrderItem);
+
+    OrderItemIngredient.belongsTo(models.VariantIngredient);
 
 
 
@@ -14,7 +18,7 @@ class OrderItemOptions extends Model {
 
 
   static initModel() {
-    OrderItemOptions.init(
+    OrderItemIngredient.init(
       {
         id: {
           type: DataTypes.UUID,
@@ -22,12 +26,17 @@ class OrderItemOptions extends Model {
           primaryKey: true,
           allowNull: false,
         },
+        quantity: {
+          type: DataTypes.INTEGER,
+        }
+    
 
+        
 
       },
       {
         sequelize,
-        modelName: 'OrderItemOptions',
+        modelName: 'OrderItemIngredient',
         timestamps: true,
         createdAt: false,
         updatedAt: 'updateTimestamp',
@@ -38,4 +47,4 @@ class OrderItemOptions extends Model {
 
 }
 
-module.exports = OrderItemOptions;
+module.exports = OrderItemIngredient;
