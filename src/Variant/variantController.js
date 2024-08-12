@@ -36,7 +36,7 @@ const getVariantAddons = async (req, res) => {
       where: { id: variantLocationId },
 
       attributes: ['id'],
-      as: 'VL',
+      as: 'VarLoc',
       include: [
         {
           model: GroupOptions,
@@ -63,7 +63,7 @@ const getVariantAddons = async (req, res) => {
                   attributes: ['id'],
                   include: [
                     {
-                      as: 'TL',
+                      as: 'TopLoc',
                       model: Topon,
                       attributes: ['name']
 
@@ -120,12 +120,12 @@ const getAviableVariants = async (req, res) => {
       attributes: [
         'id',
         'name',
-        [literal('"VL->Location"."name"'), 'Location']],
+        [literal('"VarLoc->Location"."name"'), 'Location']],
       include: [
         {
           model: VariantLocation,
           attributes: [],
-          as: 'VL',
+          as: 'VarLoc',
           include: [
             {
               model: Location,

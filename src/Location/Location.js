@@ -30,7 +30,7 @@ class Location extends Model {
     Location.belongsToMany(models.User, { through: 'UserLocation' });
     Location.belongsToMany(models.Variant, { through: 'VariantLocation' });
     Location.belongsToMany(models.Warehouse, { through: 'WarehouseLocation' });
-    Location.hasMany(models.VariantLocation, { as: 'VL', foreignKey: 'LocationId' });
+    Location.hasMany(models.VariantLocation, { as: 'VarLoc', foreignKey: 'LocationId' });
     Location.belongsToMany(models.Topon, { through: 'ToponLocation' });
     Location.belongsToMany(models.Ingredient, { through: 'IngredientLocation' });
 

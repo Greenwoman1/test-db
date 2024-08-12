@@ -1,5 +1,6 @@
+const { name } = require('ejs');
 const { getOrderDetails, getOrderSKURules, createOrderJson, updateSKU } = require('./Order/utils');
-const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, Ingredient, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem } = require('./index');
+const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem, VariantPrice, Ingredient } = require('./index');
 
 const { Op, fn, col, literal } = require('sequelize');
 
@@ -176,7 +177,7 @@ const getVariantLocations = async (variantId) => {
   return await Variant.findAll({
     where: { id: variantId },
     include: [
-      { model: VariantLocation, as: 'VL', include: [{ model: Location }] }
+      { model: VariantLocation, as: 'VarLoc', include: [{ model: Location }] }
     ]
 
   })
@@ -191,7 +192,7 @@ const getVariantOptionsAndTopons = async (variantId) => {
       {
         model: VariantLocation,
         attributes: [['id', 'id']],
-        as: 'VL',
+        as: 'VarLoc',
         include: [
           {
             model: GroupOptions,
@@ -218,7 +219,7 @@ const getVariantOptionsAndTopons = async (variantId) => {
                     attributes: ['id'],
                     include: [
                       {
-                        as: 'TL',
+                        as: 'TopLoc',
                         model: Topon,
                         attributes: [['name', 't']],
 
@@ -302,7 +303,7 @@ const getToponsVariantLocation = async (variantLocationId) => {
         include: [
           {
             model: GroupToponsMid,
-            include: [{ model: ToponLocation, include: [{ model: Topon, as: 'TL' }] }]
+            include: [{ model: ToponLocation, include: [{ model: Topon, as: 'TopLoc' }] }]
 
           }
         ]
@@ -329,7 +330,7 @@ const getProductsAtLocation = async (locationId) => {
       include: [{
 
         model: VariantLocation,
-        as: 'VL',
+        as: 'VarLoc',
         attributes: [],
         where: { LocationId: locationId }
       }]
@@ -346,7 +347,7 @@ const getVariantsAtLocation = async (locationId) => {
     attributes: ['id', 'name'],
     include: [{
       model: VariantLocation,
-      as: 'VL',
+      as: 'VarLoc',
       attributes: [],
       where: { LocationId: locationId }
     }]
@@ -365,12 +366,12 @@ const getAvailableVariantsManual = async () => {
     attributes: [
       'id',
       'name',
-      [literal('"VL->Location"."name"'), 'Location']],
+      [literal('"VarLoc->Location"."name"'), 'Location']],
     include: [
       {
         model: VariantLocation,
         attributes: [],
-        as: 'VL',
+        as: 'VarLoc',
         include: [
           {
             model: Location,
@@ -425,19 +426,19 @@ const getAvailableVariantsManual = async () => {
     where: {
       [Op.or]: [
         {
-          '$VL.VariantSKURule.SKU.id$': {
+          '$VarLoc.VariantSKURule.SKU.id$': {
             [Op.ne]: null
           }
         },
         {
-          '$VL.VariantIngredient.IngredientSKURule.SKU.id$': {
+          '$VarLoc.VariantIngredient.IngredientSKURule.SKU.id$': {
             [Op.ne]: null
           }
         }
       ]
     },
-    group: ['Variant.id', 'Variant.name', 'VL->Location.id', 'VL->Location.name'],
-    having: literal('COUNT(CASE WHEN "VL->VariantIngredient->IngredientSKURule"."disabled" = TRUE THEN 1 ELSE NULL END) = 0')
+    group: ['Variant.id', 'Variant.name', 'VarLoc->Location.id', 'VarLoc->Location.name'],
+    having: literal('COUNT(CASE WHEN "VarLoc->VariantIngredient->IngredientSKURule"."disabled" = TRUE THEN 1 ELSE NULL END) = 0')
   });
 
   return availableVariants
@@ -452,12 +453,12 @@ const getAviableVariants = async () => {
     attributes: [
       'id',
       'name',
-      [literal('"VL->Location"."name"'), 'Location']],
+      [literal('"VarLoc->Location"."name"'), 'Location']],
     include: [
       {
         model: VariantLocation,
         attributes: [],
-        as: 'VL',
+        as: 'VarLoc',
         include: [
           {
             model: Location,
@@ -481,7 +482,7 @@ const getAviableVariantsAtLocation = async (locationId) => {
       {
         model: VariantLocation,
         attributes: ['id'],
-        as: 'VL',
+        as: 'VarLoc',
         where: { LocationId: locationId },
       }
     ],
@@ -504,7 +505,7 @@ const getProductByLocation = async (LocationId) => {
       model: Variant,
       include: [{
         model: VariantLocation,
-        as: 'VL',
+        as: 'VarLoc',
         where: { LocationId: LocationId }
       }]
     }]
@@ -529,7 +530,7 @@ const getProductsFromWarehouse = async (warehouseId) => {
         include: [
           {
             model: VariantLocation, include: [{
-              model: Variant, as: 'VL',
+              model: Variant, as: 'VarLoc',
             }]
           }
         ]
@@ -544,7 +545,7 @@ const getProductsFromWarehouse = async (warehouseId) => {
             include: [{
               model: VariantLocation,
               include: [{
-                model: Variant, as: 'VL',
+                model: Variant, as: 'VarLoc',
               }]
             }]
           }
@@ -569,8 +570,8 @@ const getProductByIngredient = async (ingredientId) => {
   //   attributes: [
 
 
-  //     [literal('"InLoc->VariantIngredient->VariantLocation->VL->Product"."id"'), 'id'],
-  //     [literal('"InLoc->VariantIngredient->VariantLocation->VL->Product"."name"'), 'name'],
+  //     [literal('"InLoc->VariantIngredient->VariantLocation->VarLoc->Product"."id"'), 'id'],
+  //     [literal('"InLoc->VariantIngredient->VariantLocation->VarLoc->Product"."name"'), 'name'],
 
   //   ],
   //   include: [{
@@ -587,14 +588,14 @@ const getProductByIngredient = async (ingredientId) => {
   //           model: VariantLocation,
   //           include: [{
   //             attributes: [],
-  //             model: Variant, as: 'VL',
+  //             model: Variant, as: 'VarLoc',
   //             include: [{ model: Product, attributes: ['id', 'name'] }]
   //           }]
   //         }]
   //       },
   //     ]
   //   }],
-  //   group: ['InLoc->VariantIngredient->VariantLocation->VL->Product.id', 'InLoc->VariantIngredient->VariantLocation->VL->Product.name', 'Ingredient.id', 'Ingredient.name'],
+  //   group: ['InLoc->VariantIngredient->VariantLocation->VarLoc->Product.id', 'InLoc->VariantIngredient->VariantLocation->VarLoc->Product.name', 'Ingredient.id', 'Ingredient.name'],
   // })
 
   const proizvodi = await Product.findAll({
@@ -610,7 +611,7 @@ const getProductByIngredient = async (ingredientId) => {
         model: VariantLocation,
         attributes: [],
         required: true,
-        as: 'VL',
+        as: 'VarLoc',
         include: [{
           model: VariantIngredient,
           attributes: [],
@@ -645,14 +646,14 @@ const getProductByTopon = async (toponId) => {
     where: { id: toponId },
     attributes: [
 
-      [literal(`"TL->GroupToponsMids->GroupTopon->VariantLocation->VL->Product"."name"`), 'name'],
-      [literal(`"TL->GroupToponsMids->GroupTopon->VariantLocation->VL->Product"."id"`), 'id']],
+      [literal(`"TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc->Product"."name"`), 'name'],
+      [literal(`"TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc->Product"."id"`), 'id']],
 
 
     include: [{
       model: ToponLocation,
       attributes: [],
-      as: 'TL',
+      as: 'TopLoc',
       include: [
         {
           model: GroupToponsMid,
@@ -663,7 +664,7 @@ const getProductByTopon = async (toponId) => {
               attributes: [],
               include: [{
                 model: VariantLocation, attributes: [], include: [{
-                  model: Variant, as: 'VL', attributes: [], include: [{
+                  model: Variant, as: 'VarLoc', attributes: [], include: [{
                     model: Product, attributes: []
                   }]
                 }]
@@ -673,7 +674,7 @@ const getProductByTopon = async (toponId) => {
         },
       ]
     }],
-    group: ['TL->GroupToponsMids->GroupTopon->VariantLocation->VL->Product.id', 'TL->GroupToponsMids->GroupTopon->VariantLocation->VL->Product.name', 'Topon.id', 'Topon.name'],
+    group: ['TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc->Product.id', 'TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc->Product.name', 'Topon.id', 'Topon.name'],
   })
   return proizvodi
 }
@@ -688,7 +689,7 @@ const getToponLocation = async (toponId) => {
     include: [{
       model: ToponLocation,
       attributes: [],
-      as: 'TL',
+      as: 'TopLoc',
       include: [{
         model: Location,
         attributes: [['name', 'Location']],
@@ -710,7 +711,7 @@ const getToponsAtLocation = async (locationId) => {
       where: { LocationId: locationId },
 
       attributes: [],
-      as: 'TL',
+      as: 'TopLoc',
 
     }]
   })
@@ -725,14 +726,14 @@ const getToponGroups = async (toponId) => {
   const topons = await Topon.findAll({
     logging: console.log,
     attributes: [
-      [literal('"TL->GroupToponsMids->GroupTopon->VariantLocation->VL"."id"'), 'id'],
-      [literal('"TL->GroupToponsMids->GroupTopon->VariantLocation->VL"."name"'), 'name'],
-      [literal('"TL->GroupToponsMids->GroupTopon->VariantLocation->Location"."name"'), 'Location'],],
+      [literal('"TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc"."id"'), 'id'],
+      [literal('"TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc"."name"'), 'name'],
+      [literal('"TopLoc->GroupToponsMids->GroupTopon->VariantLocation->Location"."name"'), 'Location'],],
     where: { id: toponId },
     include: [{
       model: ToponLocation,
       attributes: [],
-      as: 'TL',
+      as: 'TopLoc',
       include: [{
         model: GroupToponsMid,
         attributes: [],
@@ -745,7 +746,7 @@ const getToponGroups = async (toponId) => {
             include: [{
 
               model: Variant,
-              as: 'VL',
+              as: 'VarLoc',
 
             },
 
@@ -759,7 +760,7 @@ const getToponGroups = async (toponId) => {
         }]
       }]
     }],
-    group: ['TL->GroupToponsMids->GroupTopon->VariantLocation->VL.id', 'TL->GroupToponsMids->GroupTopon->VariantLocation->VL.name', 'Topon.id', 'Topon.name', 'TL->GroupToponsMids->GroupTopon->VariantLocation->Location.id', 'TL->GroupToponsMids->GroupTopon->VariantLocation->Location.name'],
+    group: ['TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc.id', 'TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc.name', 'Topon.id', 'Topon.name', 'TopLoc->GroupToponsMids->GroupTopon->VariantLocation->Location.id', 'TopLoc->GroupToponsMids->GroupTopon->VariantLocation->Location.name'],
   })
 
 
@@ -793,7 +794,7 @@ const getVariantIngredient = async (variantId) => {
             required: true,
             attributes: [],
             model: Variant,
-            as: 'VL',
+            as: 'VarLoc',
 
           },
           { model: Location, attributes: [] }]
@@ -917,7 +918,7 @@ const getProductRules = async (productId) => {
 
 
         model: VariantLocation,
-        as: 'VL',
+        as: 'VarLoc',
         include: [{
           required: false,
           model: VariantSKURule
@@ -938,7 +939,7 @@ const getProductRules = async (productId) => {
         include: [{
 
           model: VariantLocation,
-          as: 'VL_LV',
+          as: 'LinkVarLoc',
           include: [{
             required: false,
             model: VariantSKURule
@@ -1121,6 +1122,138 @@ const getProductVariants = async (ProductId) => {
 
 const seed = async () => {
 
+  await Category.create({
+    id: "b51ca570-08a4-4e2d-9d5c-6c1b7c9f014e",
+    name: 'test'
+  });
+
+  await Product.create({
+    id: "ac2ea779-854c-4037-a1e1-61dd1df632ef",
+    name: 'test',
+    type: 'test',
+    description: 'test',
+    CategoryId: "b51ca570-08a4-4e2d-9d5c-6c1b7c9f014e"
+  });
+
+  await Variant.create({
+    id: "694bb114-b49f-440e-8219-ef91f35f4610",
+    name: 'test',
+    ProductId: 'ac2ea779-854c-4037-a1e1-61dd1df632ef'
+  });
+
+  await Location.create({
+    id: "4d02d20c-26ae-42bb-a331-3f69a8a9fcdd",
+    name: 'test'
+  });
+  await Ingredient.create({
+    id: "ddeeff00-1122-3344-5566-77889900bbcc",
+    name: 'test'
+  });
+
+  await VariantLocation.create({
+    id: "7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c",
+    VariantId: '694bb114-b49f-440e-8219-ef91f35f4610',
+    LocationId: '4d02d20c-26ae-42bb-a331-3f69a8a9fcdd',
+    disabled: false
+  });
+
+
+
+  await GroupOptions.create({
+    id: "c0f1b688-3f19-4236-826b-3a7be97d64d8",
+    name: 'test',
+    VariantLocationId: '7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c',
+    rules: "{}"
+  });
+
+  await GroupTopon.create({
+    id: "bcaad97b-75d5-4e89-baf9-761be7ec6376",
+    VariantLocationId: '7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c',
+    rules: 'test'
+  });
+
+  await GroupToponsMid.create({
+    id: "aabbccdd-1122-3344-5566-77889900aabb",
+    GroupToponId: 'bcaad97b-75d5-4e89-baf9-761be7ec6376',
+    min: 0,
+    max: 10,
+    default: 0,
+    disabled: false
+  });
+
+
+
+  await IngredientLocation.create({
+    id: "ffeeddcc-1122-3344-5566-77889900aacc",
+    IngredientId: 'ddeeff00-1122-3344-5566-77889900bbcc',
+    LocationId: '4d02d20c-26ae-42bb-a331-3f69a8a9fcdd'
+  });
+
+  await SKU.create({
+    id: "7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c",
+    name: 'test',
+    allowMinus: true,
+    stock: 0,
+  });
+
+  await VariantIngredient.create({
+    id: "aabbff00-3344-5566-7788-9900aabbff00",
+    IngredientLocationId: 'ffeeddcc-1122-3344-5566-77889900aacc',
+    VariantId: '7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c'
+  });
+
+  await IngredientSKURule.create({
+    id: "aabbccdd-3344-5566-7788-9900aabbccdd",
+    name: 'test',
+    SKUId: '7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c',
+    VariantIngredientId: 'aabbff00-3344-5566-7788-9900aabbff00',
+    unit: 'g',
+    quantity: 1,
+    disabled: false
+  });
+
+  await LinkedVariant.create({
+    id: "bbaaddcc-3344-5566-7788-9900bbaaddcc",
+    VariantId: '694bb114-b49f-440e-8219-ef91f35f4610',
+    VariantLocationId: '7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c'
+  });
+
+  await Option.create({
+    id: "ccddeeff-3344-5566-7788-9900ccddeeff",
+    name: 'test'
+  });
+
+  await SKU.create({
+    id: "ddccbbaa-3344-5566-7788-9900ddccbbaa",
+    name: 'test',
+    allowMinus: true,
+    stock: 0,
+  });
+
+  await Topon.create({
+    id: "eeffccaa-3344-5566-7788-9900eeffccaa",
+    name: 'test'
+  });
+
+  await ToponLocation.create({
+    id: "ffeecbdd-3344-5566-7788-9900ffeecbdd",
+    ToponId: 'eeffccaa-3344-5566-7788-9900eeffccaa',
+    LocationId: '4d02d20c-26ae-42bb-a331-3f69a8a9fcdd'
+  });
+
+
+  await VariantSKURule.create({
+    id: "bbaaddff-3344-5566-7788-9900bbaaddff",
+    SKUId: '7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c',
+    name: 'test',
+    VariantId: '7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c',
+    unit: 'g',
+    quantity: 1,
+    disabled: false
+  });
+
+
+
 
   const hrana = await createCategory('hrana');
   const sendvic = await createCategory('sendvic', hrana.id);
@@ -1220,10 +1353,10 @@ const seed = async () => {
   await addOptionToVariantLocation(groupOptionMakijatoStup, ['duza', 'za ponijeti', 'sa hladnim']);
 
 
-  const Ingredient = await createIngredient(['brasno', 'piletina', 'curry', 'riza']);
+  const Ingredients = await createIngredient(['brasno', 'piletina', 'curry', 'riza']);
 
 
-  const [brasno, piletina, curry, riza] = Ingredient;
+  const [brasno, piletina, curry, riza] = Ingredients;
 
   const [brasnoStup, brasnoHadziabdinica] = await addIngredientToLocation(brasno, [lokacijaStup, lokacijaHadziabdinica]);
 
@@ -1542,54 +1675,142 @@ const seed = async () => {
   const order1 = await createOrderJson(order);
 
   const order1details = await getOrderDetails(order1.id);
-  console.log(JSON.stringify(order1details, null, 2))
   const items = await updateSKU(order1details.OrderItems)
 
 
-  console.log(JSON.stringify('fdsfsd', null, 2))
-console.log(JSON.stringify(items, null, 2))
+  // const orderItem = await VariantLocation.findOne({
+  //   // logging: console.log,
+  //   where: { id: rucakStup.id },
+  //   attributes: ['id'],
+  //   include: [
+  //     {
+  //       model: Variant, // Referencing the model directly
+  //       as: 'VarLoc', // Using the alias defined in the association
+  //       required: false,
+  //       attributes: ['id'],
+  //       include: [
+  //         {
+  //           model: LinkedVariant, // Referencing the model directly
+  //           as: 'LinkVar', // Using the alias defined in the association
+  //           attributes: ['id', 'quantity'],
+  //           include: [
+  //             {
+  //               model: VariantLocation, // Referencing the model directly
+  //               as: 'LinkVarLoc', // Using the alias defined in the association
+  //               attributes: ['id'],
+  //               include: [
+  //                 {
+  //                   model: VariantSKURule, // Referencing the model directly
+  //                   as: 'Loc_Rule', // Using the alias defined in the association
+  //                   required: false,
+  //                   attributes: ['id', 'quantity', 'SKUId', 'unit']
+  //                 },
+  //                 {
+  //                   model: VariantIngredient, // Referencing the model directly
+  //                   as: 'VarLocIng', // Using the alias defined in the association
+  //                   required: false,
+  //                   attributes: ['id'],
+  //                   include: [
+  //                     {
+  //                       model: IngredientSKURule, // Referencing the model directly
+  //                       as: 'VRule', // Using the alias defined in the association
+  //                       attributes: ['id', 'quantity', 'SKUId', 'unit']
+  //                     }
+  //                   ]
+  //                 }
+  //               ]
+  //             }
+  //           ]
+  //         }
+  //       ]
+  //     }
+  //   ],
+  // });
+
+
   const orderItem = await VariantLocation.findOne({
-  // logging: console.log,
-  where: { id: rucakStup.id },
-  attributes: ['id'],
-  include: [
-    {
-      association: VariantLocation.associations.VL, 
-      required: false,
-      attributes: ['id'],
-      include: [
-        {
-          association: Variant.associations.LinkVar, 
-          attributes: ['id', 'quantity'],
-          include: [
-            {
-              association: LinkedVariant.associations.VL_LV, 
-              attributes: ['id'],
-              include: [
-                {
-                  association: VariantLocation.associations.VL_Rule, 
-                  required: false,
-                  attributes: ['id', 'quantity', 'SKUId', 'unit']
-                },
-                {
-                  association: VariantLocation.associations.VL_VI, 
-                  required: false,
-                  attributes: ['id'],
-                  include: [
-                    {
-                      association: VariantIngredient.associations.VI_Rule, 
-                      attributes: ['id', 'quantity', 'SKUId', 'unit']
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ],
-});
+    // logging: console.log,
+    where: { id: rucakStup.id },
+    attributes: ['id'],
+    include: [
+      {
+        association: VariantLocation.associations.VarLoc,
+        required: false,
+        attributes: ['id'],
+        include: [
+          {
+            association: Variant.associations.LinkVar,
+            attributes: ['id', 'quantity'],
+            include: [
+              {
+                association: LinkedVariant.associations.LinkVarLoc,
+                attributes: ['id'],
+                include: [
+                  {
+                    association: VariantLocation.associations.VarLocRule,
+                    required: false,
+                    attributes: ['id', 'quantity', 'SKUId', 'unit']
+                  },
+                  {
+                    association: VariantLocation.associations.VarLocIng,
+                    required: false,
+                    attributes: ['id'],
+                    include: [
+                      {
+                        association: VariantIngredient.associations.VarIngRule,
+                        attributes: ['id', 'quantity', 'SKUId', 'unit']
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+  });
+
+
+  const var1 = await VariantLocation.findOne({
+    // logging: console.log,
+    where: { id: vlStupMakijato.id },
+    include: [
+      {
+        model: Variant,
+        as: 'VarLoc',
+        attributes: ['id'],
+
+
+      }
+    ]
+  })
+
+
+  console.log(JSON.stringify(var1, null, 2))
+
+  await VariantPrice.create({ price: 1000, VariantId: var1.VariantId, date: new Date() });
+
+  const price1 = await VariantPrice.getPriceByDate(var1.VariantId);
+
+  const products = await Product.findAll({
+    attributes: ['id', 'name'],
+    include: [{
+      model: Variant,
+      attributes: ['id', 'name'],
+      include: [{
+
+        model: VariantLocation,
+        as: 'VarLoc',
+        attributes: ['id'],
+        where: { LocationId: lokacijaStup.id }
+      }]
+    }]
+  })
+
+  console.log(JSON.stringify(products, null, 2))
+
+  // console.log("OrderItem", JSON.stringify(orderItem, null, 2))
   // console.log(JSON.stringify(orderItem, null, 2))
 
   // const orderInfo = await getOrderDetails(order1.id);
@@ -1640,7 +1861,7 @@ console.log(JSON.stringify(items, null, 2))
   //   include: [
   //     {
   //       model: Variant,
-  //       as: 'VL',
+  //       as: 'VarLoc',
   //       attributes: ['id'],
   //       include: [{ 
   //         model: LinkedVariant,

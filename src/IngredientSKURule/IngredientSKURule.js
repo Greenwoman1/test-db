@@ -43,7 +43,7 @@ class IngredientSKURule extends Model {
   static associateModel(models) {
 
     IngredientSKURule.belongsTo(models.SKU, { as : 'InSku', foreignKey: 'SKUId' });
-    IngredientSKURule.belongsTo(models.VariantIngredient, { as : 'VI_Rule', foreignKey: 'VariantIngredientId' });
+    IngredientSKURule.belongsTo(models.VariantIngredient, { as : 'VarIngRule', foreignKey: 'VariantIngredientId' });
 
 
   }

@@ -6,7 +6,7 @@ const { validateCreateProduct, validateResults, validateProductId, validateLocat
 
 router.get('/list', productController.list);
 
-router.post('/:productId', productController.createProduct);
+router.post('/', productController.createProduct);
 
 router.get('/:productId/variants', productController.getProductVariants);
 
@@ -14,6 +14,7 @@ router.get('/:productId', productController.getProductById);
 
 router.get('/:productId/:locationId', productController.getProductVariantLocation);
 
-router.get('/:productId/variants', productController.getProductVariants);
+router.get('/:locationId', productController.getProductsAtLocation);
+
 
 module.exports = router;

@@ -21,18 +21,18 @@
     ],
     "data": {
       "id": "ee0ff33b-0d83-4c51-a691-e82c9fbb874b",
-      "VL": {
+      "VarLoc": {
         "id": "a3a715c8-0527-460b-829d-eab8e2d5b72c",
         "LinkVar": [
           {
             "id": "b1f8dc24-fed6-4201-99b7-35428d37b321",
             "VariantLocation": {
               "id": "088cf764-87ae-466f-9f75-4c78fb91299f",
-              "VL_Rule": null,
-              "VL_VI": [
+              "VarLocRule": null,
+              "VarLocIng": [
                 {
                   "id": "a121a2cc-25c3-4f05-822c-503150868770",
-                  "VI_Rule": {
+                  "VarIngRule": {
                     "id": "67b3d2c1-554d-41eb-b19c-8d54a072d674",
                     "quantity": 1,
                     "SKUId": "0657ffc0-38ba-4fe9-a011-0422f7132a3c",
@@ -46,13 +46,13 @@
             "id": "812e0420-d9c7-454c-a999-491ccdc88e3a",
             "VariantLocation": {
               "id": "9a749ab8-a5bb-4c47-b32b-51c4abfe5025",
-              "VL_Rule": {
+              "VarLocRule": {
                 "id": "638c43c2-4c1c-4398-ade1-01dced91ea79",
                 "quantity": 1,
                 "SKUId": "28d3cdcb-3caa-40fe-9fce-73ab8d71902b",
                 "unit": "g"
               },
-              "VL_VI": []
+              "VarLocIng": []
             }
           }
         ]
@@ -68,13 +68,13 @@
     "Ingredient": [],
     "data": {
       "id": "3c6be708-4fca-4dd4-8aa7-214e99431828",
-      "VL_Rule": {
+      "VarLocRule": {
         "id": "350df6b3-1614-48d3-a138-653a663e4ffc",
         "quantity": 1,
         "SKUId": "4dd85541-35a7-4f99-a692-8728f3c757b3",
         "unit": "g"
       },
-      "VL_VI": []
+      "VarLocIng": []
     }
   }
 ]

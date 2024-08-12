@@ -20,7 +20,7 @@ class VariantPrice extends Model {
       },
       {
         sequelize,
-        modelName: 'Price',
+        modelName: 'VariantPrice',
         timestamps: true,
       }
     );

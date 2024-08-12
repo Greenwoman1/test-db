@@ -13,9 +13,6 @@ const { where } = require("sequelize");
 const getOrderTotalPrice = async (orderJson) => {
   let totalPrice = 0;
   for (const item of orderJson.OrderItem) {
-    console.log(orderJson.locationId);
-    // const sku = await getVariantSKU(item.variantId, orderJson.locationId);
-    // console.log(JSON.stringify(sku));
 
     if (item.type === 'single') {
       const v = await Variant.findByPk(item.variantId);
@@ -66,7 +63,6 @@ const createOrderJson = async (order) => {
 
       const pType = await Product.findOne({ where: { id: item.productId }, attributes: ['type'] });
 
-      console.log(pType.type)
       switch (pType.type) {
         case 'single':
           const singleIngredientPromise = VariantLocation.findOne({
@@ -75,13 +71,13 @@ const createOrderJson = async (order) => {
             include: [
               {
                 model: VariantIngredient,
-                as: 'VL_VI',
+                as: 'VarLocIng',
                 required: false,
                 attributes: ['id'],
               }
             ]
           }).then(Ingredient => {
-            const ingredientPromises = Ingredient.VL_VI.map(ingredient =>
+            const ingredientPromises = Ingredient.VarLocIng.map(ingredient =>
               OrderItemIngredient.create({ OrderItemId: OI.id, VariantIngredientId: ingredient.id })
             );
             return Promise.all(ingredientPromises);
@@ -96,7 +92,7 @@ const createOrderJson = async (order) => {
             include: [
               {
                 model: Variant,
-                as: 'VL',
+                as: 'VarLoc',
                 attributes: ['id'],
                 include: [{
                   model: LinkedVariant,
@@ -105,11 +101,11 @@ const createOrderJson = async (order) => {
                   attributes: ['id'],
                   include: [{
                     model: VariantLocation,
-                    as: 'VL_LV',
+                    as: 'LinkVarLoc',
                     attributes: ['id'],
                     include: [
                       {
-                        as: 'VL_VI',
+                        as: 'VarLocIng',
                         required: false,
                         attributes: ['id'],
                         model: VariantIngredient
@@ -119,8 +115,8 @@ const createOrderJson = async (order) => {
               }
             ]
           }).then(variantLocationsInOrderItem => {
-            const promises = variantLocationsInOrderItem.VL.LinkVar.map(vl => {
-              const ingredientPromises = vl.VL_LV.VL_VI.map(ingredient =>
+            const promises = variantLocationsInOrderItem.VarLoc.LinkVar.map(vl => {
+              const ingredientPromises = vl.LinkVarLoc.VarLocIng.map(ingredient =>
                 OrderItemIngredient.create({ OrderItemId: OI.id, VariantIngredientId: ingredient.id })
               );
               return Promise.all(ingredientPromises);
@@ -156,7 +152,6 @@ const createOrderJson = async (order) => {
 
 
 
-// Example usage:
 const order = {
   userId: 1,
   locationId: 2,
@@ -243,8 +238,6 @@ const getOrderDetails = async (orderId) => {
   });
 
 
-  console.log(JSON.stringify(orderDetails, null, 2));
-
   const transformedOrder = {
     userId: orderDetails.UserId,
     locationId: orderDetails.LocationId,
@@ -300,19 +293,19 @@ const updateSKU = async (items) => {
         include: [
           {
             model: VariantSKURule,
-            as: 'VL_Rule',
+            as: 'VarLocRule',
             required: false,
             attributes: ['id', 'quantity', 'SKUId', 'unit']
           },
           {
             model: VariantIngredient,
-            as: 'VL_VI',
+            as: 'VarLocIng',
             required: false,
             attributes: ['id'],
             include: [
               {
                 model: IngredientSKURule,
-                as: 'VI_Rule',
+                as: 'VarIngRule',
                 attributes: ['id', 'quantity', 'SKUId', 'unit']
               }
             ]
@@ -333,7 +326,7 @@ const updateSKU = async (items) => {
           {
             model: Variant,
             required: false,
-            as: 'VL',
+            as: 'VarLoc',
             attributes: ['id'],
             include: [
               {
@@ -343,24 +336,24 @@ const updateSKU = async (items) => {
                 include: [
                   {
                     model: VariantLocation,
-                    as: 'VL_LV',
+                    as: 'LinkVarLoc',
                     attributes: ['id'],
                     include: [
                       {
                         model: VariantSKURule,
-                        as: 'VL_Rule',
+                        as: 'VarLocRule',
                         required: false,
                         attributes: ['id', 'quantity', 'SKUId', 'unit']
                       },
                       {
                         model: VariantIngredient,
-                        as: 'VL_VI',
+                        as: 'VarLocIng',
 
                         required: false,
                         attributes: ['id'],
                         include: [
                           {
-                            as: 'VI_Rule',
+                            as: 'VarIngRule',
                             model: IngredientSKURule,
                             attributes: ['id', 'quantity', 'SKUId', 'unit']
                           }
@@ -401,7 +394,6 @@ const updateSKU = async (items) => {
 
 
   const promises = []
-  console.log(items)
 
   for (const item of items) {
     const pType = await Product.findOne({ where: { id: item.productId }, attributes: ['type'] })
@@ -456,15 +448,8 @@ const updateSKU = async (items) => {
       if (product.topons) {
         product.topons.forEach(topon => {
           const toponQuantity = topon.quantity;
-          console.log("Topon data: ", JSON.stringify(topon.data));
-          console.log("Topon TSRule: ", JSON.stringify(topon.data.TSRule));
-          console.log("Topon quantity: ", topon.data.TSRule.quantity);
-          console.log("Topon SKUId: ", topon.data.TSRule.SKUId);
 
           const toponRuleQuantity = topon.data.TSRule.quantity;
-
-          console.log("Topon Rule Quantity: ", toponQuantity);
-
 
           if (topon.data.TSRule) {
             result.push({
@@ -475,45 +460,37 @@ const updateSKU = async (items) => {
         });
       }
 
-      if (product.data.VL_Rule) {
-        // console.log("Vl data: ", JSON.stringify(product.data.VL_Rule));
+      if (product.data.VarLocRule) {
         result.push({
-          SKUID: product.data.VL_Rule.SKUId,
-          quantity: productQuantity * product.data.VL_Rule.quantity
+          SKUID: product.data.VarLocRule.SKUId,
+          quantity: productQuantity * product.data.VarLocRule.quantity
         });
-      } if (product.data.VL_VI) {
+      } if (product.data.VarLocIng) {
 
-        product.data.VL_VI.forEach(vi => {
-          if (vi.VI_Rule) {
+        product.data.VarLocIng.forEach(vi => {
+          if (vi.VarIngRule) {
             result.push({
-              SKUID: vi.VI_Rule.SKUId,
-              quantity: productQuantity * vi.VI_Rule.quantity
+              SKUID: vi.VarIngRule.SKUId,
+              quantity: productQuantity * vi.VarIngRule.quantity
             });
           }
         });
       }
 
-      if (product.data.VL) {
-        // console.log("Vl data: ", JSON.stringify(product.data.VL, null, 2));
-        product.data.VL.LinkVar.forEach(linkVar => {
-
-          // console.log("LinkVar: ", JSON.stringify(linkVar, null, 2));
-          if (linkVar.VL_LV.VL_Rule) {
-
-            console.log("Vl data: ", JSON.stringify(linkVar, null, 2));
-
-            console.log(productQuantity, linkVar.LinkVarQuantity * linkVar.VL_LV.VL_Rule.quantity);
+      if (product.data.VarLoc) {
+        product.data.VarLoc.LinkVar.forEach(linkVar => {
+          if (linkVar.LinkVarLoc.VarLocRule) {
             result.push({
-              SKUID: linkVar.VL_LV.VL_Rule.SKUId,
+              SKUID: linkVar.LinkVarLoc.VarLocRule.SKUId,
 
-              quantity: productQuantity * linkVar.quantity * linkVar.VL_LV.VL_Rule.quantity
+              quantity: productQuantity * linkVar.quantity * linkVar.LinkVarLoc.VarLocRule.quantity
             });
-          } if (linkVar.VL_LV.VL_VI) {
-            linkVar.VL_LV.VL_VI.forEach(vi => {
-              if (vi.VI_Rule) {
+          } if (linkVar.LinkVarLoc.VarLocIng) {
+            linkVar.LinkVarLoc.VarLocIng.forEach(vi => {
+              if (vi.VarIngRule) {
                 result.push({
-                  SKUID: vi.VI_Rule.SKUId,
-                  quantity: productQuantity * vi.VI_Rule.quantity * linkVar.quantity
+                  SKUID: vi.VarIngRule.SKUId,
+                  quantity: productQuantity * vi.VarIngRule.quantity * linkVar.quantity
                 });
               }
             });
@@ -534,8 +511,6 @@ const updateSKU = async (items) => {
   const skuPromises = []
 
   const result = await mapData(items);
-  console.log(JSON.stringify(result, null, 2));
-
   for (const i of result) {
     const sku = await SKU.findOne({ where: { id: i.SKUID } })
 

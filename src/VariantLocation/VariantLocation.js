@@ -14,7 +14,7 @@ class VariantLocation extends Model {
           type: DataTypes.BOOLEAN,
           allowNull: false
         }
-     
+
 
       },
 
@@ -29,19 +29,19 @@ class VariantLocation extends Model {
   static associateModel(models) {
 
 
-    VariantLocation.hasOne(models.VariantSKURule, { as: 'VL_Rule', foreignKey: 'VariantLocationId' });
+    VariantLocation.hasOne(models.VariantSKURule, { as: 'VarLocRule', foreignKey: 'VariantLocationId' });
 
     VariantLocation.belongsTo(models.Location);
-    VariantLocation.hasMany(models.LinkedVariant, { as : 'VL_LV', foreignKey: 'VariantLocationId' });
+    VariantLocation.hasMany(models.LinkedVariant, { as: 'LinkVarLoc', foreignKey: 'VariantLocationId' });
 
 
 
-    VariantLocation.belongsTo(models.Variant, { as: 'VL', foreignKey: 'VariantId' });
+    VariantLocation.belongsTo(models.Variant, { as: 'VarLoc', foreignKey: 'VariantId' });
 
 
     VariantLocation.hasMany(models.GroupTopon)
     VariantLocation.hasMany(models.GroupOptions)
-    VariantLocation.hasMany(models.VariantIngredient, { as : 'VL_VI', foreignKey: 'VariantLocationId' })
+    VariantLocation.hasMany(models.VariantIngredient, { as: 'VarLocIng', foreignKey: 'VariantLocationId' })
 
   }
 }

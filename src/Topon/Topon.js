@@ -8,7 +8,7 @@ class Topon extends Model {
   static associateModel(models) {
     Topon.hasMany(models.ToponPrice);
     Topon.belongsToMany(models.Location, { through: 'ToponLocation' });
-    Topon.hasMany(models.ToponLocation, { as: 'TL' , foreignKey: 'ToponId' });
+    Topon.hasMany(models.ToponLocation, { as: 'TopLoc' , foreignKey: 'ToponId' });
 
 
 

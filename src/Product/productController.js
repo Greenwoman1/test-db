@@ -1,5 +1,5 @@
 const sequelize = require('../../sequelize');
-const { Variant, Topon, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems, SKU, VariantLocation } = require('../index');
+const { Variant, Topon, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems, SKU } = require('../index');
 
 const { createProductHelper } = require('./utils/index');
 
@@ -16,8 +16,8 @@ const list = async (req, res) => {
 
 const createProduct = async (req, res) => {
   try {
-
     const product = await createProductHelper(req.body);
+    console.log(product);
     return res.status(201).json(product);
   }
   catch (error) {
@@ -26,6 +26,8 @@ const createProduct = async (req, res) => {
 }
 
 const getProductById = async (req, res) => {
+
+  console.log(req.params)
   try {
     const productId = req.params.productId;
     const product = await Product.findByPk(productId, {
@@ -60,18 +62,21 @@ const getProductVariantLocation = async (req, res) => {
     const productId = req.params.productId;
     const locationId = req.params.locationId;
 
-
+ console.log(productId, locationId)
     const variants = await Variant.findAll({
       where: { ProductId: productId },
       attributes: ['id', 'name'],
       include: [
         {
           model: VariantLocation,
+          as: 'VarLoc',
           where: { LocationId: locationId },
-          attributes: ['id', 'disabled'],
+          attributes: ['id'],
         },
       ],
     });
+
+    console.log(variants);
 
     return res.status(200).json(variants);
   }
@@ -84,6 +89,7 @@ const getProductVariantLocation = async (req, res) => {
 const getProductsAtLocation = async (req, res) => {
 
   const locationId = req.params.locationId;
+  console.log(locationId)
 
   try {
     const products = await Product.findAll({
@@ -94,12 +100,14 @@ const getProductsAtLocation = async (req, res) => {
         include: [{
 
           model: VariantLocation,
-          as: 'VL',
-          attributes: [],
+          as: 'VarLoc',
+          attributes: ['id'],
           where: { LocationId: locationId }
         }]
       }]
     })
+
+    console.log(products)
     return res.status(200).json(products);
   }
   catch (error) {

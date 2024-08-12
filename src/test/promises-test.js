@@ -103,7 +103,7 @@ const comboProductIngredientPromise = (id, orderId) => {
       include: [
         {
           model: Variant,
-          as: 'VL',
+          as: 'VarLoc',
           attributes: ['id'],
           include: [{
             model: LinkedVariant,
@@ -124,7 +124,7 @@ const comboProductIngredientPromise = (id, orderId) => {
       ]
     })
     .then(async (variantLocationsInOrderItem) => {
-      const promises = variantLocationsInOrderItem.VL.LinkedVariant.map(vl => {
+      const promises = variantLocationsInOrderItem.VarLoc.LinkedVariant.map(vl => {
         const ingredientPromises = vl.VariantLocation.VariantIngredient.map(ingredient => 
           OrderItemIngredient.create({ OrderItemId: orderId, VariantIngredientId: ingredient.id })
         );

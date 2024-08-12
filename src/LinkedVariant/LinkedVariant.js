@@ -27,7 +27,7 @@ class LinkedVariant extends Model {
   }
 
   static associateModel(models) {
-    LinkedVariant.belongsTo(models.VariantLocation, {as : 'VL_LV', foreignKey: 'VariantLocationId'});
+    LinkedVariant.belongsTo(models.VariantLocation, {as : 'LinkVarLoc', foreignKey: 'VariantLocationId'});
     LinkedVariant.belongsTo(models.Variant, { foreignKey: 'VariantId', as : 'LinkVar' });
 
 

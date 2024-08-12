@@ -20,7 +20,7 @@ class ToponPrice extends Model {
       },
       {
         sequelize,
-        modelName: 'Price',
+        modelName: 'ToponPrice',
         timestamps: true,
       }
     );

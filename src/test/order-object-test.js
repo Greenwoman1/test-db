@@ -266,7 +266,7 @@
           "id": "628098dc-5550-4cf1-8988-c689cb4323a2",
           "ToponLocation": {
             "id": "0aacf957-9c8b-4be2-8052-42cb2edabba6",
-            "TL": {
+            "TopLoc": {
               "id": "6a049b58-ec27-425f-b874-3738270873b9",
               "name": "so"
             }
@@ -276,7 +276,7 @@
           "id": "2f57cb60-4e7e-4b4c-a49f-0fd7602f3125",
           "ToponLocation": {
             "id": "27406dcc-4664-4b82-ac02-e4efe405b621",
-            "TL": {
+            "TopLoc": {
               "id": "f0c02c6a-cd27-48bd-8fbc-a8afe84489a7",
               "name": "biber"
             }
