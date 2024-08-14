@@ -1172,15 +1172,6 @@ const seed = async () => {
     rules: 'test'
   });
 
-  await GroupToponsMid.create({
-    id: "aabbccdd-1122-3344-5566-77889900aabb",
-    GroupToponId: 'bcaad97b-75d5-4e89-baf9-761be7ec6376',
-    min: 0,
-    max: 10,
-    default: 0,
-    disabled: false
-  });
-
 
 
   await IngredientLocation.create({
@@ -1242,6 +1233,18 @@ const seed = async () => {
   });
 
 
+  await GroupToponsMid.create({
+    id: "aabbccdd-1122-3344-5566-77889900aabb",
+    GroupToponId: 'bcaad97b-75d5-4e89-baf9-761be7ec6376',
+    ToponLocationId: 'ffeecbdd-3344-5566-7788-9900ffeecbdd',
+    min: 0,
+    max: 10,
+    default: 0,
+    disabled: false
+  });
+
+
+
   await VariantSKURule.create({
     id: "bbaaddff-3344-5566-7788-9900bbaaddff",
     SKUId: '7e9b6e7b-0c0d-4c5b-9f9a-7b9e9c9c9c9c',
@@ -1252,6 +1255,25 @@ const seed = async () => {
     disabled: false
   });
 
+
+  await User.create({
+    id: "11111111-1111-1111-1111-111111111111",
+    firstName: 'test',
+    lastName: 'test',
+    email: 'test',
+    password: 'test',
+    role: 'admin'
+  });
+
+
+  await User.create({
+    id: "edd79db1-27b6-48a4-9edb-5bc19f3a1a79",
+    firstName: 'testdf',
+    lastName: 'testds',
+    email: 'testdds',
+    password: 'test',
+    role: 'admin'
+  });
 
 
 
@@ -1661,7 +1683,7 @@ const seed = async () => {
         "options": [],
         "topons": [
           {
-            "id": soRucakStup.id,
+            "toponId": soRucakStup.id,
             "quantity": 1,
           },
 
@@ -1675,7 +1697,10 @@ const seed = async () => {
   const order1 = await createOrderJson(order);
 
   const order1details = await getOrderDetails(order1.id);
-  const items = await updateSKU(order1details.OrderItems)
+  console.log(JSON.stringify(order1.id, null, 2))
+  console.log(JSON.stringify(order1details, null, 2))
+
+  const items = await updateSKU(order1details.items)
 
 
   // const orderItem = await VariantLocation.findOne({
@@ -1787,7 +1812,7 @@ const seed = async () => {
   })
 
 
-  console.log(JSON.stringify(var1, null, 2))
+  // console.log(JSON.stringify(var1, null, 2))
 
   await VariantPrice.create({ price: 1000, VariantId: var1.VariantId, date: new Date() });
 
@@ -1808,7 +1833,7 @@ const seed = async () => {
     }]
   })
 
-  console.log(JSON.stringify(products, null, 2))
+  // console.log(JSON.stringify(products, null, 2))
 
   // console.log("OrderItem", JSON.stringify(orderItem, null, 2))
   // console.log(JSON.stringify(orderItem, null, 2))

@@ -8,7 +8,7 @@ class GroupToponsMid extends Model {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: UUIDV4
+          defaultValue: DataTypes.UUIDV4
 
         },
         min: {
@@ -23,6 +23,9 @@ class GroupToponsMid extends Model {
         disabled: {
           type: DataTypes.BOOLEAN,
           allowNull: false
+        },
+        default : {
+          type: DataTypes.INTEGER,
         }
       },
       {

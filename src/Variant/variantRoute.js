@@ -16,14 +16,16 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 
+router.get('/avilable', variantController.getAvilableVariants);
+
 router.get('/:variantId/locations', variantController.getVariantLocations);
 
 router.get('/:variantLocationId/addons', variantController.getVariantAddons);
 
-router.get('/', variantController.getAviableVariants);
-
-router.get('/:variantLocationId/Ingredient', variantController.getVariantLocationIngredient);
+router.get('/:variantLocationId/ingredient', variantController.getVariantLocationIngredient);
 
 router.post('/upload/:variantId', upload.array("images"), variantController.uploadImage);
 
 module.exports = router;
+
+

@@ -1,15 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('./controller');
-const { validateCreateOrder, validateResults } = require('./validateOrder');
+const { validateOrder, validateResult, validateOrderId, validateLocationId } = require('./validateOrder');
 
-router.post('/', controller.createOrder);
+router.get('/', controller.getOrders);
 
-router.post('/proccess/:orderId', controller.proccessOrder);
+router.get('/:orderId', validateOrderId, validateResult, controller.getOrderDetailsById);
 
-router.post('/reject/:orderId', controller.rejectOrder);
+router.post('/', validateOrder, validateResult, controller.createOrder);
 
-router.post('/accept/:orderId', controller.acceptOrder);
+router.post('/:orderId/proccess', validateOrderId, validateResult, controller.processOrder);
+
+router.post('/:orderId/reject', validateOrderId, validateResult, controller.rejectOrder);
+
+router.post('/:orderId/accept', validateOrderId, validateResult, controller.acceptOrder);
+
+router.get('/location/:locationId', validateLocationId, validateResult, controller.listByLocation);
 
 
 

@@ -1,16 +1,26 @@
-const { Variant, Price, SKU, Location, VariantLocation, VariantIngredient, IngredientLocation, Ingredient } = require('../index');
-const { Image } = require('../index');
+const { literal } = require('sequelize');
+const { Variant, Price, SKU, Location, VariantLocation, VariantIngredient, IngredientLocation, Ingredient, GroupTopon, GroupToponsMid, ToponLocation, GroupOptions, Option, Topon, Image } = require('../index');
 
+const checkVariantExists = async (variantId) => {
+  const variant = await Variant.findByPk(variantId);
+  if (!variant) {
+    throw new Error(`Variant with ID (${variantId}) not found`);
+  }
+  return variant;
+};
 
+const checkVariantLocationExists = async (variantLocationId) => {
+  const variantLocation = await VariantLocation.findByPk(variantLocationId);
+  if (!variantLocation) {
+    throw new Error(`Variant location with ID (${variantLocationId}) not found`);
+  }
+  return variantLocation;
+};
 
 const getVariantLocations = async (req, res) => {
   const variantId = req.params.variantId;
   try {
-    const variant = await Variant.findByPk(variantId);
-    if (!variant) {
-      res.status(404).json({ message: "Variant not found" });
-      return;
-    }
+    await checkVariantExists(variantId);
 
     const locations = await Variant.findAll({
       where: { id: variantId },
@@ -21,33 +31,25 @@ const getVariantLocations = async (req, res) => {
 
     res.status(200).json(locations);
   } catch (error) {
-    res.status(500).json({ error, message: "Internal server error" });
+    res.status(404).json({ message: error.message });
   }
-
-
-}
-
+};
 
 const getVariantAddons = async (req, res) => {
   const variantLocationId = req.params.variantLocationId;
 
   try {
+    await checkVariantLocationExists(variantLocationId);
+
     const variantLocation = await VariantLocation.findOne({
       where: { id: variantLocationId },
-
       attributes: ['id'],
-      as: 'VarLoc',
       include: [
         {
           model: GroupOptions,
           required: false,
           attributes: ['name', 'rules'],
-          include: [
-            {
-              model: Option,
-              attributes: ['name']
-            }
-          ]
+          include: [{ model: Option, attributes: ['name'] }]
         },
         {
           model: GroupTopon,
@@ -61,104 +63,73 @@ const getVariantAddons = async (req, res) => {
                 {
                   model: ToponLocation,
                   attributes: ['id'],
-                  include: [
-                    {
-                      as: 'TopLoc',
-                      model: Topon,
-                      attributes: ['name']
-
-                    }
-                  ]
+                  include: [{ as: 'TopLoc', model: Topon, attributes: ['name'] }]
                 }
               ]
-
             }
-
           ]
-
         }
-
       ]
-
     });
 
-    if (!variantLocation) {
-      res.status(404).json({ message: "Variant location not found" });
-      return;
-    }
-
     res.status(200).json(variantLocation);
-
   } catch (error) {
-    res.status(500).json({ error, message: "Internal server error" });
+    res.status(404).json({ message: error.message });
   }
-}
-
+};
 
 const getVariantLocationIngredient = async (req, res) => {
   const variantLocationId = req.params.variantLocationId;
   try {
-    const Ingredient = await VariantLocation.findAll({
+    await checkVariantLocationExists(variantLocationId);
+
+    const ing = await VariantLocation.findAll({
       logging: console.log,
       where: { id: variantLocationId },
-      include: [{ model: VariantIngredient, include: [{ model: IngredientLocation, include: [{ model: Ingredient, as: 'InLoc' }] }] }]
-    })
+      include: [
+        {
+          model: VariantIngredient,
+          as: 'VarLocIng',
+          include: [{ model: IngredientLocation, as: 'VarIng', include: [{ model: Ingredient, as: 'InLoc' }] }]
+        }
+      ]
+    });
 
-
-    res.status(200).json(Ingredient);
-
+    res.status(200).json(ing);
   } catch (error) {
-    res.status(500).json({ error, message: "Internal server error" });
+    res.status(404).json({ message: error.message });
   }
+};
 
-}
-
-const getAviableVariants = async (req, res) => {
+const getAvilableVariants = async (req, res) => {
   try {
     const availableVariants = await Variant.findAll({
       logging: console.log,
       attributes: [
         'id',
         'name',
-        [literal('"VarLoc->Location"."name"'), 'Location']],
+        [literal('"VarLoc->Location"."name"'), 'Location']
+      ],
       include: [
         {
           model: VariantLocation,
           attributes: [],
           as: 'VarLoc',
-          include: [
-            {
-              model: Location,
-              attributes: [],
-              required: true
-            },
-
-
-          ]
+          include: [{ model: Location, attributes: [], required: true }]
         }
-      ],
-
+      ]
     });
 
-
     res.status(200).json(availableVariants);
-
   } catch (error) {
-    res.status(500).json({ error, message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" + error.message });
   }
-}
-
-// #region image, price
+};
 
 const uploadImage = async (req, res) => {
   try {
     const variantId = req.params.variantId;
-
-    const variant = await Variant.findByPk(variantId);
-    if (!variant) {
-      res.status(401).json({ message: "Variant not found" });
-      return;
-    }
+    await checkVariantExists(variantId);
 
     const { name } = req.body;
 
@@ -177,7 +148,7 @@ const uploadImage = async (req, res) => {
 
     res.status(201).json({ createdImages, message: "Data uploaded successfully" });
   } catch (error) {
-    res.status(500).json({ error, message: "Internal server error" });
+    res.status(404).json({ message: error.message });
   }
 };
 
@@ -185,39 +156,38 @@ const getPrice = async (req, res) => {
   try {
     const { variantId } = req.params;
     const date = new Date();
-    const variant = await Variant.findByPk(variantId);
+    const variant = await checkVariantExists(variantId);
+
     const price = await variant.getPrice(date);
     res.status(200).json(price);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(404).json({ message: error.message });
   }
-}
+};
 
 const setPrice = async (req, res) => {
   try {
     const { variantId } = req.params;
     const { price } = req.body;
-    const variant = await Variant.findByPk(variantId);
+    const variant = await checkVariantExists(variantId);
 
     await Price.create({
       price,
       itemId: variantId
-    })
+    });
+
     res.status(200).json({ message: 'Price set successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(404).json({ message: error.message });
   }
-}
-
-// #endregion
+};
 
 module.exports = {
   getVariantLocations,
   getVariantAddons,
   getVariantLocationIngredient,
-  getAviableVariants,
+  getAvilableVariants,
   uploadImage,
   getPrice,
   setPrice
-
 };

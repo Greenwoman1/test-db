@@ -35,7 +35,7 @@ class ToponPrice extends Model {
   static async getPriceByDate(itemId, date = new Date()) {
     const price = await ToponPrice.findOne({
       where: {
-        ToponsId: itemId,
+        ToponId: itemId,
         createdAt: {
           [Op.lte]: date
         }

@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path'); // Add this line
 const bodyParser = require('body-parser'); // Add this line
 const sequelize = require('./sequelize');
-// const variantRoute = require('./src/Variant/variantRoute');
+const variantRoute = require('./src/Variant/variantRoute');
 const productRoute = require('./src/Product/productRoute');
 // const skuRoute = require('./src/SKU/SKURoute');
 // const toponsRoute = require('./src/Topon/toponsRoute');
@@ -10,7 +10,7 @@ const userRoute = require('./src/User/userRoute');
 // const groupRuleRoute = require('./src/GroupRule/groupRoute');
 // const locationRoute = require('./src/Location/locationRoute');
 // const comboRoute = require('./src/Combo/comboRoute');
-// const orderRoute = require('./src/Order/route');
+const orderRoute = require('./src/Order/route');
 const redisClient = require('./redisClient');
 const { seed, test } = require('./src/seed');
 const init = require('./helpers/initModels');
@@ -42,7 +42,8 @@ app.use(express.json());
 
 app.use('/user', userRoute );
 app.use('/product', productRoute);
-
+app.use('/order', orderRoute);
+app.use('/variant', variantRoute);
 
 
 app.get('/redis-test', (req, res) => {
@@ -67,9 +68,9 @@ app.listen(PORT, async () => {
   try {
 
     await init();
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false });
 
-    await seed();
+    // await seed();
 
     // await test();
     console.log('Database synchronized.');

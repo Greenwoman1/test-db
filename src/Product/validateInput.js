@@ -1,146 +1,107 @@
 const { body, param, validationResult } = require('express-validator');
 
-
-const validateCreateProduct = [
+const validateProduct = [
   body('name')
-    .isString().withMessage('Name must be a string')
-    .notEmpty().withMessage('Name must not be empty')
-    .isLength({ min: 4 }).withMessage('Name must be at least 4 characters long')
-    .isLength({ max: 64 }).withMessage('Name must be at most 64 characters long'),
-
+    .isString().withMessage('Product name must be a string')
+    .isLength({ min: 1, max: 64 }).withMessage('Product name must be between 1 and 64 characters'),
   body('type')
-    .optional()
-    .isString().withMessage('Type must be a string')
-    .isLength({ max: 16 }).withMessage('Type must be at most 16 characters long'),
+    .isIn(['single', 'combo']).withMessage('Product type must be either "single" or "combo"'),
+  body('description')
+    .isString().withMessage('Description must be a string')
+    .isLength({ max: 255 }).withMessage('Description cannot exceed 255 characters'),
+  body('CategoryId')
+    .isUUID(4).withMessage('Invalid CategoryId format'),
+
   body('variants')
-    .optional()
-    .isArray().withMessage('Variants must be an array'),
+    .isArray({ min: 1 }).withMessage('Variants must be a non-empty array'),
   body('variants.*.name')
     .isString().withMessage('Variant name must be a string')
-    .notEmpty().withMessage('Variant name must not be empty')
-    .isLength({ min: 3 }).withMessage('Variant name must be at least 3 characters long')
-    .isLength({ max: 64 }).withMessage('Variant name must be at most 64 characters long'),
-  body('variants.*.groupOptions').isArray().withMessage('Group options must be an Array'),
-  body('variants.*.groupOptions.*.name').isString().withMessage('Group option name must be a string'),
-  body('variants.*.groupOptions.*.type').isString().withMessage('Group option type must be a string'),
-  body('variants.*.groupOptions.*.rules').isJSON().withMessage('Rules must be an JSON'),
-  body('variants.*.groupOptions.*.options').isArray().withMessage('Options must be an Array'),
-  body('variants.*.groupOptions.*.options.*').isString().withMessage('Options must be an Array'),
-  body('variants.*.groupTopons').isArray().withMessage('Group topons must be an Array'),
-  body('variants.*.groupTopons.*.name').isString().withMessage('Group topon name must be a string'),
-  body('variants.*.groupTopons.*.type').isString().withMessage('Group topon type must be a string'),
-  body('variants.*.groupTopons.*.rules').isJSON().withMessage('Rules must be an JSON'),
-  body('variants.*.groupTopons.*.topons').isArray().withMessage('Rules must be an Array'),
-  body('variants.*.groupTopons.*.topons.*.toponId').isUUID().withMessage('ToponId must be an UUID'),
-  body('variants.*.groupTopons.*.topons.*.rules').isJSON().withMessage('Rules must be an JSON')
+    .isLength({ min: 1, max: 64 }).withMessage('Variant name must be between 1 and 64 characters'),
 
+  body('variants.*.locations')
+    .isArray({ min: 1 }).withMessage('Locations must be a non-empty array'),
+  body('variants.*.locations.*.LocationId')
+    .isUUID(4).withMessage('Invalid LocationId format'),
 
+  body('variants.*.locations.*.skuRules')
+    .isObject().withMessage('skuRules must be an object'),
+  body('variants.*.locations.*.skuRules.name')
+    .isString().withMessage('SKU name must be a string')
+    .isLength({ min: 1, max: 64 }).withMessage('SKU name must be between 1 and 64 characters'),
+  body('variants.*.locations.*.skuRules.unit')
+    .isInt({ min: 1 }).withMessage('Unit must be an integer greater than 0'),
+  body('variants.*.locations.*.skuRules.quantity')
+    .isInt({ min: 1 }).withMessage('Quantity must be an integer greater than 0'),
+  body('variants.*.locations.*.skuRules.disabled')
+    .isBoolean().withMessage('Disabled must be a boolean value'),
+  body('variants.*.locations.*.skuRules.SKUId')
+    .isUUID(4).withMessage('Invalid SKUId format'),
+
+  body('variants.*.locations.*.ingredients')
+    .isArray({ min: 0 }).withMessage('Ingredients must be an array'),
+  body('variants.*.locations.*.ingredients.*.id')
+    .isUUID().withMessage('Invalid ingredient id format'),
+  body('variants.*.locations.*.ingredients.*.quantity')
+    .isInt({ min: 1 }).withMessage('Ingredient quantity must be an integer greater than 0'),
+  body('variants.*.locations.*.ingredients.*.skuRules')
+    .isObject().withMessage('Ingredient skuRules must be an object'),
+
+  body('variants.*.locations.*.topons')
+    .isObject().withMessage('Topons must be an object'),
+  body('variants.*.locations.*.topons.interfaceRules')
+    .isString().withMessage('interfaceRules must be a string'),
+  body('variants.*.locations.*.topons.topons')
+    .isArray({ min: 0 }).withMessage('Topons must be an array'),
+  body('variants.*.locations.*.topons.topons.*.ToponId')
+    .isUUID().withMessage('Invalid ToponId format'),
+  body('variants.*.locations.*.topons.topons.*.minTopon')
+    .isInt({ min: 0 }).withMessage('minTopon must be a non-negative integer'),
+  body('variants.*.locations.*.topons.topons.*.maxTopon')
+    .isInt({ min: 0 }).withMessage('maxTopon must be a non-negative integer'),
+  body('variants.*.locations.*.topons.topons.*.skuRules')
+    .isObject().withMessage('Topon skuRules must be an object'),
+
+  body('variants.*.locations.*.options')
+    .isArray({ min: 0 }).withMessage('Options must be an array'),
+  body('variants.*.locations.*.options.*.name')
+    .isString().withMessage('Option name must be a string')
+    .isLength({ min: 1, max: 64 }).withMessage('Option name must be between 1 and 64 characters'),
+  body('variants.*.locations.*.options.*.rules')
+    .isString().withMessage('Option rules must be a string'),
+  body('variants.*.locations.*.options.*.options')
+    .isArray().withMessage('Options must be an array of UUIDs'),
+  body('variants.*.locations.*.options.*.options.*')
+    .isUUID().withMessage('Invalid optionId format'),
+
+  body('variants.*.locations.*.comboItems')
+    .isArray({ min: 0 }).withMessage('ComboItems must be an array'),
+  body('variants.*.locations.*.comboItems.*.VariantLocationId')
+    .isUUID(4).withMessage('Invalid VariantLocationId format'),
+  body('variants.*.locations.*.comboItems.*.quantity')
+    .isInt({ min: 1 }).withMessage('ComboItem quantity must be an integer greater than 0'),
 ];
 
-const validateCreateProductCombo = [
-  body('name').isString().withMessage('Name must be a string'),
-  body('description').isString().withMessage('Description must be a string'),
-  body('type').isString().withMessage('Type must be a string'),
-  body('variants').isArray().withMessage('Variants must be an array'),
-  body('variants.*.name').isString().withMessage('Variant name must be a string'),
-  body('variants.*.price').isDecimal().withMessage('Price must be a decimal'),
-  body('variants.*.items').isArray().withMessage('Items must be an array'),
-  body('variants.*.items.*').isUUID().withMessage('Item id must be a valid UUID'),
-
-]
-const validateUpdateProduct = [
-  body('name')
-    .isString().withMessage('Name must be a string')
-    .notEmpty().withMessage('Name must not be empty')
-    .isLength({ min: 4 }).withMessage('Name must be at least 4 characters long')
-    .isLength({ max: 64 }).withMessage('Name must be at most 64 characters long'),
-
-  body('type')
-    .optional()
-    .isString().withMessage('Type must be a string')
-    .isLength({ max: 16 }).withMessage('Type must be at most 16 characters long'),
-  body('variants')
-    .optional()
-    .isArray().withMessage('Variants must be an array'),
-  body('variants.*.name')
-    .isString().withMessage('Variant name must be a string')
-    .notEmpty().withMessage('Variant name must not be empty')
-    .isLength({ min: 3 }).withMessage('Variant name must be at least 3 characters long')
-    .isLength({ max: 64 }).withMessage('Variant name must be at most 64 characters long'),
-  body('variants.*.groupOptions').isArray().withMessage('Group options must be an Array'),
-  body('variants.*.groupOptions.*.name').isString().withMessage('Group option name must be a string'),
-  body('variants.*.groupOptions.*.type').isString().withMessage('Group option type must be a string'),
-  body('variants.*.groupOptions.*.rules').isJSON().withMessage('Rules must be an JSON'),
-  body('variants.*.groupOptions.*.options').isArray().withMessage('Options must be an Array'),
-  body('variants.*.groupOptions.*.options.*').isString().withMessage('Options must be an Array'),
-  body('variants.*.groupTopons').isObject().withMessage('Group options must be an Object'),
-  body('variants.*.groupTopons.name').isString().withMessage('Group option name must be a string'),
-  body('variants.*.groupTopons.type').isString().withMessage('Group option type must be a string'),
-  body('variants.*.groupTopons.rules').isJSON().withMessage('Rules must be an JSON'),
-  body('variants.*.groupTopons.topons').isArray().withMessage('Rules must be an Array'),
-  body('variants.*.groupTopons.*.topons.*.toponId').isUUID().withMessage('ToponId must be an UUID'),
-  body('variants.*.groupTopons.*.topons.*.rules').isJSON().withMessage('Rules must be an JSON')
-
-
-];
-
-
-const validateUpdateProductCombo = [
-  body('id').notEmpty().isUUID(4).withMessage('Product ID must be a UUIDv4'),
-  body('name').notEmpty().withMessage('Name must not be empty').isString().withMessage('Name must be a string'),
-  body('description').isString().withMessage('Description must be a string'),
-  body('type').notEmpty().withMessage('Type must not be empty').isString().withMessage('Type must be a string'),
-  body('items').notEmpty().withMessage('Items must not be empty').isArray().withMessage('Items must be an array').custom((value) => {
-    if (value.length === 0) {
-      throw new Error('Items must not be empty');
-    }
-    for (let i = 0; i < value.length; i++) {
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value[i])) {
-        throw new Error('Item id must be a valid UUID');
-      }
-    }
-    return true;
-  }),
-  body('locationIds').isArray().withMessage('Location must be an array').custom((value) => {
-    if (value.length === 0) {
-      throw new Error('Location must not be empty');
-    }
-    for (let i = 0; i < value.length; i++) {
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value[i])) {
-        throw new Error('Location id must be a valid UUID');
-      }
-    }
-    return true;
-  }),
-
-]
 
 const validateProductId = [
-  param('productId').notEmpty().isUUID(4).withMessage('Product ID must be a UUIDv4'),
-
+  param('productId')
+    .isUUID(4).withMessage('Invalid productId format')
+    .isLength({ min: 4, max: 64 }).withMessage('productId must be between 4 and 64 characters'),
 ];
+
 
 const validateLocationId = [
-  param('locationId').notEmpty().isUUID(4).withMessage('Location ID must be a UUIDv4'),
+  param('locationId')
+    .isUUID(4).withMessage('Invalid locationId format')
+    .isLength({ min: 4, max: 64 }).withMessage('locationId must be between 4 and 64 characters'),
 
 ];
-const validateResults = (req, res, next) => {
+
+const validateResult = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
-    return
+    return res.status(400).json({ errors: errors.array() });
   }
   next();
-
 }
 
-
-module.exports = {
-  validateCreateProduct,
-  validateProductId,
-  validateResults,
-  validateUpdateProduct,
-  validateLocationId,
-  validateUpdateProductCombo,
-  validateCreateProductCombo
-};
+module.exports = { validateProduct, validateResult, validateProductId, validateLocationId };

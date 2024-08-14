@@ -9,7 +9,8 @@ class VariantIngredient extends Model {
           type: DataTypes.UUID,
           primaryKey: true,
           defaultValue: UUIDV4
-        }
+        },
+      
 
       },
 

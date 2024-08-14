@@ -1,43 +1,69 @@
-const { body, validationResult } = require('express-validator');
+const { body, param, validationResult } = require('express-validator');
 
-const validateCreateOrder = [
-  body('userId').notEmpty().withMessage('User ID is required').isUUID(4).withMessage('User ID must be a UUIDv4'),
-  // body('locationId').notEmpty().withMessage('Location ID is required').isUUID(4).withMessage('Location ID must be a UUIDv4'),
-  body('status').isString().withMessage('Status must be a string'),
-  body('totalPrice').isNumeric().withMessage('Total price must be a number'),
+const validateOrder = [
+  body('userId')
+    .isUUID().withMessage('Invalid userId format')
+    .isLength({ min: 4, max: 64 }).withMessage('userId must be between 4 and 64 characters'),
+  body('locationId')
+    .isUUID().withMessage('Invalid locationId format')
+    .isLength({ min: 4, max: 64 }).withMessage('locationId must be between 4 and 64 characters'),
+  body('force')
+    .isBoolean().withMessage('Force must be a boolean value'),
+  body('items')
+    .isArray({ min: 1 }).withMessage('Items must be a non-empty array'),
+  body('items.*.productId')
+    .isUUID().withMessage('Invalid productId format')
+    .notEmpty().withMessage('productId cannot be empty')
+    .isLength({ min: 4, max: 64 }).withMessage('productId must be between 4 and 64 characters'),
+  body('items.*.vlId')
+    .isUUID().withMessage('Invalid vlId format')
+    .notEmpty().withMessage('vlId cannot be empty')
+    .isLength({ min: 4, max: 64 }).withMessage('vlId must be between 4 and 64 characters'),
+  body('items.*.type')
+    .isIn(['single', 'combo']).withMessage('Type must be either "single" or "combo"')
+    .notEmpty().withMessage('type cannot be empty')
+    .isLength({ min: 4, max: 64 }).withMessage('type must be between 4 and 64 characters'),
+  body('items.*.quantity')
+    .isInt({ min: 1 }).withMessage('Quantity must be an integer greater than 0'),
+  body('items.*.options')
+    .isArray().withMessage('Options must be an array'),
+  body('items.*.options.*')
+    .isUUID().withMessage('Invalid optionId format')
+    .optional({ nullable: true }).isLength({ min: 4, max: 64 }).withMessage('optionId must be between 4 and 64 characters'),
+  body('items.*.topons')
+    .isArray().withMessage('Topons must be an array'),
+  body('items.*.topons.*.toponId')
+    .isUUID().withMessage('Invalid toponId format')
+    .optional({ nullable: true }).isLength({ min: 4, max: 64 }).withMessage('toponId must be between 4 and 64 characters'),
+  body('items.*.topons.*.quantity')
+    .isInt({ min: 1 }).withMessage('Topon quantity must be an integer greater than 0')
 
-  body('OrderItem').isArray().withMessage('Order items must be an array'),
-
-  body('OrderItem.*.productId').notEmpty().withMessage('Product ID is required').isUUID(4).withMessage('Product ID must be a UUIDv4'),
-  body('OrderItem.*.type').isIn(['single', 'combo']).withMessage('Type must be either "single" or "combo"'),
-  body('OrderItem.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be a positive integer'),
-
-  body('OrderItem.*.variantId').if(body('OrderItem.*.type').equals('single')).notEmpty().withMessage('Variant ID is required for single products').isUUID(4).withMessage('Variant ID must be a UUIDv4'),
-  body('OrderItem.*.options').if(body('OrderItem.*.type').equals('single')).isArray().withMessage('Options must be an array for single products'),
-  body('OrderItem.*.options.*.optionId').if(body('OrderItem.*.type').equals('single')).isUUID(4).withMessage('Option ID must be a valid UUID'),
-
-  body('OrderItem.*.topons').if(body('OrderItem.*.type').equals('single')).isArray().withMessage('Topon must be an array for single products'),
-  // body('OrderItem.*.topons.*.toponId').if(body('OrderItem.*.type').equals('single')).isUUID(4).withMessage('Topon ID must be a valid UUID'),
-  body('OrderItem.*.topons.*.quantity').if(body('OrderItem.*.type').equals('single')).isInt({ min: 1 }).withMessage('Topon quantity must be a positive integer'),
-
-  body('OrderItem.*.comboVariants').if(body('OrderItem.*.type').equals('combo')).isArray().withMessage('Combo variants must be an array for combo products'),
-  body('OrderItem.*.comboVariants.*.variantId').if(body('OrderItem.*.type').equals('combo')).notEmpty().withMessage('Variant ID is required for combo variants').isUUID(4).withMessage('Variant ID must be a UUIDv4'),
-  body('OrderItem.*.comboVariants.*.options').if(body('OrderItem.*.type').equals('combo')).isArray().withMessage('Options must be an array for combo variants'),
-  // body('OrderItem.*.comboVariants.*.options.*.optionId').if(body('OrderItem.*.type').equals('combo')).isUUID(4).withMessage('Option ID must be a valid UUID'),
-  body('OrderItem.*.comboVariants.*.topons').if(body('OrderItem.*.type').equals('combo')).isArray().withMessage('Topon must be an array for combo variants'),
-  body('OrderItem.*.comboVariants.*.topons.*.toponId').if(body('OrderItem.*.type').equals('combo')).isUUID(4).withMessage('Topon ID must be a valid UUID'),
-  body('OrderItem.*.comboVariants.*.topons.*.quantity').if(body('OrderItem.*.type').equals('combo')).isInt({ min: 1 }).withMessage('Topon quantity must be a positive integer'),
 ];
 
-const validateResults = (req, res, next) => {
+const validateOrderId = [
+  param('orderId')
+    .isUUID().withMessage('Invalid orderId format')
+    .isLength({ min: 4, max: 64 }).withMessage('orderId must be between 4 and 64 characters'),
+];
+
+
+const validateLocationId = [
+  param('locationId')
+    .isUUID().withMessage('Invalid locationId format')
+    .isLength({ min: 4, max: 64 }).withMessage('locationId must be between 4 and 64 characters'),
+
+];
+
+
+const validateResult = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
   next();
-};
+}
 
-module.exports = {
-  validateCreateOrder,
-  validateResults
-};
+
+
+
+module.exports = {validateOrder, validateResult, validateOrderId, validateLocationId};
