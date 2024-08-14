@@ -12,7 +12,7 @@ const userRoute = require('./src/User/userRoute');
 // const comboRoute = require('./src/Combo/comboRoute');
 const orderRoute = require('./src/Order/route');
 const redisClient = require('./redisClient');
-const { seed, test } = require('./src/seed');
+const { seed, test, seedRoles } = require('./src/seed');
 const init = require('./helpers/initModels');
 const cors = require('cors');
 
@@ -71,7 +71,7 @@ app.listen(PORT, async () => {
     await sequelize.sync({ force: false });
 
     // await seed();
-
+    // await seedRoles();
     // await test();
     console.log('Database synchronized.');
   } catch (error) {

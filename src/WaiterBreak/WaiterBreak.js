@@ -12,14 +12,21 @@ class WaiterBreak extends Model {
           primaryKey: true,
           defaultValue: UUIDV4
         },
-       description: {
+        description: {
           type: DataTypes.STRING(64),
           allowNull: false,
           validate: {
             min: 4
           }
         },
-        time : {
+        status: {
+          type: DataTypes.STRING(64),
+          allowNull: false,
+          validate: {
+            isIn: [['start', 'end']],
+          }
+        },
+        time: {
           type: DataTypes.INTEGER,
           allowNull: false,
 
@@ -34,8 +41,6 @@ class WaiterBreak extends Model {
   }
 
   static associateModel(models) {
-    
-
     WaiterBreak.belongsTo(models.User);
   }
 }

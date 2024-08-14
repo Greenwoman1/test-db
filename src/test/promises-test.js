@@ -52,12 +52,9 @@ const func = async () => {
 
     await Promise.all(promises)
 
-    console.log(2)
 
-    console.log(orgObj)
 
     orgObj.items.forEach(item => {
-        console.log(item.data)
     });
 
 }

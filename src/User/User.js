@@ -65,7 +65,7 @@ class User extends Model {
 
   static associateModel(models) {
     User.hasMany(models.Order);
-    User.hasMany(models.UserLocation);
+    User.belongsToMany(models.Location, { through: 'UserLocation' });
     User.hasMany(models.Balance);
     User.hasMany(models.UserPayment);
 

@@ -1,6 +1,6 @@
 const { name } = require('ejs');
 const { getOrderDetails, getOrderSKURules, createOrderJson, updateSKU } = require('./Order/utils');
-const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem, VariantPrice, Ingredient } = require('./index');
+const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem, VariantPrice, Ingredient, Role, Permissions, UserRole, UserPermission, RolePermission } = require('./index');
 
 const { Op, fn, col, literal } = require('sequelize');
 
@@ -1976,6 +1976,113 @@ const seed = async () => {
   console.log('All products created');
 };
 
-module.exports = { seed };
+
+const seedRoles = async () => {
+
+
+
+  const roles = await Role.bulkCreate([
+    { name: 'admin', description: 'admin role' },
+    { name: 'user', description: 'user role' },
+    { name: 'waiter', description: 'waiter role' },
+    { name: 'kitchenStuff', description: 'kitchenStuff role' },]);
+
+  const permissions = await Permissions.bulkCreate([
+    { name: 'create', description: 'create permission' },
+    { name: 'read', description: 'read permission' },
+    { name: 'update', description: 'update permission' },
+    { name: 'delete', description: 'delete permission' },
+  ]);
+
+
+  const [adminRole, userRole, waiterRole, kitchenStuffRole] = roles;
+
+
+  const [createPermission, readPermission, updatePermission, deletePermission] = permissions;
+
+
+  const workers = await User.bulkCreate([
+
+    {
+
+      firstName: 'admin1',
+      lastName: 'admin1',
+      email: 'admin@admin1',
+      password: 'password',
+      shippingAdress: 'adresa',
+      role: adminRole.id
+
+    },
+    {
+
+      firstName: 'konobar1',
+      lastName: 'konobar1',
+      email: 'konobar1@konobar1',
+      password: 'password',
+      shippingAdress: 'adresa',
+      role: waiterRole.id
+    },
+
+    {
+      firstName: 'konobar2',
+      lastName: 'konobar2',
+      email: 'konobar2@konobar2',
+      password: 'password',
+      shippingAdress: 'adresa',
+
+      role: waiterRole.id
+    },
+
+    {
+      firstName: 'kuhar1',
+      lastName: 'kuhar1',
+      email: 'kuhar1@kuhar1',
+      password: 'password',
+      shippingAdress: 'adresa',
+
+      role: kitchenStuffRole.id
+    },
+
+  ]);
+
+
+  await UserRole.bulkCreate([
+    { UserId: workers[0].id, RoleId: adminRole.id },
+    { UserId: workers[1].id, RoleId: waiterRole.id },
+    { UserId: workers[2].id, RoleId: waiterRole.id },
+    { UserId: workers[3].id, RoleId: kitchenStuffRole.id },
+  ]);
+
+
+  await RolePermission.bulkCreate([
+
+    { RoleId: adminRole.id, PermissionId: createPermission.id },
+    { RoleId: adminRole.id, PermissionId: readPermission.id },
+    { RoleId: adminRole.id, PermissionId: updatePermission.id },
+    { RoleId: adminRole.id, PermissionId: deletePermission.id },
+
+    { RoleId: waiterRole.id, PermissionId: createPermission.id },
+    { RoleId: waiterRole.id, PermissionId: readPermission.id },
+    { RoleId: waiterRole.id, PermissionId: updatePermission.id },
+    { RoleId: waiterRole.id, PermissionId: deletePermission.id },
+
+    { RoleId: kitchenStuffRole.id, PermissionId: createPermission.id },
+    { RoleId: kitchenStuffRole.id, PermissionId: readPermission.id },
+    { RoleId: kitchenStuffRole.id, PermissionId: updatePermission.id },
+    { RoleId: kitchenStuffRole.id, PermissionId: deletePermission.id },
+
+  ]);
+
+
+
+  const isAnyWaiterAviable = await User.findOne({ where: { role: waiterRole.id } });
+
+
+
+
+
+
+}
+module.exports = { seed, seedRoles };
 
 

@@ -10,7 +10,6 @@ const getBalance = async (userId) => {
     const cachedBalance = await redisClient.get(cacheKey);
     if (cachedBalance) {
       const balance = await Balance.sum('amount', { where: { UserId: userId } });
-      console.log(balance)
       if (balance === null || isNaN(balance)) {
         console.error(`No balance found for user with ID: ${userId}`);
         throw createError(`No balance found for user with ID: ${userId}`, 401);
@@ -23,7 +22,6 @@ const getBalance = async (userId) => {
       return JSON.parse(cachedBalance);
     } else {
       const balance = await Balance.sum('amount', { where: { UserId: userId } });
-      console.log(balance)
       if (balance === null || isNaN(balance)) {
         throw createError(`No balance found for user with ID: ${userId}`, 401);
       }
@@ -51,10 +49,8 @@ const setBalance = async (userId, amount, reason = 'Initial Balance', comment = 
         comment,
         refid: refId
       }, { transaction: t });
-      console.log(newBalance , 'nb')
 
       const totalBalance = await Balance.sum('amount', { where: { UserId: userId }, transaction: t });
-      console.log(totalBalance , 'tb')
       if (totalBalance === null || isNaN(totalBalance)) {
         throw createError(`No balance found for user with ID: ${userId}`, 401);
       }

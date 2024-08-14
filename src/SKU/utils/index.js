@@ -3,7 +3,6 @@ const SKU = require("../SKU");
 const updateSKU = async (skuId, quantityChange, location, t) => {
   try {
     const sku = await SKU.findByPk(skuId);
-    console.log(skuId)
 
     if (!sku) {
       console.error('SKU not found');

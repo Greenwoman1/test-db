@@ -1,6 +1,7 @@
 
 
-const { Order, OrderItem, PriceHistory, Variant, User, Option, Topon } = require('../.');
+const { literal } = require('sequelize');
+const { Order, OrderItem, PriceHistory, Variant, User, Option, Topon, Role, WaiterBreak } = require('../.');
 
 const createUser = async (req, res) => {
   try {
@@ -97,7 +98,7 @@ const getOrderDetailsForUser = async (req, res) => {
             {
               model: Topon,
               through: { attributes: [] },
-            
+
             }
           ]
         }
@@ -155,11 +156,48 @@ const getOrderDetailsForUser = async (req, res) => {
   }
 };
 
+
+
+const isAnyWaiterAvilable = async (req, res) => {
+  try {
+    const waiters = await User.findAndCountAll({
+      logging: console.log,
+      include: [
+        {
+          model: Role,
+          where: {
+            name: 'waiter'
+          },
+          through: { attributes: [] },
+          attributes: []
+        },
+        {
+         model: WaiterBreak,
+         attributes: [], 
+         required: false
+        }
+      ],
+      group: ['User.id', 'WaiterBreaks.id'],
+      having: literal(
+        'COUNT(CASE WHEN "WaiterBreaks"."status" = \'start\' THEN 1 END) <= COUNT(CASE WHEN "WaiterBreaks"."status" = \'end\' THEN 1 END) ' +
+        'OR COUNT(CASE WHEN "WaiterBreaks"."status" = \'start\' THEN 1 END) = COUNT(CASE WHEN "WaiterBreaks"."status" = \'end\' THEN 1 END)'
+      )
+    })
+
+    return res.status(200).json(waiters);
+
+  }
+  catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createUser,
   getUsers,
   getUserById,
   updateUser,
   deleteUser,
-  getOrderDetailsForUser
+  getOrderDetailsForUser,
+  isAnyWaiterAvilable
 };

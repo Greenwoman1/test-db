@@ -35,7 +35,7 @@ class UserLocation
 
   static associateModel(models) {
     UserLocation.belongsTo(models.User);
-    UserLocation.hasOne(models.Location);
+    UserLocation.belongsTo(models.Location);
   }
 
 }
