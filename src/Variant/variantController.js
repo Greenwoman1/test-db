@@ -1,5 +1,5 @@
-const { literal } = require('sequelize');
-const { Variant, Price, SKU, Location, VariantLocation, VariantIngredient, IngredientLocation, Ingredient, GroupTopon, GroupToponsMid, ToponLocation, GroupOptions, Option, Topon, Image } = require('../index');
+const { literal, Op } = require('sequelize');
+const { Variant, Price, SKU, Location, VariantLocation, VariantIngredient, IngredientLocation, Ingredient, GroupTopon, GroupToponsMid, ToponLocation, GroupOptions, Option, Topon, Image, VariantSKURule, IngredientSKURule } = require('../index');
 
 const checkVariantExists = async (variantId) => {
   const variant = await Variant.findByPk(variantId);
@@ -108,16 +108,84 @@ const getAvilableVariants = async (req, res) => {
       attributes: [
         'id',
         'name',
-        [literal('"VarLoc->Location"."name"'), 'Location']
-      ],
+        [literal('"VarLoc->Location"."name"'), 'Location']],
       include: [
         {
           model: VariantLocation,
           attributes: [],
           as: 'VarLoc',
-          include: [{ model: Location, attributes: [], required: true }]
+          include: [
+            {
+              model: Location,
+              attributes: [],
+              required: true
+            },
+            {
+              model: VariantSKURule,
+              as: 'VarLocRule',
+              attributes: [],
+              required: false,
+              where: { disabled: false },
+              include: [
+                {
+                  model: SKU,
+                  attributes: [],
+                  required: true,
+                  as: 'VSKU',
+                  where: {
+                    [Op.and]: [
+                      { allowMinus: false },
+                      {
+                        stock: {
+                          [Op.gt]: 0
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              model: VariantIngredient,
+              required: false,
+              attributes: [],
+              as: 'VarLocIng',
+              include: [
+                {
+                  model: IngredientSKURule,
+                  attributes: [],
+                  required: true,
+                  as: 'VarIngRule',
+                  include: [
+                    {
+                      model: SKU,
+                      as: 'InSku',
+                      attributes: [],
+                      required: true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
-      ]
+      ],
+      where: {
+        [Op.or]: [
+          {
+            '$VarLoc.VarLocRule.VSKU.id$': {
+              [Op.ne]: null
+            }
+          },
+          {
+            '$VarLoc.VarLocIng.VarIngRule.InSku.id$': {
+              [Op.ne]: null
+            }
+          }
+        ]
+      },
+      group: ['Variant.id', 'Variant.name', 'VarLoc->Location.id', 'VarLoc->Location.name'],
+      having: literal('COUNT(CASE WHEN "VarLoc->VarLocIng->VarIngRule"."disabled" = TRUE THEN 1 ELSE NULL END) = 0')
     });
 
     res.status(200).json(availableVariants);

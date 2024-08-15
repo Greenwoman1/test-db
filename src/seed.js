@@ -436,9 +436,9 @@ const getAvailableVariantsManual = async () => {
           }
         }
       ]
-    },
-    group: ['Variant.id', 'Variant.name', 'VarLoc->Location.id', 'VarLoc->Location.name'],
-    having: literal('COUNT(CASE WHEN "VarLoc->VariantIngredient->IngredientSKURule"."disabled" = TRUE THEN 1 ELSE NULL END) = 0')
+      },
+      group: ['Variant.id', 'Variant.name', 'VarLoc->Location.id', 'VarLoc->Location.name'],
+      having: literal('COUNT(CASE WHEN "VarLoc->VariantIngredient->IngredientSKURule"."disabled" = TRUE THEN 1 ELSE NULL END) = 0')
   });
 
   return availableVariants

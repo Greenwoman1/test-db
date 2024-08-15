@@ -2,6 +2,7 @@ const { DataTypes, Model, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 const bcrypt = require('bcrypt');
 
+
 class User extends Model {
   static initModel() {
     User.init(
@@ -38,6 +39,7 @@ class User extends Model {
         password: {
           type: DataTypes.STRING,
           allowNull: false,
+          
         },
         shippingAddress: {
           type: DataTypes.STRING
@@ -59,6 +61,18 @@ class User extends Model {
         timestamps: true,
         createdAt: false,
         updatedAt: 'updateTimestamp',
+        hooks: {
+          beforeCreate: async (user) => {
+            const hashedPassword = await bcrypt.hash(user.password, 10);
+            user.password = hashedPassword;
+          },
+          beforeBulkCreate: async (users) => {
+            for (const user of users) {
+              const hashedPassword = await bcrypt.hash(user.password, 10);
+              user.password = hashedPassword;
+            }
+          },
+        },
       }
     );
   }
@@ -79,10 +93,5 @@ class User extends Model {
   
   }
 }
-
-// User.beforeCreate(async (user) => {
-//     const hashedPassword = await bcrypt.hash(user.password, 10);
-//     user.password = hashedPassword;
-// });
 
 module.exports = User;

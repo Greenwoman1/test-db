@@ -13,9 +13,10 @@ router.get('/:productId/variants', validateProductId, validateResult, productCon
 
 router.get('/:productId', validateProductId, validateResult, productController.getProductById);
 
+router.get('/location/:locationId', validateLocationId, validateResult, productController.getProductsAtLocation);
+
 router.get('/:productId/:locationId', validateProductId, validateLocationId, validateResult, productController.getProductVariantLocation);
 
-router.get('/:locationId', validateLocationId, validateResult, productController.getProductsAtLocation);
 
 
 module.exports = router;

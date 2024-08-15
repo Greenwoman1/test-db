@@ -3,7 +3,8 @@ const {
   SKURule, SKU, ComboItem, Price, PriceHistory, GroupTopons, GroupOptions, 
   GroupToponsMid, Combo, ComboItems, ComboVariants, VariantSKUs, 
   VariantSKURule, VariantLocation, IngredientSKURule, LinkedVariant, 
-  GroupTopon, ToponSKURule, VariantIngredient 
+  GroupTopon, ToponSKURule, VariantIngredient, 
+  VariantPrice
 } = require("../../index");
 
 const createProductHelper = async (settings, t) => {
@@ -13,7 +14,7 @@ const createProductHelper = async (settings, t) => {
 
     for (const variant of variants) {
       const variante = await Variant.create({ name: variant.name, ProductId: product.id }, { transaction: t });
-
+      await VariantPrice.create({ VariantId: variante.id, price: variant.price }, { transaction: t });
       for (const varLoc of variant.locations) {
         const { LocationId, skuRules, ingredients, topons, options, comboItems } = varLoc;
         const varloc = await VariantLocation.create({ VariantId: variante.id, LocationId, disabled: false }, { transaction: t });

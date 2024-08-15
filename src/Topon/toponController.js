@@ -1,14 +1,18 @@
-const { Topon } = require('../index');
+const { Topon, ToponLocation, Location } = require('../index');
 const { SKURule } = require('../index');
 const { SKU } = require('../index');
 
 const createTopons = async (req, res) => {
   try {
-    const { name, minValue, maxValue, defaultValue, stock, price, location } = req.body;
-    const rule = await SKURule.create();
 
-    const newTopons = await Topon.create({ name, minValue, maxValue, defaultValue, SKURuleId: rule.id });
-    const skuUnit = await SKU.create({ name, stock, price, SKURuleId: rule.id, LocationId: location });
+    const { name, locations, price } = req.body;
+
+    const newTopons = await Topon.create({ name, price });
+
+    for (let i = 0; i < locations.length; i++) {
+      await ToponLocation.create({ ToponId: newTopons.id, LocationId: locations[i] });
+    }
+
     res.status(201).json(newTopons);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -23,6 +27,34 @@ const getTopons = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+const getToponsByLocation = async (req, res) => {
+  try {
+    const locationId = req.params.locationId;
+
+    const loc = await Location.findByPk(locationId, {
+
+    })
+
+    if (!loc) {
+      return res.status(401).json({ message: 'Location with id ' + locationId + ' not found' });
+    }
+    const topons = await Topon.findAll({
+      attributes: ['id', 'name'],
+      include: [
+        {
+          model: ToponLocation,
+          as: 'TopLoc',
+          attributes: [],
+          where: { LocationId: locationId }
+        }
+      ]
+    });
+    res.status(200).json(topons);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
 const getToponsById = async (req, res) => {
   try {
     const toponsId = req.params.id;
@@ -84,4 +116,5 @@ module.exports = {
   getToponsById,
   updateTopons,
   deleteTopons,
+  getToponsByLocation
 };

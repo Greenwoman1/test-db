@@ -58,7 +58,7 @@ const createOrderJson = async (order, t) => {
       UserId: order.userId,
       LocationId: order.locationId,
       status: 'pending',
-      totalPrice: 13.5
+      totalPrice: order.totalPrice
     }, { transaction: t });
     const promises = [];
 

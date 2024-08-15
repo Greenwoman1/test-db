@@ -1,6 +1,6 @@
+const paginate = require('../../helpers/paginate.js');
 const sequelize = require('../../sequelize');
 const { Variant, Topon, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems, SKU, Category, Ingredient, IngredientLocation, ToponLocation } = require('../index');
-
 const { createProductHelper } = require('./utils/index');
 
 
@@ -20,6 +20,7 @@ const createProduct = async (req, res) => {
 
     const product = req.body
 
+    // #region validate
     const errors = [];
 
     const categoryId = product.CategoryId;
@@ -28,8 +29,11 @@ const createProduct = async (req, res) => {
     );
 
     const skuRuleIds = product.variants.flatMap(variant =>
-      variant.locations?.map(location => location.skuRules?.SKUId) || []
+      variant.locations?.flatMap(location =>
+        location.skuRules?.SKUId ? [location.skuRules.SKUId] : []
+      ) || []
     );
+    console.log(JSON.stringify(skuRuleIds, null, 2));
 
     const ingredientIds = product.variants.flatMap(variant =>
       variant.locations?.flatMap(location =>
@@ -66,7 +70,7 @@ const createProduct = async (req, res) => {
         location.comboItems?.map(comboItem => comboItem.VariantLocationId) || []
       ) || []
     );
-    
+
 
 
     const [
@@ -92,7 +96,7 @@ const createProduct = async (req, res) => {
     ]);
 
 
-    
+
     if (!category) {
       errors.push({ msg: `Category with ID (${categoryId}) does not exist`, param: 'CategoryId', location: 'body' });
     }
@@ -107,6 +111,10 @@ const createProduct = async (req, res) => {
     const existingSkuRuleIds = skuRules.map(s => s.id);
     const missingSkuRuleIds = skuRuleIds.filter(id => !existingSkuRuleIds.includes(id));
     if (missingSkuRuleIds.length > 0) {
+      console.log(missingSkuRuleIds);
+      console.log(skuRuleIds);
+      console.log(skuRules);
+      console.log(existingSkuRuleIds);
       errors.push({ msg: `SKU Rules with IDs (${missingSkuRuleIds.join(', ')}) do not exist`, param: 'skuRuleIds', location: 'body' });
     }
 
@@ -151,6 +159,7 @@ const createProduct = async (req, res) => {
     if (errors.length > 0) {
       return res.status(401).json({ errors: errors });
     }
+    //  #endregion 
 
     const result = await sequelize.transaction(async (t) => {
 
@@ -228,12 +237,12 @@ const getProductVariantLocation = async (req, res) => {
       return
     }
 
-    const Location = await Location.findByPk(locationId, {
+    const location = await Location.findByPk(locationId, {
       attributes: ['id', 'name'],
 
     })
 
-    if (!Location) {
+    if (!location) {
       res.status(401).json({ message: 'Location with id ' + locationId + ' not found' });
       return
     }
@@ -246,7 +255,7 @@ const getProductVariantLocation = async (req, res) => {
           model: VariantLocation,
           as: 'VarLoc',
           where: { LocationId: locationId },
-          attributes: ['id'],
+          attributes: [],
         },
       ],
     });
@@ -255,48 +264,43 @@ const getProductVariantLocation = async (req, res) => {
     return res.status(200).json(variants);
   }
   catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' + error.message });
   }
 }
 
-
 const getProductsAtLocation = async (req, res) => {
-
   const locationId = req.params.locationId;
+
   const loc = await Location.findByPk(locationId, {
     attributes: ['id', 'name'],
-  })
+  });
 
   if (!loc) {
-    res.status(401).json({ message: 'Location with id ' + locationId + ' not found' });
-    return
+    return res.status(401).json({ message: `Location with id ${locationId} not found` });
   }
 
-
   try {
-    const products = await Product.findAll({
+    const queryOptions = {
       attributes: ['id', 'name'],
       include: [{
         model: Variant,
-        attributes: ['id', 'name'],
+        attributes: [],
         include: [{
-
           model: VariantLocation,
           as: 'VarLoc',
-          attributes: ['id'],
-          where: { LocationId: locationId }
-        }]
-      }]
-    })
+          attributes: [],
+          where: { LocationId: locationId },
+        }],
+      }],
+    };
 
-    return res.status(200).json(products);
+    const paginatedProducts = await paginate(Product, queryOptions);
+
+    return res.status(200).json(paginatedProducts);
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
   }
-  catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
-  }
-
-}
-
+};
 
 
 

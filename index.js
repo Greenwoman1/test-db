@@ -5,7 +5,7 @@ const sequelize = require('./sequelize');
 const variantRoute = require('./src/Variant/variantRoute');
 const productRoute = require('./src/Product/productRoute');
 // const skuRoute = require('./src/SKU/SKURoute');
-// const toponsRoute = require('./src/Topon/toponsRoute');
+const toponsRoute = require('./src/Topon/toponRoute');
 const userRoute = require('./src/User/userRoute');
 // const groupRuleRoute = require('./src/GroupRule/groupRoute');
 // const locationRoute = require('./src/Location/locationRoute');
@@ -44,6 +44,7 @@ app.use('/user', userRoute );
 app.use('/product', productRoute);
 app.use('/order', orderRoute);
 app.use('/variant', variantRoute);
+app.use('/topon', toponsRoute);
 
 
 app.get('/redis-test', (req, res) => {

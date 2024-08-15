@@ -36,7 +36,7 @@ const getBalance = async (userId) => {
 };
 
 
-const setBalance = async (userId, amount, reason = 'Initial Balance', comment = 'New balance added', refId = "") => {
+const setBalance = async (userId, amount, reason = 'Initial Balance', comment = 'New balance added', refId = "" ) => {
   const cacheKey = `user_balance_${userId}`;
 
   try {
