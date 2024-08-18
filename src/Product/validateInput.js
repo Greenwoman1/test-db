@@ -108,7 +108,7 @@ const validateProduct = [
 
   body('variants.*.locations.*.options.*.options.*')
     .if(body('variants.*.locations.*.options').exists())
-    .isUUID().withMessage('Invalid optionId format'),
+    .isString().withMessage('Invalid optionId format'),
 
   // ComboItems validation
   body('variants.*.locations.*.comboItems')

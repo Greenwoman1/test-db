@@ -30,11 +30,11 @@ class User extends Model {
         email: {
           type: DataTypes.STRING,
           allowNull: false,
-          unique: true
         },
         role: {
           type: DataTypes.STRING,
-          allowNull: false
+          allowNull: false,
+          defaultValue: 'user'
         },
         password: {
           type: DataTypes.STRING,

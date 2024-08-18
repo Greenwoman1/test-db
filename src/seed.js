@@ -3,6 +3,7 @@ const { getOrderDetails, getOrderSKURules, createOrderJson, updateSKU } = requir
 const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem, VariantPrice, Ingredient, Role, Permissions, UserRole, UserPermission, RolePermission } = require('./index');
 
 const { Op, fn, col, literal } = require('sequelize');
+const client = require('../elastics');
 
 
 
@@ -857,7 +858,6 @@ const addOrderItem = async (order, items) => {
 
   let OrderItems = [];
   for (const item of items) {
-    console.log(JSON.stringify(item, null, 2));
     const OI = await OrderItem.create({ OrderId: order.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
     OrderItems.push(OI);
   }
@@ -1047,8 +1047,6 @@ const createProdct = async (settings) => {
       if (comboItems) {
 
         for (const item of comboItems) {
-
-          console.log(item)
           await LinkedVariant.create({ VariantId: variante.id, VariantLocationId: item })
         }
 
@@ -1697,8 +1695,6 @@ const seed = async () => {
   const order1 = await createOrderJson(order);
 
   const order1details = await getOrderDetails(order1.id);
-  console.log(JSON.stringify(order1.id, null, 2))
-  console.log(JSON.stringify(order1details, null, 2))
 
   const items = await updateSKU(order1details.items)
 
@@ -1973,14 +1969,17 @@ const seed = async () => {
   // console.log(JSON.stringify(topons, null, 2));
 
 
+  
+  
+  
   console.log('All products created');
 };
 
 
 const seedRoles = async () => {
-
-
-
+  
+  
+  
   const roles = await Role.bulkCreate([
     { name: 'admin', description: 'admin role' },
     { name: 'user', description: 'user role' },
@@ -1993,28 +1992,28 @@ const seedRoles = async () => {
     { name: 'update', description: 'update permission' },
     { name: 'delete', description: 'delete permission' },
   ]);
-
-
+  
+  
   const [adminRole, userRole, waiterRole, kitchenStuffRole] = roles;
-
-
+  
+  
   const [createPermission, readPermission, updatePermission, deletePermission] = permissions;
-
-
+  
+  
   const workers = await User.bulkCreate([
-
+    
     {
-
+      
       firstName: 'admin1',
       lastName: 'admin1',
       email: 'admin@admin1',
       password: 'password',
       shippingAdress: 'adresa',
       role: adminRole.id
-
+      
     },
     {
-
+      
       firstName: 'konobar1',
       lastName: 'konobar1',
       email: 'konobar1@konobar1',
@@ -2022,67 +2021,190 @@ const seedRoles = async () => {
       shippingAdress: 'adresa',
       role: waiterRole.id
     },
-
+    
     {
       firstName: 'konobar2',
       lastName: 'konobar2',
       email: 'konobar2@konobar2',
       password: 'password',
       shippingAdress: 'adresa',
-
+      
       role: waiterRole.id
     },
-
+    
     {
       firstName: 'kuhar1',
       lastName: 'kuhar1',
       email: 'kuhar1@kuhar1',
       password: 'password',
       shippingAdress: 'adresa',
-
+      
       role: kitchenStuffRole.id
     },
 
   ]);
-
-
+  
+  
   await UserRole.bulkCreate([
     { UserId: workers[0].id, RoleId: adminRole.id },
     { UserId: workers[1].id, RoleId: waiterRole.id },
     { UserId: workers[2].id, RoleId: waiterRole.id },
     { UserId: workers[3].id, RoleId: kitchenStuffRole.id },
   ]);
-
-
+  
+  
   await RolePermission.bulkCreate([
-
+    
     { RoleId: adminRole.id, PermissionId: createPermission.id },
     { RoleId: adminRole.id, PermissionId: readPermission.id },
     { RoleId: adminRole.id, PermissionId: updatePermission.id },
     { RoleId: adminRole.id, PermissionId: deletePermission.id },
-
+    
     { RoleId: waiterRole.id, PermissionId: createPermission.id },
     { RoleId: waiterRole.id, PermissionId: readPermission.id },
     { RoleId: waiterRole.id, PermissionId: updatePermission.id },
     { RoleId: waiterRole.id, PermissionId: deletePermission.id },
-
+    
     { RoleId: kitchenStuffRole.id, PermissionId: createPermission.id },
     { RoleId: kitchenStuffRole.id, PermissionId: readPermission.id },
     { RoleId: kitchenStuffRole.id, PermissionId: updatePermission.id },
     { RoleId: kitchenStuffRole.id, PermissionId: deletePermission.id },
-
+    
   ]);
-
-
-
+  
+  
+  
   const isAnyWaiterAviable = await User.findOne({ where: { role: waiterRole.id } });
-
-
-
-
-
+  
+  
+  
+  
+  
 
 }
-module.exports = { seed, seedRoles };
+
+const seedProducts = async () => {
+  const p = [
+    
+      {"name": "Mlijeko Dukat", "description": "Svježe mlijeko u pakovanju od 1 litre.", "type": "Mlijeko"},
+      {"name": "Kisela Voda Jana", "description": "Gazirana mineralna voda u boci od 1.5 litre.", "type": "Voda"},
+      {"name": "Hleb Bačvi", "description": "Svježi pšenični hleb, 500 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Kafa Barcaffe", "description": "Mljevena kafa u pakovanju od 250 grama.", "type": "Kafa"},
+      {"name": "Sir Gauda", "description": "Kockice sira Gauda, 200 grama.", "type": "Sir"},
+      {"name": "Jogurt Imlek", "description": "Kiselkasti jogurt u pakovanju od 400 grama.", "type": "Jogurt"},
+      {"name": "Čokolada Milka", "description": "Mliječna čokolada sa lješnicima, 100 grama.", "type": "Slatkiši"},
+      {"name": "Keksi Plazma", "description": "Keksi Plazma, 200 grama.", "type": "Grickalice"},
+      {"name": "Sok Cappy", "description": "Voćni sok od narandže u boci od 1 litre.", "type": "Sokovi"},
+      {"name": "Pasta Barilla", "description": "Špageti pasta, 500 grama.", "type": "Pasta"},
+      {"name": "Konzervirana Riba Tuna", "description": "Tuna u konzervi, 200 grama.", "type": "Konzerve"},
+      {"name": "Maslinovo Ulje Bjelas", "description": "Extra djevičansko maslinovo ulje u boci od 500 mililitara.", "type": "Ulje"},
+      {"name": "Kvasac Dr. Oetker", "description": "Suhi kvasac u pakovanju od 7 grama.", "type": "Kvasac"},
+      {"name": "Margo Marmelada", "description": "Marmelada od jagode, 370 grama.", "type": "Marmelada"},
+      {"name": "Mleko UHT", "description": "Trajno mlijeko u pakovanju od 1 litre.", "type": "Mlijeko"},
+      {"name": "Kola Coca-Cola", "description": "Gazirani napitak Coca-Cola, 2 litre.", "type": "Pića"},
+      {"name": "Čips Lay's", "description": "Krompir čips sa ukusom luka i pavlake, 150 grama.", "type": "Grickalice"},
+      {"name": "Voće Jabuke", "description": "Svježe jabuke, 1 kilogram.", "type": "Voće"},
+      {"name": "Piletina File", "description": "Piletina file u pakovanju od 500 grama.", "type": "Meso"},
+      {"name": "Kvasac Suhi", "description": "Suhi kvasac u pakovanju od 10 grama.", "type": "Kvasac"},
+      {"name": "Makaroni", "description": "Makaroni pasta, 500 grama.", "type": "Pasta"},
+      {"name": "Rezana Šunka", "description": "Šunka rezana, 200 grama.", "type": "Meso"},
+      {"name": "Lazanje", "description": "Lazanje u pakovanju od 250 grama.", "type": "Pasta"},
+      {"name": "Kvasac Svježi", "description": "Svježi kvasac u pakovanju od 42 grama.", "type": "Kvasac"},
+      {"name": "Sok od Jabuke", "description": "Sok od jabuke, 1 litra.", "type": "Sokovi"},
+      {"name": "Maslac", "description": "Maslac u pakovanju od 250 grama.", "type": "Mlijeko"},
+      {"name": "Kesten Pasta", "description": "Pasta od kestena, 200 grama.", "type": "Grickalice"},
+      {"name": "Pivo Heineken", "description": "Pivo Heineken, 0.5 litra.", "type": "Pića"},
+      {"name": "Vino Chardonnay", "description": "Bijelo vino Chardonnay, 750 mililitara.", "type": "Pića"},
+      {"name": "Sir Mozzarella", "description": "Sir Mozzarella, 200 grama.", "type": "Sir"},
+      {"name": "Maslinovo Ulje", "description": "Maslinovo ulje u pakovanju od 1 litre.", "type": "Ulje"},
+      {"name": "Voda Bez Gasova", "description": "Negazirana mineralna voda, 1.5 litre.", "type": "Voda"},
+      {"name": "Grčki Jogurt", "description": "Grčki jogurt, 400 grama.", "type": "Jogurt"},
+      {"name": "Pršut", "description": "Sušeni pršut, 150 grama.", "type": "Meso"},
+      {"name": "Kvasac Svježi", "description": "Svježi kvasac, 40 grama.", "type": "Kvasac"},
+      {"name": "Sok od Narandže", "description": "Sok od narandže, 1 litra.", "type": "Sokovi"},
+      {"name": "Čokolada Ritter Sport", "description": "Čokolada Ritter Sport sa lješnicima, 100 grama.", "type": "Slatkiši"},
+      {"name": "Grickalice Pringles", "description": "Krompir čips Pringles, 200 grama.", "type": "Grickalice"},
+      {"name": "Mlijeko UHT", "description": "UHT mlijeko, 1 litra.", "type": "Mlijeko"},
+      {"name": "Kola Pepsi", "description": "Gazirani napitak Pepsi, 2 litre.", "type": "Pića"},
+      {"name": "Hleb Integralni", "description": "Integralni hleb, 500 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Sok od Jabuke", "description": "Sok od jabuke, 1 litra.", "type": "Sokovi"},
+      {"name": "Jogurt sa Voćem", "description": "Jogurt sa komadićima voća, 400 grama.", "type": "Jogurt"},
+      {"name": "Kafa Jacobs", "description": "Mljevena kafa Jacobs, 250 grama.", "type": "Kafa"},
+      {"name": "Margarina", "description": "Margarina u pakovanju od 250 grama.", "type": "Mlijeko"},
+      {"name": "Keks Digestive", "description": "Digestive keks, 200 grama.", "type": "Grickalice"},
+      {"name": "Pasta za Zube Colgate", "description": "Pasta za zube Colgate, 100 mililitara.", "type": "Higijena"},
+      {"name": "Šećer Cukrin", "description": "Šećer u pakovanju od 1 kilogram.", "type": "Šećer"},
+      {"name": "Sol Himalajska", "description": "Himalajska so u pakovanju od 500 grama.", "type": "Začini"},
+      {"name": "Lazanja", "description": "Lazanja u pakovanju od 250 grama.", "type": "Pasta"},
+      {"name": "Jaja", "description": "Jaja u pakovanju od 10 komada.", "type": "Jaja"},
+      {"name": "Maslac za Pečenje", "description": "Maslac za pečenje, 250 grama.", "type": "Mlijeko"},
+      {"name": "Čokoladni Musli", "description": "Musli sa čokoladom, 500 grama.", "type": "Grickalice"},
+      {"name": "Sir Feta", "description": "Sir Feta, 200 grama.", "type": "Sir"},
+      {"name": "Zeleni Čaj", "description": "Zeleni čaj u pakovanju od 20 kesica.", "type": "Čajevi"},
+      {"name": "Pita sa Sirom", "description": "Pita sa sirom, 300 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Suvo Grožđe", "description": "Suvo grožđe u pakovanju od 200 grama.", "type": "Grickalice"},
+      {"name": "Med", "description": "Prirodni med u staklenki od 250 grama.", "type": "Slatkiši"},
+      {"name": "Pita sa Jabukama", "description": "Pita sa jabukama, 350 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Crni Biber", "description": "Crni biber u pakovanju od 100 grama.", "type": "Začini"},
+      {"name": "Kukuruz za Kokice", "description": "Kukuruz za kokice, 250 grama.", "type": "Grickalice"},
+      {"name": "Voda sa Limunom", "description": "Voda sa okusom limuna, 1.5 litre.", "type": "Pića"},
+      {"name": "Arašidi", "description": "Pečeni arašidi u pakovanju od 200 grama.", "type": "Grickalice"},
+      {"name": "Sok od Grožđa", "description": "Sok od grožđa, 1 litra.", "type": "Sokovi"},
+      {"name": "Prašak za Pecivo", "description": "Prašak za pecivo u pakovanju od 10 grama.", "type": "Začini"},
+      {"name": "Rizoto", "description": "Rizoto u pakovanju od 250 grama.", "type": "Pasta"},
+      {"name": "Čokoladni Napitak", "description": "Čokoladni napitak u pakovanju od 500 mililitara.", "type": "Pića"},
+      {"name": "Sir Edam", "description": "Sir Edam, 200 grama.", "type": "Sir"},
+      {"name": "Kvasac za Hleb", "description": "Kvasac za hleb u pakovanju od 11 grama.", "type": "Kvasac"},
+      {"name": "Pasta Bolognese", "description": "Pasta Bolognese u konzervi, 400 grama.", "type": "Konzerve"},
+      {"name": "Keks sa Čokoladom", "description": "Keks sa komadićima čokolade, 250 grama.", "type": "Grickalice"},
+      {"name": "Jagode", "description": "Svježe jagode, 250 grama.", "type": "Voće"},
+      {"name": "Rafinisano Ulje", "description": "Rafinisano biljno ulje u boci od 1 litre.", "type": "Ulje"},
+      {"name": "Špageti", "description": "Špageti pasta, 500 grama.", "type": "Pasta"},
+      {"name": "Sir Camembert", "description": "Sir Camembert, 150 grama.", "type": "Sir"},
+      {"name": "Orašasti Plodovi", "description": "Mješavina orašastih plodova, 200 grama.", "type": "Grickalice"},
+      {"name": "Zeleni Čaj sa Narančom", "description": "Zeleni čaj sa okusom naranče, 20 kesica.", "type": "Čajevi"},
+      {"name": "Kvasac za Hleb", "description": "Kvasac za hleb u pakovanju od 7 grama.", "type": "Kvasac"},
+      {"name": "Kolača", "description": "Razni kolači u pakovanju od 200 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Hleb Bez Glutena", "description": "Bezglutenski hleb, 500 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Sušeno Voće", "description": "Sušeno voće u pakovanju od 150 grama.", "type": "Grickalice"},
+      {"name": "Čokoladni Bomboni", "description": "Bomboni sa čokoladom, 200 grama.", "type": "Slatkiši"},
+      {"name": "Voda sa Limunom", "description": "Voda sa okusom limuna, 1 litra.", "type": "Pića"},
+      {"name": "Mliječni Napitak", "description": "Mliječni napitak u pakovanju od 250 mililitara.", "type": "Pića"},
+      {"name": "Sok od Grožđa", "description": "Sok od grožđa, 1 litra.", "type": "Sokovi"},
+      {"name": "Brza Hrana", "description": "Brza hrana u pakovanju od 300 grama.", "type": "Brza hrana"},
+      {"name": "Kolač sa Voćem", "description": "Kolač sa voćem u pakovanju od 250 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Kuhinja", "description": "Kuhinja za pripremu hrane u pakovanju od 1 kilogram.", "type": "Začini"},
+      {"name": "Pita sa Krompirom", "description": "Pita sa krompirom, 300 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Maslac od Kikirikija", "description": "Maslac od kikirikija u pakovanju od 250 grama.", "type": "Grickalice"},
+      {"name": "Voćni Jogurt", "description": "Voćni jogurt u pakovanju od 400 grama.", "type": "Jogurt"},
+      {"name": "Konzervirani Grašak", "description": "Konzervirani grašak u pakovanju od 400 grama.", "type": "Konzerve"},
+      {"name": "Čokoladna Kolača", "description": "Čokoladni kolač u pakovanju od 200 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Griz", "description": "Griz za pripremu, 500 grama.", "type": "Pekarski proizvodi"},
+      {"name": "Sok od Maline", "description": "Sok od maline u pakovanju od 1 litre.", "type": "Sokovi"},
+      {"name": "Svježe Meso", "description": "Svježe meso u pakovanju od 500 grama.", "type": "Meso"},
+      {"name": "Sir Gouda", "description": "Sir Gouda, 200 grama.", "type": "Sir"},
+      {"name": "Kvasac Instant", "description": "Instant kvasac u pakovanju od 10 grama.", "type": "Kvasac"},
+      {"name": "Keks sa Komadićima Čokolade", "description": "Keks sa komadićima čokolade, 200 grama.", "type": "Grickalice"},
+      {"name": "Meso za Roštilj", "description": "Meso za roštilj u pakovanju od 500 grama.", "type": "Meso"},
+      {"name": "Brza Hrana", "description": "Brza hrana u pakovanju od 300 grama.", "type": "Brza hrana"},
+      {"name": "Kakao u Prahu", "description": "Kakao u prahu u pakovanju od 200 grama.", "type": "Kakao"},
+      {"name": "Pita sa Jagodama", "description": "Pita sa jagodama u pakovanju od 300 grama.", "type": "Pekarski proizvodi"}
+    ]
+    
+  
+  
+
+  const filtered = p.map(product => {
+    const { name, description, type } = product
+    return { name, description, type: 'single' }
+  });
+  
+  await Product.bulkCreate(filtered);
 
 
+  await client.bulk({
+    index: 'products',
+    body: filtered.flatMap(doc => [{ index: { _index: 'products' } }, doc])
+  });  
+}
+  module.exports = { seed, seedRoles, seedProducts };

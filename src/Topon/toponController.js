@@ -1,3 +1,4 @@
+const paginate = require('../../helpers/paginate');
 const { Topon, ToponLocation, Location } = require('../index');
 const { SKURule } = require('../index');
 const { SKU } = require('../index');
@@ -21,40 +22,50 @@ const createTopons = async (req, res) => {
 
 const getTopons = async (req, res) => {
   try {
-    const topons = await Topon.findAll();
-    res.status(200).json(topons);
+    const queryOptions = {
+      attributes: ['id', 'name'],
+    };
+
+    const paginatedTopons = await paginate(Topon, queryOptions);
+
+    res.status(200).json(paginatedTopons);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 const getToponsByLocation = async (req, res) => {
   try {
     const locationId = req.params.locationId;
 
     const loc = await Location.findByPk(locationId, {
-
-    })
+      attributes: ['id', 'name'],
+    });
 
     if (!loc) {
-      return res.status(401).json({ message: 'Location with id ' + locationId + ' not found' });
+      return res.status(401).json({ message: `Location with id ${locationId} not found` });
     }
-    const topons = await Topon.findAll({
+
+    const queryOptions = {
       attributes: ['id', 'name'],
       include: [
         {
           model: ToponLocation,
           as: 'TopLoc',
           attributes: [],
-          where: { LocationId: locationId }
-        }
-      ]
-    });
-    res.status(200).json(topons);
+          where: { LocationId: locationId },
+        },
+      ],
+      page: parseInt(req.query.page, 10) || 1,
+      limit: parseInt(req.query.limit, 10) || 10,
+    };
+
+    const paginatedTopons = await paginate(Topon, queryOptions);
+
+    res.status(200).json(paginatedTopons);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-}
+};
 const getToponsById = async (req, res) => {
   try {
     const toponsId = req.params.id;

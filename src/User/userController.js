@@ -30,7 +30,7 @@ const getUserById = async (req, res) => {
     const userId = req.params.id;
     const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(500).json({ message: 'User not found' });
     }
     res.status(200).json(user);
   } catch (error) {
@@ -44,7 +44,7 @@ const updateUser = async (req, res) => {
     const { firstName, lastName } = req.body;
     const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(500).json({ message: 'User not found' });
     }
     await user.update({ firstName, lastName });
     res.status(200).json({ message: 'User updated successfully' });
@@ -58,7 +58,7 @@ const deleteUser = async (req, res) => {
     const userId = req.params.id;
     const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(500).json({ message: 'User not found' });
     }
     await user.destroy();
     res.status(200).json({ message: 'User deleted successfully' });

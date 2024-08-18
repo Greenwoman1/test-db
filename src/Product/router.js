@@ -5,17 +5,23 @@ const { validateCreateProduct, validateResults, validateProductId, validateLocat
 const { validateProduct, validateResult } = require('./validateInput');
 
 
-router.get('/list', productController.list);
+// router.get('/list', productController.list);
+router.get('/', productController.list);
 
 router.post('/', validateProduct, validateResult, productController.createProduct);
+// nr treba hendlovat poseban create
+// router.post('/create', productController.createBasicProduct)
 
 router.get('/:productId/variants', validateProductId, validateResult, productController.getProductVariants);
 
 router.get('/:productId', validateProductId, validateResult, productController.getProductById);
 
-router.get('/location/:locationId', validateLocationId, validateResult, productController.getProductsAtLocation);
+// router.get('/location/:locationId', validateLocationId, validateResult, productController.getProductsAtLocation);
+router.get('/variants', validateLocationId, validateResult, productController.getProductsAtLocation);
+// router.get('/variants/?locationId', validateLocationId, validateResult, productController.getProductsAtLocation);
 
 router.get('/:productId/:locationId', validateProductId, validateLocationId, validateResult, productController.getProductVariantLocation);
+// router.get('/:productId?locationId', validateProductId, validateLocationId, validateResult, productController.getProductVariantLocation);
 
 
 

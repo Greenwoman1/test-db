@@ -1,4 +1,6 @@
 const { OrderItem, Order, ItemProduct, ProductT, Variant, PriceHistory, Product, Topon, Op, User, Location, Option, OrderItemCombo, ComboVariants, Balance, OrderItemOption, OrderItemTopons, VariantLocation, VariantPrice, GroupToponsMid } = require("../.");
+const client = require("../../elastics.js");
+const createError = require("../../helpers/customError.js");
 const paginate = require("../../helpers/paginate.js");
 const redisClient = require("../../redisClient");
 const sequelize = require('../../sequelize');
@@ -29,7 +31,7 @@ const getOrderDetailsById = async (req, res) => {
 const getOrders = async (req, res) => {
   try {
     const queryOptions = {
-      
+
     };
 
     const paginatedOrders = await paginate(Order, queryOptions);
@@ -107,11 +109,39 @@ const createOrder = async (req, res) => {
 
     const result = await sequelize.transaction(async (t) => {
       const o = await createOrderJson(order, t);
+
+      const documentToSave = {
+        ...order,
+        items: order.items.map(item => ({
+          productId: item.productId,
+          vlId: item.vlId,
+          type: item.type,
+          quantity: item.quantity,
+          options: item.options.map(name => ({
+            name
+          })),
+          topons: item.topons.map(topon => ({
+            toponId: topon.toponId,
+            quantity: topon.quantity,
+            // })),
+          }))
+        }))
+      };
+
+      await client.index({
+        index: 'orders',
+        id: order.id,
+        document: { ...documentToSave }
+      });
+
+      const u = await User.findByPk(order.userId);
+      await setBalance(u.id, -order.totalPrice, 'Order', 'Order created', order.id).catch(e => {
+        console.log(e);
+      });
+
       return o;
     });
 
-    const u = await User.findByPk(order.userId);
-    await setBalance(u.id, -result.totalPrice, 'Order', 'Order created', result.id);
 
     return res.status(201).json({ message: 'Order created' });
   } catch (error) {
@@ -185,15 +215,16 @@ const processOrder = async (req, res) => {
 
     // #endregion
 
-    const res = await sequelize.transaction(async (transaction) => {
+    const result = await sequelize.transaction(async (transaction) => {
       const result = await sequelize.transaction(async (t) => {
         const object = req.body;
         const prevOrder = await Order.findByPk(orderId, { transaction: t });
-        await prevOrder.update({ status: "adjustment" }, { transaction: t });
+        await prevOrder.update({ status: "adjustment" }, { transaction: t }).catch(e => console.log(e));
 
-        const newOrder = await createOrderJson(object, t);
+        const newOrder = await createOrderJson(object, t).catch(e => console.log(e));
         const tp = await calculateTotalPrice(object);
-        await newOrder.update({ totalPrice: tp, status: "done" }, { transaction: t });
+
+        await newOrder.update({ totalPrice: tp, status: "done" }, { transaction: t }).catch(e => console.log(e));
         await newOrder.save({ transaction: t });
         return newOrder;
       });
@@ -205,11 +236,14 @@ const processOrder = async (req, res) => {
       await setBalance(result.UserId, -result.totalPrice, 'order', 'Order processed', result.id);
 
 
-    })
+    }).catch((e) => {
+      console.log(e);
+    });
+
 
     return res.status(200).json({ message: 'Order processed successfully' });
   } catch (error) {
-    return res.status(error.status || 500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 

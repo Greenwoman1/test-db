@@ -1,27 +1,107 @@
+const { v4: uuidv4 } = require('uuid');
+
+// const { UUIDV4 } = require('sequelize');
+const client = require('../../elastics.js');
 const paginate = require('../../helpers/paginate.js');
 const sequelize = require('../../sequelize');
-const { Variant, Topon, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems, SKU, Category, Ingredient, IngredientLocation, ToponLocation } = require('../index');
+const { Variant, Topon, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems, SKU, Category, Ingredient, IngredientLocation, ToponLocation, VariantIngredient, VariantSKURule, LinkedVariant, IngredientSKURule, GroupTopon, GroupToponsMid, ToponSKURule } = require('../index');
 const { createProductHelper } = require('./utils/index');
+
 
 
 const list = async (req, res) => {
   try {
-    const products = await Product.findAll({ attributes: ['id', 'name', 'description', 'type'] });
-    return res.status(200).json(products);
+    const { name, description, categoryId, page = 1, limit = 5, locationId } = req.query;
+
+    const pageNumber = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
+    const pageSize = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 5;
+
+    const from = (pageNumber - 1) * pageSize;
+
+    const query = {
+      index: 'products',
+      body: {
+        query: {
+          bool: {
+            must: [
+              name ? {
+                bool: {
+                  should: [
+                    { match: { name } },
+                    { fuzzy: { name } },
+                  ]
+                }
+              } : null,
+              description ? { match: { description } } : null,
+              categoryId ? { term: { CategoryId: categoryId } } : null,
+              locationId ? { terms: { LocationIds: [locationId] } } : null
+            ].filter(Boolean)
+          }
+        },
+        from,
+        size: pageSize
+      }
+    };
+
+    const result = await client.search(query);
+    res.status(200).json(result.hits.hits.map(hit => hit._source));
+    // const queryOptions = {
+    //   attributes: ['id', 'name', 'description', 'type'],
+    // };
+
+    // const paginatedProducts = await paginate(Product, queryOptions);
+
+    // return res.status(200).json(paginatedProducts);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' + error.message });
   }
+};
+
+const createBasicProduct = async (req, res) => {
+
+
+
+  try {
+
+    const product = await sequelize.transaction(async (t) => {
+
+      const product = req.body
+
+      const { name, description, type, CategoryId } = product;
+
+
+      const newProduct = await Product.create({ name, description, type, CategoryId }, { transaction: t });
+
+
+      return newProduct
+
+    })
+
+
+    await client.index({ index: 'products', document: product })
+    res.status(200).json(product);
+  }
+
   catch (error) {
+
+    console.error(error)
+
     res.status(500).json({ message: 'Internal server error' });
   }
+
+
+
+
 }
 
 const createProduct = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-
+    // throw new Error('test');
     const product = req.body
 
     // #region validate
-    const errors = [];
+    const errors = []
 
     const categoryId = product.CategoryId;
     const locationIds = product.variants.flatMap(variant =>
@@ -33,7 +113,6 @@ const createProduct = async (req, res) => {
         location.skuRules?.SKUId ? [location.skuRules.SKUId] : []
       ) || []
     );
-    console.log(JSON.stringify(skuRuleIds, null, 2));
 
     const ingredientIds = product.variants.flatMap(variant =>
       variant.locations?.flatMap(location =>
@@ -59,17 +138,13 @@ const createProduct = async (req, res) => {
       ) || []
     );
 
-    const optionIds = product.variants.flatMap(variant =>
-      variant.locations?.flatMap(location =>
-        location.options?.flatMap(option => option.options) || []
-      ) || []
-    );
 
     const comboItemVariantLocationIds = product.variants.flatMap(variant =>
       variant.locations?.flatMap(location =>
         location.comboItems?.map(comboItem => comboItem.VariantLocationId) || []
       ) || []
     );
+
 
 
 
@@ -81,7 +156,6 @@ const createProduct = async (req, res) => {
       ingredientSkuRules,
       topons,
       toponSkuRules,
-      options,
       comboItemVariantLocations,
     ] = await Promise.all([
       Category.findByPk(categoryId),
@@ -91,7 +165,6 @@ const createProduct = async (req, res) => {
       SKU.findAll({ where: { id: ingredientSkuRuleIds } }),
       ToponLocation.findAll({ where: { id: toponIds } }),
       SKU.findAll({ where: { id: toponSkuRuleIds } }),
-      Option.findAll({ where: { id: optionIds } }),
       VariantLocation.findAll({ where: { id: comboItemVariantLocationIds } }),
     ]);
 
@@ -111,10 +184,7 @@ const createProduct = async (req, res) => {
     const existingSkuRuleIds = skuRules.map(s => s.id);
     const missingSkuRuleIds = skuRuleIds.filter(id => !existingSkuRuleIds.includes(id));
     if (missingSkuRuleIds.length > 0) {
-      console.log(missingSkuRuleIds);
-      console.log(skuRuleIds);
-      console.log(skuRules);
-      console.log(existingSkuRuleIds);
+
       errors.push({ msg: `SKU Rules with IDs (${missingSkuRuleIds.join(', ')}) do not exist`, param: 'skuRuleIds', location: 'body' });
     }
 
@@ -142,12 +212,6 @@ const createProduct = async (req, res) => {
       errors.push({ msg: `Topon SKU Rules with IDs (${missingToponSkuRuleIds.join(', ')}) do not exist`, param: 'toponSkuRuleIds', location: 'body' });
     }
 
-    const existingOptionIds = options.map(o => o.id);
-    const missingOptionIds = optionIds.filter(id => !existingOptionIds.includes(id));
-    if (missingOptionIds.length > 0) {
-      errors.push({ msg: `Options with IDs (${missingOptionIds.join(', ')}) do not exist`, param: 'optionIds', location: 'body' });
-    }
-
     const existingComboItemVariantLocationIds = comboItemVariantLocations.map(c => c.id);
     const missingComboItemVariantLocationIds = comboItemVariantLocationIds.filter(id => !existingComboItemVariantLocationIds.includes(id));
     if (missingComboItemVariantLocationIds.length > 0) {
@@ -157,20 +221,41 @@ const createProduct = async (req, res) => {
 
 
     if (errors.length > 0) {
-      return res.status(401).json({ errors: errors });
+      return res.status(400).json({ errors: errors });
     }
     //  #endregion 
 
+
     const result = await sequelize.transaction(async (t) => {
 
-
-
       const product = await createProductHelper(req.body, t);
+      await client.index({
+        index: 'products',
+        id: product.id,
+        document: { id: product.id, name: product.name, description: product.description, type: product.type, CategoryId: product.CategoryId, LocationIds: locationIds }
+      })
+
       return product
+    }).then((result) => {
+
+      return res.status(201).json(result);
+    }).catch((error) => {
+      return res.status(500).json(error)
     })
-    return res.status(201).json(result);
+
+
+
   } catch (error) {
-    return res.status(error.status || 500).json({ message: error.message });
+
+    // return res.status(201).json(result);
+    const rayId = uuidv4();
+    
+
+
+    // save error to redis or other db
+    // mysql.save(error.message, rayId )
+
+    return res.status(500).json({ message: 'Internal server error', rayId });
   }
 }
 
@@ -184,7 +269,7 @@ const getProductById = async (req, res) => {
     });
 
     if (!product) {
-      res.status(401).json({ message: 'Product with id ' + productId + ' not found' });
+      res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
       return
     }
 
@@ -199,15 +284,11 @@ const getProductVariants = async (req, res) => {
   try {
     const productId = req.params.productId;
 
-    const product = await Product.findByPk(productId, {
-      attributes: ['id', 'name', 'description', 'type'],
-    });
-
+    const product = await Product.findByPk(productId, { attributes: ['id', 'name', 'description', 'type'], });
     if (!product) {
-      res.status(401).json({ message: 'Product with id ' + productId + ' not found' });
+      res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
       return
     }
-
     const variants = await Variant.findAll({
       where: { ProductId: productId },
       attributes: ['id', 'name'],
@@ -233,7 +314,7 @@ const getProductVariantLocation = async (req, res) => {
     });
 
     if (!product) {
-      res.status(401).json({ message: 'Product with id ' + productId + ' not found' });
+      res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
       return
     }
 
@@ -243,7 +324,7 @@ const getProductVariantLocation = async (req, res) => {
     })
 
     if (!location) {
-      res.status(401).json({ message: 'Location with id ' + locationId + ' not found' });
+      res.status(400).json({ message: 'Location with id ' + locationId + ' not found' });
       return
     }
 
@@ -269,14 +350,14 @@ const getProductVariantLocation = async (req, res) => {
 }
 
 const getProductsAtLocation = async (req, res) => {
-  const locationId = req.params.locationId;
+  const { locationId } = req.query;
 
   const loc = await Location.findByPk(locationId, {
     attributes: ['id', 'name'],
   });
 
   if (!loc) {
-    return res.status(401).json({ message: `Location with id ${locationId} not found` });
+    return res.status(400).json({ message: `Location with id ${locationId} not found` });
   }
 
   try {
@@ -304,6 +385,40 @@ const getProductsAtLocation = async (req, res) => {
 
 
 
+const getProductDetails = async (req, res) => {
+  const productId = req.params.productId;
+
+  const product = await Product.findByPk(productId, {
+    include: [
+      {
+        model: Variant,
+
+        include: [
+          {
+            model: VariantLocation, include: [{ model: Location },
+            { model: VariantSKURule },
+            { model: VariantIngredient, include: [{ model: IngredientSKURule }] },
+            { model: GroupTopon, include: [{ model: GroupToponsMid, include: [{ model: ToponSKURule }] }] },
+            { model: GroupOptions, include: [{ model: Option }] }
+
+            ]
+          }
+        ]
+      },
+      {
+        model: LinkedVariant, include: [{ model: VariantLocation, as: 'LinkVarLoc', include },
 
 
-module.exports = { list, getProductById, getProductVariants, getProductVariantLocation, getProductsAtLocation, createProduct }
+        ]
+      },
+
+    ]
+  }
+
+  );
+}
+
+
+
+
+module.exports = { list, getProductById, getProductVariants, getProductVariantLocation, getProductsAtLocation, createProduct, createBasicProduct }

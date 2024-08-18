@@ -535,7 +535,6 @@ const updateSKU = async (items, t) => {
     const sku = await SKU.findOne({
       where: { id: i.SKUID }
     }, { transaction: t });
-
     skuPromises.push(
       sku.update({ stock: sku.stock - i.quantity }, { transaction: t })
     );

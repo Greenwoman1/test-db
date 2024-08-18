@@ -1,6 +1,10 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../sequelize');
 const { Op } = require('sequelize');
+const Variant = require('../Variant/Variant');
+const Category = require('../Category/Category');
+const VariantLocation = require('../VariantLocation/VariantLocation');
+const client = require('../../elastics');
 
 class Product extends Model {
   static associateModel(model) {
@@ -39,6 +43,7 @@ class Product extends Model {
           allowNull: false,
         },
 
+
       },
       {
         sequelize,
@@ -46,14 +51,36 @@ class Product extends Model {
         timestamps: true,
         createdAt: false,
         updatedAt: 'updateTimestamp',
+        // hooks: {
+        //   afterCreate: async (product) => {
 
-      },
+        //     const fetchProductDetails = async (productId) => {
+        //       const product = await Product.findByPk(productId, {
+
+        //       });
+        //       return product
+        //     };
+        //     const indexDocumentInElastic = async (index, id, body) => {
+        //       await client.index({
+        //         index,
+        //         id,
+        //         document: { ...body }
+        //       });
+        //     };
+
+
+        //     const productData = await fetchProductDetails(product.id);
+        //     await indexDocumentInElastic('products', product.id, productData);
+        //   }
+        // }
+      }
     );
 
 
 
 
   }
+
 
 
 }

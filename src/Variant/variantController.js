@@ -31,7 +31,7 @@ const getVariantLocations = async (req, res) => {
 
     res.status(200).json(locations);
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -74,7 +74,7 @@ const getVariantAddons = async (req, res) => {
 
     res.status(200).json(variantLocation);
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -97,18 +97,22 @@ const getVariantLocationIngredient = async (req, res) => {
 
     res.status(200).json(ing);
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
 const getAvilableVariants = async (req, res) => {
   try {
-    const availableVariants = await Variant.findAll({
-      logging: console.log,
+    const { page = 1, limit = 10 } = req.query;
+
+    const availableVariants = await paginate(Variant, {
+      page,
+      limit,
       attributes: [
         'id',
         'name',
-        [literal('"VarLoc->Location"."name"'), 'Location']],
+        [literal('"VarLoc->Location"."name"'), 'Location']
+      ],
       include: [
         {
           model: VariantLocation,
@@ -135,11 +139,7 @@ const getAvilableVariants = async (req, res) => {
                   where: {
                     [Op.and]: [
                       { allowMinus: false },
-                      {
-                        stock: {
-                          [Op.gt]: 0
-                        }
-                      }
+                      { stock: { [Op.gt]: 0 } }
                     ]
                   }
                 }
@@ -172,16 +172,8 @@ const getAvilableVariants = async (req, res) => {
       ],
       where: {
         [Op.or]: [
-          {
-            '$VarLoc.VarLocRule.VSKU.id$': {
-              [Op.ne]: null
-            }
-          },
-          {
-            '$VarLoc.VarLocIng.VarIngRule.InSku.id$': {
-              [Op.ne]: null
-            }
-          }
+          { '$VarLoc.VarLocRule.VSKU.id$': { [Op.ne]: null } },
+          { '$VarLoc.VarLocIng.VarIngRule.InSku.id$': { [Op.ne]: null } }
         ]
       },
       group: ['Variant.id', 'Variant.name', 'VarLoc->Location.id', 'VarLoc->Location.name'],
@@ -190,7 +182,7 @@ const getAvilableVariants = async (req, res) => {
 
     res.status(200).json(availableVariants);
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" + error.message });
+    res.status(500).json({ message: "Internal server error: " + error.message });
   }
 };
 
@@ -216,7 +208,7 @@ const uploadImage = async (req, res) => {
 
     res.status(201).json({ createdImages, message: "Data uploaded successfully" });
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -229,7 +221,7 @@ const getPrice = async (req, res) => {
     const price = await variant.getPrice(date);
     res.status(200).json(price);
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -246,7 +238,7 @@ const setPrice = async (req, res) => {
 
     res.status(200).json({ message: 'Price set successfully' });
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 

@@ -20,9 +20,11 @@
   },
   "homepage": "https://github.com/Greenwoman1/test-db#readme",
   "dependencies": {
+    "@elastic/elasticsearch": "^8.15.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "express-validator": "^7.1.0",
