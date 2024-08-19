@@ -1,5 +1,5 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 const { Op } = require('sequelize');
 class VariantPrice extends Model {
   static initModel() {

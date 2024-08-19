@@ -1,5 +1,5 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class VariantLocation extends Model {
   static initModel() {
@@ -8,20 +8,20 @@ class VariantLocation extends Model {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: UUIDV4
+          defaultValue: UUIDV4,
+          allowNull: false,
         },
         disabled: {
           type: DataTypes.BOOLEAN,
-          allowNull: false
-        }
-
-
+          allowNull: false,
+        },
       },
-
       {
         sequelize,
         modelName: 'VariantLocation',
         timestamps: true,
+        createdAt: true,  // Ensure you want createdAt and updatedAt fields
+        updatedAt: 'updateTimestamp', // Customizing updatedAt field if necessary
       }
     );
   }

@@ -1,5 +1,5 @@
 const { Balance } = require('../..');
-const redisClient = require('../redisClient');
+const redisClient = require('../clients/redisClient');
 
 const { getBalance } = require('./utils/index');
 

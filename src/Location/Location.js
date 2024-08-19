@@ -1,5 +1,5 @@
-const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class Location extends Model {
   static initModel() {
@@ -8,15 +8,22 @@ class Location extends Model {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: UUIDV4
+          defaultValue: UUIDV4,
+          allowNull: false,
         },
         name: {
           type: DataTypes.STRING(64),
+          allowNull: false,
           validate: {
-            notEmpty: true,
-            min: 8,
-          }
-        }
+            notEmpty: {
+              msg: 'Name is required and cannot be empty',
+            },
+            len: {
+              args: [4, 64],
+              msg: 'Name must be between 8 and 64 characters long',
+            },
+          },
+        },
       },
       {
         sequelize,
@@ -33,7 +40,6 @@ class Location extends Model {
     Location.hasMany(models.VariantLocation, { as: 'VarLoc', foreignKey: 'LocationId' });
     Location.belongsToMany(models.Topon, { through: 'ToponLocation' });
     Location.belongsToMany(models.Ingredient, { through: 'IngredientLocation' });
-
   }
 }
 

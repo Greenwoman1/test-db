@@ -1,6 +1,6 @@
 const createError = require('../../../helpers/customError');
-const {redisClient} = require('../../../redisClient');
-const sequelize = require('../../../sequelize');
+const {redisClient} = require('../../../clients/redisClient');
+const sequelize = require('../../../clients/sequelize');
 const { Balance } = require('../../index');
 
 

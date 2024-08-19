@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path'); // Add this line
 const bodyParser = require('body-parser'); // Add this line
-const sequelize = require('./sequelize');
+const sequelize = require('./clients/sequelize');
 // // const client = require('./elastics');
 // const variantRoute = require('./src/Variant/variantRoute');
 // const productRoute = require('./src/Product/productRoute');
@@ -12,7 +12,7 @@ const sequelize = require('./sequelize');
 // const locationRoute = require('./src/Location/locationRoute');
 // const comboRoute = require('./src/Combo/comboRoute');
 // const orderRoute = require('./src/Order/route');
-const redisClient = require('./redisClient');
+const redisClient = require('./clients/redisClient');
 
 const mainRouter = require('./src/router');
 
@@ -21,7 +21,7 @@ const init = require('./helpers/initModels');
 const cors = require('cors');
 
 const multer = require("multer");
-const client = require('./elastics');
+const client = require('./clients/elastics');
 
 const app = express();
 app.use(cors());
@@ -148,8 +148,8 @@ app.listen(PORT, async () => {
 
     // await createIndex("posts");
 // await seedProducts();
-    // await seed();
-    // await seedRoles();
+//     await seed();
+//     await seedRoles();
     // await test();
     console.log('Database synchronized.');
   } catch (error) {

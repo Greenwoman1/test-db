@@ -1,24 +1,24 @@
-const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class GroupTopon extends Model {
-  static associateModel(models) {
-
-    GroupTopon.belongsTo(models.VariantLocation)
-    GroupTopon.hasMany(models.GroupToponsMid)
-  }
-
   static initModel() {
     GroupTopon.init(
       {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: DataTypes.UUIDV4
+          defaultValue: UUIDV4
         },
         rules: {
-          type: DataTypes.JSON
-
+          type: DataTypes.JSON,
+          allowNull: false,
+          validate: {
+            notEmpty: {
+              msg: 'Rules cannot be empty'
+            },
+            
+          }
         },
       },
       {
@@ -28,6 +28,11 @@ class GroupTopon extends Model {
         createdAt: false,
       },
     );
+  }
+
+  static associateModel(models) {
+    GroupTopon.belongsTo(models.VariantLocation);
+    GroupTopon.hasMany(models.GroupToponsMid);
   }
 }
 

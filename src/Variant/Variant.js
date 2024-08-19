@@ -1,20 +1,15 @@
-const { DataTypes, Model, UUIDV4, BelongsTo } = require('sequelize');
-const sequelize = require('../../sequelize');
-const { Op } = require('sequelize');
+const { DataTypes, Model, UUIDV4, Op } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class Variant extends Model {
 
-
   static associateModel(models) {
     Variant.belongsTo(models.Product);
-    // Variant.hasMany(models.ComboVariants, { foreignKey: 'VariantId' });
     Variant.belongsToMany(models.Location, { through: 'VariantLocation' });
     Variant.hasMany(models.VariantLocation, { as: 'VarLoc', foreignKey: 'VariantId' });
     Variant.hasMany(models.LinkedVariant, { foreignKey: 'VariantId', as: 'LinkVar' });
-    Variant.hasMany(models.VariantPrice)
-
+    Variant.hasMany(models.VariantPrice, { foreignKey: 'VariantId' }); // Ensure VariantPrice has the correct foreign key
   }
-
 
   static initModel() {
     Variant.init(
@@ -29,10 +24,9 @@ class Variant extends Model {
           type: DataTypes.STRING(64),
           allowNull: false,
           validate: {
-            min: 4
+            len: [4, 64], // Ensure the name is between 4 and 64 characters
           },
-        }
-
+        },
       },
       {
         sequelize,
@@ -45,16 +39,15 @@ class Variant extends Model {
   }
 
   async getPrice(date) {
-
     try {
-      const price = await PriceHistory.findOne({
+      const price = await this.constructor.sequelize.models.PriceHistory.findOne({
         where: {
           itemId: this.id,
           createdAt: {
-            [Op.lte]: date
-          }
+            [Op.lte]: date,
+          },
         },
-        order: [['createdAt', 'DESC']]
+        order: [['createdAt', 'DESC']],
       });
       return price ? price.price : 0;
     } catch (error) {

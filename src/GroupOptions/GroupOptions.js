@@ -1,7 +1,5 @@
-const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
-const Variant = require('../Variant/Variant');
-const Option = require('../Option/Option');
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class GroupOption extends Model {
   static initModel() {
@@ -16,18 +14,25 @@ class GroupOption extends Model {
           type: DataTypes.STRING(64),
           allowNull: false,
           validate: {
-            min: 4
+            notEmpty: {
+              msg: 'Name cannot be empty'
+            },
+            len: {
+              args: [4, 64],
+              msg: 'Name must be between 4 and 64 characters'
+            }
           }
         },
-
         rules: {
           type: DataTypes.STRING(64),
           allowNull: false,
           validate: {
-            min: 4
+            notEmpty: {
+              msg: 'Rules cannot be empty'
+            }
+           
           }
         }
-
       },
       {
         sequelize,

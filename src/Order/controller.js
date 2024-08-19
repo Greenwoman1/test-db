@@ -1,9 +1,9 @@
 const { OrderItem, Order, ItemProduct, ProductT, Variant, PriceHistory, Product, Topon, Op, User, Location, Option, OrderItemCombo, ComboVariants, Balance, OrderItemOption, OrderItemTopons, VariantLocation, VariantPrice, GroupToponsMid } = require("../.");
-const client = require("../../elastics.js");
+const client = require("../../clients/elastics.js");
 const createError = require("../../helpers/customError.js");
 const paginate = require("../../helpers/paginate.js");
-const redisClient = require("../../redisClient");
-const sequelize = require('../../sequelize');
+const redisClient = require("../../clients/redisClient");
+const sequelize = require('../../clients/sequelize');
 const { getBalance, setBalance } = require("../Balance/utils");
 const { getVariantSKU } = require("../Variant/utils");
 const { create, update } = require("./Order");

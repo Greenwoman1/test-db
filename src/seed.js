@@ -3,7 +3,7 @@ const { getOrderDetails, getOrderSKURules, createOrderJson, updateSKU } = requir
 const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem, VariantPrice, Ingredient, Role, Permissions, UserRole, UserPermission, RolePermission } = require('./index');
 
 const { Op, fn, col, literal } = require('sequelize');
-const client = require('../elastics');
+const client = require('../clients/elastics');
 
 
 
@@ -95,7 +95,7 @@ const addToponToLocations = async (topons, location) => {
 
 
 const createGroup = async (name, variantLocation) => {
-  return await GroupTopon.create({ name: name, VariantLocationId: variantLocation.id });
+  return await GroupTopon.create({ name: name, VariantLocationId: variantLocation.id, rules: "{select: multipleselect}" });
 }
 
 const addToponToVariantLocation = async (group, toponLocation, sku) => {
@@ -858,7 +858,7 @@ const addOrderItem = async (order, items) => {
 
   let OrderItems = [];
   for (const item of items) {
-    const OI = await OrderItem.create({ OrderId: order.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity });
+    const OI = await OrderItem.create({ OrderId: order.id, VariantLocationId: item.vlId, ProductId: item.productId, quantity: item.quantity || 1 });
     OrderItems.push(OI);
   }
   return OrderItems
@@ -1070,7 +1070,9 @@ const createProdct = async (settings) => {
           const gt = await GroupTopon.create({ VariantLocationId: varloc.id, rules: interfaceRules })
 
           for (const t of topons) {
-            const gtmid = await GroupToponsMid.create({ GroupToponId: gt.id, ToponLocationId: t.ToponId, min: minTopon, max: maxTopon, default: 0, disabled: false })
+            console.log(minTopon, maxTopon)
+            
+            const gtmid = await GroupToponsMid.create({ GroupToponId: gt.id, ToponLocationId: t.ToponId, min: minTopon || 0, max: maxTopon || 0, default: 0, disabled: false })
 
             const { name, unit, quantity, disabled, SKUId } = t.skuRules
 

@@ -1,12 +1,12 @@
 const { v4: uuidv4 } = require('uuid');
 
 // const { UUIDV4 } = require('sequelize');
-const client = require('../../elastics.js');
+const client = require('../../clients/elastics.js');
 const paginate = require('../../helpers/paginate.js');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 const { Variant, Topon, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems, SKU, Category, Ingredient, IngredientLocation, ToponLocation, VariantIngredient, VariantSKURule, LinkedVariant, IngredientSKURule, GroupTopon, GroupToponsMid, ToponSKURule } = require('../index');
 const { createProductHelper } = require('./utils/index');
-const { setAsync } = require('../../redisClient');
+const { setAsync } = require('../../clients/redisClient');
 const handleError = require('../../helpers/serverError.js');
 
 

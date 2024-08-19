@@ -1,4 +1,4 @@
-const sequelize = require("../sequelize");
+const sequelize = require("../clients/sequelize");
 const {
   Balance,
   GroupOptions,

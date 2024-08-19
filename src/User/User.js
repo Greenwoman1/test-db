@@ -1,7 +1,6 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 const bcrypt = require('bcrypt');
-
 
 class User extends Model {
   static initModel() {
@@ -16,7 +15,7 @@ class User extends Model {
         firstName: {
           type: DataTypes.STRING,
           allowNull: false,
-          unique: true
+          unique: true, // Ensure uniqueness if needed
         },
         lastName: {
           type: DataTypes.STRING,
@@ -30,30 +29,23 @@ class User extends Model {
         email: {
           type: DataTypes.STRING,
           allowNull: false,
+          unique: true, // Assuming email should be unique
         },
         role: {
           type: DataTypes.STRING,
           allowNull: false,
-          defaultValue: 'user'
+          defaultValue: 'user',
         },
         password: {
           type: DataTypes.STRING,
           allowNull: false,
-          
         },
         shippingAddress: {
-          type: DataTypes.STRING
+          type: DataTypes.STRING,
         },
-        /// posebna tabela
-
-      
-        
-        /// id paymenta 
-
-        /// payment tabela: method, userId, primary, active 
-
-        
-
+        // Additional fields for future use
+        // paymentId: { type: DataTypes.UUID }, // Example placeholder
+        // paymentTable: { method: DataTypes.STRING, userId: DataTypes.UUID, primary: DataTypes.BOOLEAN, active: DataTypes.BOOLEAN }, // Example placeholder
       },
       {
         sequelize,
@@ -63,13 +55,11 @@ class User extends Model {
         updatedAt: 'updateTimestamp',
         hooks: {
           beforeCreate: async (user) => {
-            const hashedPassword = await bcrypt.hash(user.password, 10);
-            user.password = hashedPassword;
+            user.password = await bcrypt.hash(user.password, 10);
           },
           beforeBulkCreate: async (users) => {
             for (const user of users) {
-              const hashedPassword = await bcrypt.hash(user.password, 10);
-              user.password = hashedPassword;
+              user.password = await bcrypt.hash(user.password, 10);
             }
           },
         },
@@ -82,15 +72,10 @@ class User extends Model {
     User.belongsToMany(models.Location, { through: 'UserLocation' });
     User.hasMany(models.Balance);
     User.hasMany(models.UserPayment);
-
     User.hasMany(models.WaiterBreak);
-
-
-
     User.belongsToMany(models.Role, { through: 'UserRole' });
     User.belongsToMany(models.Permissions, { through: 'UserPermission' });
     User.hasOne(models.UserAdditionalInfo);
-  
   }
 }
 

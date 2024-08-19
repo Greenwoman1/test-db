@@ -1,20 +1,11 @@
-const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
-const { Op } = require('sequelize');
-const Variant = require('../Variant/Variant');
-const Category = require('../Category/Category');
-const VariantLocation = require('../VariantLocation/VariantLocation');
-const client = require('../../elastics');
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
+const client = require('../../clients/elastics');
 
 class Product extends Model {
-  static associateModel(model) {
-    Product.hasMany(model.Variant);
-    Product.belongsTo(model.Category);
-
-
-
-
-
+  static associateModel(models) {
+    Product.hasMany(models.Variant);
+    Product.belongsTo(models.Category);
   }
 
   static initModel() {
@@ -26,24 +17,21 @@ class Product extends Model {
           primaryKey: true,
           allowNull: false,
         },
-
         name: {
           type: DataTypes.STRING(64),
           validate: {
-            min: 4
+            len: [4, 64], 
           },
           allowNull: false,
         },
         description: {
           type: DataTypes.TEXT,
-          allowNull: false
+          allowNull: false,
         },
         type: {
           type: DataTypes.STRING(16),
           allowNull: false,
         },
-
-
       },
       {
         sequelize,
@@ -51,38 +39,32 @@ class Product extends Model {
         timestamps: true,
         createdAt: false,
         updatedAt: 'updateTimestamp',
-        // hooks: {
-        //   afterCreate: async (product) => {
+        hooks: {
+          afterCreate: async (product) => {
+            // Funkcija za preuzimanje detalja proizvoda
+            const fetchProductDetails = async (productId) => {
+              return await Product.findByPk(productId, {
+                attributes: ['id', 'name', 'description', 'type'],
+              });
+            };
 
-        //     const fetchProductDetails = async (productId) => {
-        //       const product = await Product.findByPk(productId, {
+            // Funkcija za indeksiranje dokumenta u Elasticsearch
+            const indexDocumentInElastic = async (index, id, body) => {
+              await client.index({
+                index,
+                id,
+                document: { ...body },
+              });
+            };
 
-        //       });
-        //       return product
-        //     };
-        //     const indexDocumentInElastic = async (index, id, body) => {
-        //       await client.index({
-        //         index,
-        //         id,
-        //         document: { ...body }
-        //       });
-        //     };
-
-
-        //     const productData = await fetchProductDetails(product.id);
-        //     await indexDocumentInElastic('products', product.id, productData);
-        //   }
-        // }
+            // Preuzimanje i indeksiranje podataka proizvoda
+            const productData = await fetchProductDetails(product.id);
+            await indexDocumentInElastic('products', product.id, productData);
+          },
+        },
       }
     );
-
-
-
-
   }
-
-
-
 }
 
 module.exports = Product;

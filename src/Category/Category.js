@@ -1,7 +1,5 @@
-
-const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
-const { Op } = require('sequelize');
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class Category extends Model {
   static initModel() {
@@ -12,25 +10,30 @@ class Category extends Model {
         primaryKey: true
       },
       name: {
-        type: DataTypes.STRING,
-        allowNull: false
-      },
-
-    },
-      {
-        sequelize,
-        modelName: 'Category',
-        timestamps: false
+        type: DataTypes.STRING(255),
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: 'Name cannot be empty'
+          },
+          len: {
+            args: [1, 255],
+            msg: 'Name must be between 1 and 255 characters'
+          }
+        }
       }
-    );
-  }
-  static associateModel(models) {
-    Category.hasMany(models.Product)
-    Category.hasMany(models.Category, { as : 'SubCategories' , foreignKey: 'ParentId' })
+    },
+    {
+      sequelize,
+      modelName: 'Category',
+      timestamps: false
+    });
   }
 
+  static associateModel(models) {
+    Category.hasMany(models.Product);
+    Category.hasMany(models.Category, { as: 'SubCategories', foreignKey: 'ParentId' });
+  }
 }
 
-
-
-module.exports = Category
+module.exports = Category;

@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { setAsync } = require('../redisClient');
+const { setAsync } = require('../clients/redisClient');
 
 const handleError = async (error, res) => {
   const rayId = uuidv4();

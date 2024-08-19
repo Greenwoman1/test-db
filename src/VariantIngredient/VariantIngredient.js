@@ -1,5 +1,5 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class VariantIngredient extends Model {
   static initModel() {

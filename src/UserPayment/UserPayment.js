@@ -1,5 +1,5 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 const bcrypt = require('bcrypt');
 const User = require('../User/User');
 const Payment = require('../Payment/Payment');

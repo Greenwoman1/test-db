@@ -1,7 +1,5 @@
-const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
-const { getSKUById } = require('../SKU/skuController');
-const SKU = require('../SKU/SKU');
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class VariantSKURule extends Model {
   static initModel() {
@@ -24,28 +22,29 @@ class VariantSKURule extends Model {
         quantity: {
           type: DataTypes.INTEGER,
           allowNull: false,
+          validate: {
+            min: 0,  // Ensures quantity is non-negative
+          },
         },
         disabled: {
           type: DataTypes.BOOLEAN,
           allowNull: false,
+          defaultValue: false,  // Default value for 'disabled'
         },
-
       },
       {
         sequelize,
         modelName: 'VariantSKURule',
         timestamps: true,
         createdAt: false,
+        updatedAt: 'updateTimestamp',
       }
     );
   }
 
   static associateModel(models) {
-
     VariantSKURule.belongsTo(models.SKU, { as: 'VSKU', foreignKey: 'SKUId' });
     VariantSKURule.belongsTo(models.VariantLocation, { as: 'VarLocRule', foreignKey: 'VariantLocationId' });
-
-
   }
 }
 

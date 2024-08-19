@@ -1,17 +1,11 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class OrderItemTopons extends Model {
-
-
   static associateModel(models) {
-
     OrderItemTopons.belongsTo(models.OrderItem);
     OrderItemTopons.belongsTo(models.GroupToponsMid);
-
-
   }
-
 
   static initModel() {
     OrderItemTopons.init(
@@ -25,9 +19,17 @@ class OrderItemTopons extends Model {
         quantity: {
           type: DataTypes.INTEGER,
           allowNull: true,
-          defaultValue: 1
-        }
-
+          defaultValue: 1,
+          validate: {
+            isInt: {
+              msg: 'Quantity must be an integer',
+            },
+            min: {
+              args: [1],
+              msg: 'Quantity must be at least 1',
+            },
+          },
+        },
       },
       {
         sequelize,
@@ -38,8 +40,6 @@ class OrderItemTopons extends Model {
       }
     );
   }
-
-
 }
 
 module.exports = OrderItemTopons;

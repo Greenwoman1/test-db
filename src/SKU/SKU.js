@@ -1,15 +1,14 @@
-const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class SKU extends Model {
   static associateModel(models) {
-
     SKU.hasMany(models.VariantSKURule, { as: 'VSKU', foreignKey: 'SKUId' });
     SKU.hasMany(models.IngredientSKURule, { as: 'IKU', foreignKey: 'SKUId' });
     SKU.belongsToMany(models.Topon, { through: 'ToponSKUs', foreignKey: 'SKUId' });
     SKU.belongsToMany(models.Variant, { through: 'VariantSKUs', foreignKey: 'SKUId' });
-    SKU.belongsTo(models.Warehouse);
-    SKU.hasMany(models.ToponSKURule, { as: 'TSKU', foreignKey: 'SKUId' });
+    SKU.belongsTo(models.Warehouse, { foreignKey: 'WarehouseId' });
+    SKU.hasMany(models.ToponSKURule, { as: 'TSKU', foreignKey: 'SKUId' }); // Ovaj alias može biti dodeljen samo jednom
   }
 
   static initModel() {
@@ -24,6 +23,9 @@ class SKU extends Model {
         name: {
           type: DataTypes.STRING,
           allowNull: false,
+          validate: {
+            len: [1, 255], 
+          },
         },
         stock: {
           type: DataTypes.INTEGER,
@@ -39,7 +41,8 @@ class SKU extends Model {
         modelName: 'SKU',
         timestamps: true,
         createdAt: false,
-      },
+        updatedAt: 'updateTimestamp', 
+      }
     );
   }
 }

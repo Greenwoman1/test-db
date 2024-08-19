@@ -1,26 +1,15 @@
 const { DataTypes, Model, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 const Order = require('../Order/Order');
 
 class OrderItem extends Model {
-
-
   static associateModel(models) {
     OrderItem.belongsTo(models.Order);
     OrderItem.belongsTo(models.VariantLocation);
-    // OrderItem.belongsToMany(models.GroupToponsMid, { through: 'OrderItemTopons', as: 'OIT' });
-    // OrderItem.belongsToMany(models.Option, { through: 'OrderItemOption', as : 'OIO' });
     OrderItem.hasMany(models.OrderItemOption);
     OrderItem.hasMany(models.OrderItemTopons);
-
     OrderItem.hasMany(models.OrderItemIngredient);
-
-
-
-
-
   }
-
 
   static initModel() {
     OrderItem.init(
@@ -33,13 +22,22 @@ class OrderItem extends Model {
         },
         quantity: {
           type: DataTypes.INTEGER,
+          allowNull: false,
+          validate: {
+            isInt: {
+              msg: 'Quantity must be an integer',
+            },
+            min: {
+              args: [1],
+              msg: 'Quantity must be at least 1',
+            },
+          },
         },
         ProductId: {
           type: DataTypes.UUID,
           allowNull: false,
+          
         },
-        
-
       },
       {
         sequelize,
@@ -50,8 +48,6 @@ class OrderItem extends Model {
       }
     );
   }
-
-
 }
 
 module.exports = OrderItem;

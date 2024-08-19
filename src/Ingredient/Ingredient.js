@@ -1,13 +1,11 @@
-const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
-const { Op } = require('sequelize');
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class Ingredient extends Model {
-
-
   static associateModel(models) {
-    Ingredient.hasMany(models.IngredientLocation, { as : 'InLoc', foreignKey: 'IngredientId' });
+    Ingredient.hasMany(models.IngredientLocation, { as: 'InLoc', foreignKey: 'IngredientId' });
   }
+
   static initModel() {
     Ingredient.init(
       {
@@ -20,9 +18,16 @@ class Ingredient extends Model {
         name: {
           type: DataTypes.STRING,
           allowNull: false,
+          validate: {
+            notNull: {
+              msg: 'Name is required'
+            },
+            len: {
+              args: [3, 255],
+              msg: 'Name must be between 3 and 255 characters long'
+            }
+          }
         },
-
-
       },
       {
         sequelize,
@@ -32,9 +37,6 @@ class Ingredient extends Model {
       }
     );
   }
-
-
-
 }
 
 module.exports = Ingredient;

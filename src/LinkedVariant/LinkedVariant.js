@@ -1,5 +1,5 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class LinkedVariant extends Model {
   static initModel() {
@@ -12,10 +12,21 @@ class LinkedVariant extends Model {
         },
         quantity: {
           type: DataTypes.INTEGER,
-          defaultValue: 1
+          defaultValue: 1,
+          allowNull: false,
+          validate: {
+            notNull: {
+              msg: 'Quantity is required',
+            },
+            isInt: {
+              msg: 'Quantity must be an integer',
+            },
+            min: {
+              args: [1],
+              msg: 'Quantity must be at least 1',
+            },
+          },
         },
-        
-
       },
 
       {

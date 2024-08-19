@@ -1,7 +1,7 @@
 
 
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class UserPermission extends Model {
   static initModel() {

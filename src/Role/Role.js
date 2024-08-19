@@ -1,7 +1,5 @@
-
-
-const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
-const sequelize = require('../../sequelize');
+const { DataTypes, Model, UUIDV4 } = require('sequelize');
+const sequelize = require('../../clients/sequelize');
 
 class Role extends Model {
   static initModel() {
@@ -10,22 +8,23 @@ class Role extends Model {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: UUIDV4
+          defaultValue: UUIDV4,
+          allowNull: false,
         },
         description: {
           type: DataTypes.STRING(64),
           allowNull: false,
           validate: {
-            min: 4
-          }
+            len: [4, 64], // Validacija da opis bude između 4 i 64 karaktera
+          },
         },
         name: {
           type: DataTypes.STRING(64),
           allowNull: false,
           validate: {
-            min: 4
-          }
-        }
+            len: [4, 64], // Validacija da ime bude između 4 i 64 karaktera
+          },
+        },
       },
       {
         sequelize,
@@ -36,10 +35,11 @@ class Role extends Model {
   }
 
   static associateModel(models) {
+    // M:N odnos između Role i User
     Role.belongsToMany(models.User, { through: 'UserRole' });
 
+    // M:N odnos između Role i Permissions
     Role.belongsToMany(models.Permissions, { through: 'RolePermission' });
-
   }
 }
 
