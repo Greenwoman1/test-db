@@ -43,7 +43,6 @@ const OrderItem = require('./OrderItem/OrderItem');
 
 module.exports = {
   Balance,
-
   GroupOptions,
   GroupTopon,
   GroupToponsMid,
@@ -53,15 +52,12 @@ module.exports = {
   Option,
   Order,
   OrderItem,
-  // OrderItemCombo,
   ToponPrice,
   VariantPrice,
-  
   Product,
   OrderItemOption,
   OrderItemTopons,
   SKU,
-
   VariantSKURule, 
   IngredientSKURule,
   Topon,
@@ -74,24 +70,18 @@ module.exports = {
   Warehouse,
   WarehouseLocation,
   LinkedVariant,
-
   ToponLocation,
   IngredientLocation,
   Category,
   UserPayment,
-
   Payment,
   WaiterBreak,
   Permissions,
   Role,
   RolePermission,
-
-  
   UserRole,
-
   UserPermission,
   UserAdditionalInfo,
-
   OrderItemIngredient
 
 

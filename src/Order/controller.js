@@ -8,7 +8,11 @@ const { getBalance, setBalance } = require("../Balance/utils");
 const { getVariantSKU } = require("../Variant/utils");
 const { create, update } = require("./Order");
 
+const { Transaction } = require('sequelize');
+
+
 const { createOrderJson, getOrderDetails, getOrderTotalPrice, orderAdjustments, updateSKU, calculateTotalPrice } = require("./utils");
+const handleError = require("../../helpers/serverError.js");
 
 
 
@@ -21,30 +25,79 @@ const getOrderDetailsById = async (req, res) => {
       throw createError(`Order with ID (${orderId}) not found`, 404);
     }
 
-    const od = await getOrderDetails(orderId);
-    return res.status(200).json(od);
-  } catch (error) {
-    return res.status(error.status || 500).json({ message: error.message });
-  }
-};
-
-const getOrders = async (req, res) => {
-  try {
-    const queryOptions = {
-
+    const query = {
+      index: 'orders',
+      body: {
+        "query": {
+          "terms": {
+            "_id": ["274b3b64-790e-4ad7-8b1f-8ff7c25ed2df"]
+          }
+        }
+      }
     };
 
-    const paginatedOrders = await paginate(Order, queryOptions);
+    const result = await client.search(query);
+    console.log(result);
+    if (result.hits.total.value === 0) {
+      throw createError(`Order with ID (${orderId}) not found in Elasticsearch`, 404);
+    }
+
+    const orderDetails = result.hits.hits[0]._source;
+
+    return res.status(200).json({ ...orderDetails });
+  } catch (error) {
+    await handleError(error, res);
+  }
+};
+const getOrders = async (req, res) => {
+  const { locationId } = req.query; 
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10; 
+  const from = (page - 1) * pageSize;
+
+  try {
+    const query = {
+      index: 'orders',
+      body: {
+        query: {
+          bool: {
+            must: [
+              { match_all: {} } 
+            ],
+            filter: []
+          }
+        },
+        from: from,
+        size: pageSize
+  
+      }
+    };
+
+    if (locationId) {
+      query.body.query.bool.filter.push({ match: { locationId: locationId } });
+    }
+
+    const eRes = await client.search(query);
+
+    const paginatedOrders = {
+      total: eRes.hits.total.value,
+      page,
+      pageSize,
+      orders: eRes.hits.hits.map(hit => hit._source)
+    };
 
     res.status(200).json(paginatedOrders);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    await handleError(error, res);
   }
 };
 
 const createOrder = async (req, res) => {
   try {
     const order = req.body;
+
+    // #region validate
+
     const errors = [];
 
     const userId = order.userId;
@@ -95,20 +148,30 @@ const createOrder = async (req, res) => {
     }
 
     if (errors.length > 0) {
-      return res.status(401).json({ errors });
+      return res.status(400).json({ errors });
     }
 
-    const tp = await calculateTotalPrice(order);
-    const userBalance = await getBalance(userId);
 
-    order.totalPrice = tp;
+    // #endregion validate
 
-    if (userBalance === null || userBalance < tp) {
-      throw createError('Insufficient funds', 400);
-    }
 
     const result = await sequelize.transaction(async (t) => {
-      const o = await createOrderJson(order, t);
+
+      const tp = await calculateTotalPrice(order).catch(e => {
+        throw new Error(e);
+      });
+      const userBalance = await getBalance(userId).catch(e => {
+        throw new Error(e);
+      });
+
+      order.totalPrice = tp;
+
+      if (userBalance === null || userBalance < tp) {
+        throw createError('Insufficient funds', 400);
+      }
+      const o = await createOrderJson(order, t).catch(e => {
+        throw new Error(e);
+      });
 
       const documentToSave = {
         ...order,
@@ -123,29 +186,28 @@ const createOrder = async (req, res) => {
           topons: item.topons.map(topon => ({
             toponId: topon.toponId,
             quantity: topon.quantity,
-            // })),
           }))
         }))
       };
 
       await client.index({
         index: 'orders',
-        id: order.id,
-        document: { ...documentToSave }
+        id: o.id,
+        document: { ...documentToSave, status: "pending" }
       });
 
       const u = await User.findByPk(order.userId);
-      await setBalance(u.id, -order.totalPrice, 'Order', 'Order created', order.id).catch(e => {
-        console.log(e);
+      await setBalance(u.id, -order.totalPrice, 'Order', 'Order created', o.id).catch(e => {
+        throw e;
       });
 
       return o;
     });
 
 
-    return res.status(201).json({ message: 'Order created' });
+    return res.status(201).json({ message: 'Order created', data: result });
   } catch (error) {
-    return res.status(error.status || 500).json({ message: error.message });
+    await handleError(error, res);
   }
 };
 
@@ -163,7 +225,6 @@ const processOrder = async (req, res) => {
     const variantLocationIds = o.items.map(item => item.vlId);
     const optionIds = o.items.flatMap(item => item.options);
     const toponIds = o.items.flatMap(item => item.topons.map(topon => topon.toponId));
-
     const [user, location, products, variantLocations, options, topons] = await Promise.all([
       User.findByPk(userId),
       Location.findByPk(locationId),
@@ -172,7 +233,6 @@ const processOrder = async (req, res) => {
       Option.findAll({ where: { id: optionIds } }),
       GroupToponsMid.findAll({ where: { id: toponIds } }),
     ]);
-
     if (!user) {
       errors.push({ msg: `User with ID (${userId}) does not exist`, param: 'userId', location: 'body' });
     }
@@ -205,66 +265,119 @@ const processOrder = async (req, res) => {
     }
 
     if (errors.length > 0) {
-      throw createError(errors.map(e => e.msg).join('; '), 400);
+      return createError(errors.map(e => e.msg).join('; '), 400, res);
     }
 
     const order = await Order.findByPk(orderId);
     if (!order) {
-      throw createError('Order not found', 404);
+      return createError('Order not found', 400, res);
+    }
+    if (order.status !== 'pending') {
+      return createError('Order already processed' + order.id, 400, res);
     }
 
     // #endregion
-
-    const result = await sequelize.transaction(async (transaction) => {
-      const result = await sequelize.transaction(async (t) => {
+    const result = await sequelize.transaction(
+      { isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED },
+      async (transaction) => {
         const object = req.body;
-        const prevOrder = await Order.findByPk(orderId, { transaction: t });
-        await prevOrder.update({ status: "adjustment" }, { transaction: t }).catch(e => console.log(e));
+        const prevOrder = await Order.findByPk(orderId, { transaction });
+        await prevOrder.update({ status: "adjustment" }, { transaction });
 
-        const newOrder = await createOrderJson(object, t).catch(e => console.log(e));
+        await client.update({
+          index: 'orders',
+          id: orderId,
+          doc: {
+            status: "adjustment"
+          }
+        });
+
+        const newOrder = await createOrderJson(object, transaction);
+        await newOrder.save({ transaction });
         const tp = await calculateTotalPrice(object);
 
-        await newOrder.update({ totalPrice: tp, status: "done" }, { transaction: t }).catch(e => console.log(e));
-        await newOrder.save({ transaction: t });
+        await newOrder.update({ totalPrice: tp, status: "done" }, { transaction });
+        await newOrder.save({ transaction });
+
+        await updateSKU(object.items, transaction).catch((e) => {
+          throw e;
+        });
+        await setBalance(order.UserId, +order.totalPrice, 'prevOrder', 'prevOrder processed', order.id);
+        await setBalance(newOrder.UserId, -newOrder.totalPrice, 'order', 'Order processed', newOrder.id);
+
+        const documentToSave = {
+          ...order,
+          items: order.items.map(item => ({
+            productId: item.productId,
+            vlId: item.vlId,
+            type: item.type,
+            quantity: item.quantity,
+            options: item.options.map(name => ({
+              name
+            })),
+            topons: item.topons.map(topon => ({
+              toponId: topon.toponId,
+              quantity: topon.quantity,
+            }))
+          }))
+        };
+
+        await client.index({
+          index: 'orders',
+          id: newOrder.id,
+          document: { ...documentToSave }
+        });
+
+
         return newOrder;
-      });
-
-      const orderDetails = await getOrderDetails(result.id);
-      await sequelize.transaction(async (t) => { await updateSKU(orderDetails.items, transaction); });
-
-      await setBalance(order.UserId, +order.totalPrice, 'prevOrder', 'prevOrder processed', order.id);
-      await setBalance(result.UserId, -result.totalPrice, 'order', 'Order processed', result.id);
-
-
-    }).catch((e) => {
-      console.log(e);
+      }
+    ).then((newOrder) => res.status(200).json({ message: 'Order processed successfully', order: newOrder.id })).catch((e) => {
+      console.log('Transaction error:', e);
+      throw e;
     });
-
-
-    return res.status(200).json({ message: 'Order processed successfully' });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+
+    await handleError(error, res);
   }
 };
 
 
-
 const acceptOrder = async (req, res) => {
+
+
+  const { orderId } = req.params;
+  const order = await Order.findByPk(orderId);
+  if (!order) {
+    res.status(400).json({ message: 'Order not found' });
+    return
+  }
+  if (order.status !== 'pending') {
+    res.status(400).json({ message: 'Order already processed' });
+    return
+  }
+
   try {
     const result = await sequelize.transaction(async (t) => {
-      const { orderId } = req.params;
-      const order = await Order.findByPk(orderId, { transaction: t });
-      if (!order) {
-        throw new Error('Order not found');
-      }
+
       const orderInfo = await getOrderDetails(orderId, t);
       await updateSKU(orderInfo.items, t);
       await order.update({ status: "accepted" }, { transaction: t });
+
+      await client.update({
+        index: 'orders',
+        id: orderId,
+        doc: {
+          status: "accepted"
+        }
+      })
+    }).catch((e) => {
+      console.log('Transaction error:', e);
+      throw e;
     });
 
     res.status(200).json({ message: "Order accepted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" + error.message });
+    await handleError(error, res);
   }
 };
 
@@ -279,11 +392,20 @@ const rejectOrder = async (req, res) => {
 
       await setBalance(order.UserId, + order.totalPrice, 'Order-rejection', 'Order rejected', order.id, { transaction: t });
       await order.update({ status: "rejected" }, { transaction: t });
+
+      await client.update({
+        index: 'orders',
+        id: orderId,
+        document: {
+          status: "rejected"
+        }
+      })
+
     });
 
     res.status(200).json({ message: "Order rejected successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    await handleError(error, res);
   }
 };
 
@@ -295,9 +417,9 @@ const listByLocation = async (req, res) => {
     const loc = await Location.findByPk(locationId, {
       attributes: ['id', 'name'],
     });
-
     if (!loc) {
-      return res.status(401).json({ message: `Location with id ${locationId} not found` });
+      await createError(`Location with ID (${locationId}) not found`, 404, res);
+      return;
     }
 
     const queryOptions = {
@@ -312,7 +434,7 @@ const listByLocation = async (req, res) => {
 
     res.status(200).json(paginatedOrders);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    await handleError(error, res);
   }
 };
 

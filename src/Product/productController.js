@@ -6,16 +6,15 @@ const paginate = require('../../helpers/paginate.js');
 const sequelize = require('../../sequelize');
 const { Variant, Topon, Option, GroupRule, Product, Location, Image, VariantTopons, VariantLocation, GroupOptions, GroupTopons, PriceHistory, Combo, ComboItems, SKU, Category, Ingredient, IngredientLocation, ToponLocation, VariantIngredient, VariantSKURule, LinkedVariant, IngredientSKURule, GroupTopon, GroupToponsMid, ToponSKURule } = require('../index');
 const { createProductHelper } = require('./utils/index');
-
+const { setAsync } = require('../../redisClient');
+const handleError = require('../../helpers/serverError.js');
 
 
 const list = async (req, res) => {
   try {
     const { name, description, categoryId, page = 1, limit = 5, locationId } = req.query;
-
     const pageNumber = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
     const pageSize = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 5;
-
     const from = (pageNumber - 1) * pageSize;
 
     const query = {
@@ -45,60 +44,29 @@ const list = async (req, res) => {
 
     const result = await client.search(query);
     res.status(200).json(result.hits.hits.map(hit => hit._source));
-    // const queryOptions = {
-    //   attributes: ['id', 'name', 'description', 'type'],
-    // };
-
-    // const paginatedProducts = await paginate(Product, queryOptions);
-
-    // return res.status(200).json(paginatedProducts);
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' + error.message });
+    await handleError(error, res);
   }
 };
 
 const createBasicProduct = async (req, res) => {
-
-
-
   try {
-
     const product = await sequelize.transaction(async (t) => {
-
-      const product = req.body
-
+      const product = req.body;
       const { name, description, type, CategoryId } = product;
-
-
-      const newProduct = await Product.create({ name, description, type, CategoryId }, { transaction: t });
-
-
-      return newProduct
-
-    })
-
-
-    await client.index({ index: 'products', document: product })
+      await client.index({ index: 'products', document: product });
+      return await Product.create({ name, description, type, CategoryId }, { transaction: t });
+    });
     res.status(200).json(product);
+  } catch (error) {
+    await handleError(error, res);
   }
-
-  catch (error) {
-
-    console.error(error)
-
-    res.status(500).json({ message: 'Internal server error' });
-  }
-
-
-
-
-}
+};
 
 const createProduct = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    // throw new Error('test');
-    const product = req.body
+    const product = req.body;
 
     // #region validate
     const errors = []
@@ -171,51 +139,51 @@ const createProduct = async (req, res) => {
 
 
     if (!category) {
-      errors.push({ msg: `Category with ID (${categoryId}) does not exist`, param: 'CategoryId', location: 'body' });
+      errors.push({ msg: `Category with ID(${categoryId}) does not exist`, param: 'CategoryId', location: 'body' });
     }
 
 
     const existingLocationIds = locations.map(l => l.id);
     const missingLocationIds = locationIds.filter(id => !existingLocationIds.includes(id));
     if (missingLocationIds.length > 0) {
-      errors.push({ msg: `Locations with IDs (${missingLocationIds.join(', ')}) do not exist`, param: 'locationIds', location: 'body' });
+      errors.push({ msg: `Locations with IDs(${missingLocationIds.join(', ')}) do not exist`, param: 'locationIds', location: 'body' });
     }
 
     const existingSkuRuleIds = skuRules.map(s => s.id);
     const missingSkuRuleIds = skuRuleIds.filter(id => !existingSkuRuleIds.includes(id));
     if (missingSkuRuleIds.length > 0) {
 
-      errors.push({ msg: `SKU Rules with IDs (${missingSkuRuleIds.join(', ')}) do not exist`, param: 'skuRuleIds', location: 'body' });
+      errors.push({ msg: `SKU Rules with IDs(${missingSkuRuleIds.join(', ')}) do not exist`, param: 'skuRuleIds', location: 'body' });
     }
 
     const existingIngredientIds = ingredients.map(i => i.id);
     const missingIngredientIds = ingredientIds.filter(id => !existingIngredientIds.includes(id));
     if (missingIngredientIds.length > 0) {
-      errors.push({ msg: `Ingredients with IDs (${missingIngredientIds.join(', ')}) do not exist`, param: 'ingredientIds', location: 'body' });
+      errors.push({ msg: `Ingredients with IDs(${missingIngredientIds.join(', ')}) do not exist`, param: 'ingredientIds', location: 'body' });
     }
 
     const existingIngredientSkuRuleIds = ingredientSkuRules.map(s => s.id);
     const missingIngredientSkuRuleIds = ingredientSkuRuleIds.filter(id => !existingIngredientSkuRuleIds.includes(id));
     if (missingIngredientSkuRuleIds.length > 0) {
-      errors.push({ msg: `Ingredient SKU Rules with IDs (${missingIngredientSkuRuleIds.join(', ')}) do not exist`, param: 'ingredientSkuRuleIds', location: 'body' });
+      errors.push({ msg: `Ingredient SKU Rules with IDs(${missingIngredientSkuRuleIds.join(', ')}) do not exist`, param: 'ingredientSkuRuleIds', location: 'body' });
     }
 
     const existingToponIds = topons.map(t => t.id);
     const missingToponIds = toponIds.filter(id => !existingToponIds.includes(id));
     if (missingToponIds.length > 0) {
-      errors.push({ msg: `Topons with IDs (${missingToponIds.join(', ')}) do not exist`, param: 'toponIds', location: 'body' });
+      errors.push({ msg: `Topons with IDs(${missingToponIds.join(', ')}) do not exist`, param: 'toponIds', location: 'body' });
     }
 
     const existingToponSkuRuleIds = toponSkuRules.map(s => s.id);
     const missingToponSkuRuleIds = toponSkuRuleIds.filter(id => !existingToponSkuRuleIds.includes(id));
     if (missingToponSkuRuleIds.length > 0) {
-      errors.push({ msg: `Topon SKU Rules with IDs (${missingToponSkuRuleIds.join(', ')}) do not exist`, param: 'toponSkuRuleIds', location: 'body' });
+      errors.push({ msg: `Topon SKU Rules with IDs(${missingToponSkuRuleIds.join(', ')}) do not exist`, param: 'toponSkuRuleIds', location: 'body' });
     }
 
     const existingComboItemVariantLocationIds = comboItemVariantLocations.map(c => c.id);
     const missingComboItemVariantLocationIds = comboItemVariantLocationIds.filter(id => !existingComboItemVariantLocationIds.includes(id));
     if (missingComboItemVariantLocationIds.length > 0) {
-      errors.push({ msg: `Combo Item Variant Locations with IDs (${missingComboItemVariantLocationIds.join(', ')}) do not exist`, param: 'comboItemVariantLocationIds', location: 'body' });
+      errors.push({ msg: `Combo Item Variant Locations with IDs(${missingComboItemVariantLocationIds.join(', ')}) do not exist`, param: 'comboItemVariantLocationIds', location: 'body' });
     }
 
 
@@ -223,109 +191,77 @@ const createProduct = async (req, res) => {
     if (errors.length > 0) {
       return res.status(400).json({ errors: errors });
     }
-    //  #endregion 
-
+    if (errors.length > 0) {
+      return res.status(400).json({ errors: errors });
+    }
+    // #endregion 
 
     const result = await sequelize.transaction(async (t) => {
-
       const product = await createProductHelper(req.body, t);
       await client.index({
         index: 'products',
         id: product.id,
         document: { id: product.id, name: product.name, description: product.description, type: product.type, CategoryId: product.CategoryId, LocationIds: locationIds }
-      })
-
-      return product
-    }).then((result) => {
-
-      return res.status(201).json(result);
-    }).catch((error) => {
-      return res.status(500).json(error)
-    })
-
-
-
-  } catch (error) {
-
-    // return res.status(201).json(result);
-    const rayId = uuidv4();
-    
-
-
-    // save error to redis or other db
-    // mysql.save(error.message, rayId )
-
-    return res.status(500).json({ message: 'Internal server error', rayId });
-  }
-}
-
-const getProductById = async (req, res) => {
-
-  try {
-
-    const productId = req.params.productId;
-    const product = await Product.findByPk(productId, {
-      attributes: ['id', 'name', 'description', 'type'],
+      });
+      return product;
     });
 
+    return res.status(201).json(result);
+  } catch (error) {
+    await handleError(error, res);
+  }
+};
+
+const getProductById = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const product = await Product.findByPk(productId, { attributes: ['id', 'name', 'description', 'type'] });
+
     if (!product) {
-      res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
-      return
+      return res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
     }
 
     return res.status(200).json(product);
+  } catch (error) {
+    await handleError(error, res);
   }
-  catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
-  }
-}
+};
 
 const getProductVariants = async (req, res) => {
   try {
     const productId = req.params.productId;
+    const product = await Product.findByPk(productId, { attributes: ['id', 'name', 'description', 'type'] });
 
-    const product = await Product.findByPk(productId, { attributes: ['id', 'name', 'description', 'type'], });
     if (!product) {
-      res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
-      return
+      return res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
     }
+
     const variants = await Variant.findAll({
       where: { ProductId: productId },
       attributes: ['id', 'name'],
+    }).catch((error) => {
+      throw error;
     });
-    return res.status(200).json(variants);
-  }
-  catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
-  }
-}
 
+    return res.status(200).json(variants);
+  } catch (error) {
+    await handleError(error, res);
+  }
+};
 
 const getProductVariantLocation = async (req, res) => {
-
   try {
-
     const productId = req.params.productId;
-    const locationId = req.params.locationId;
+    const {locationId} = req.query;
 
-
-    const product = await Product.findByPk(productId, {
-      attributes: ['id', 'name', 'description', 'type'],
-    });
-
+    const product = await Product.findByPk(productId, { attributes: ['id', 'name', 'description', 'type'] });
     if (!product) {
-      res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
-      return
+      return res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
     }
 
-    const location = await Location.findByPk(locationId, {
-      attributes: ['id', 'name'],
-
-    })
-
+    const location = await Location.findByPk(locationId, { attributes: ['id', 'name'] });
     if (!location) {
-      res.status(400).json({ message: 'Location with id ' + locationId + ' not found' });
-      return
+      return res.status(400).json({ message: 'Location with id ' + locationId + ' not found' });
     }
 
     const variants = await Variant.findAll({
@@ -339,28 +275,26 @@ const getProductVariantLocation = async (req, res) => {
           attributes: [],
         },
       ],
+    }).catch((error) => {
+      throw error;
     });
 
-
     return res.status(200).json(variants);
+  } catch (error) {
+    await handleError(error, res);
   }
-  catch (error) {
-    res.status(500).json({ message: 'Internal server error' + error.message });
-  }
-}
+};
 
 const getProductsAtLocation = async (req, res) => {
   const { locationId } = req.query;
 
-  const loc = await Location.findByPk(locationId, {
-    attributes: ['id', 'name'],
-  });
-
-  if (!loc) {
-    return res.status(400).json({ message: `Location with id ${locationId} not found` });
-  }
-
   try {
+    const loc = await Location.findByPk(locationId, { attributes: ['id', 'name'] });
+
+    if (!loc) {
+      return res.status(400).json({ message: `Location with id ${locationId} not found` });
+    }
+
     const queryOptions = {
       attributes: ['id', 'name'],
       include: [{
@@ -375,50 +309,52 @@ const getProductsAtLocation = async (req, res) => {
       }],
     };
 
-    const paginatedProducts = await paginate(Product, queryOptions);
-
+    const paginatedProducts = await paginate(Product, queryOptions).catch((error) => {
+      throw error;
+    });
     return res.status(200).json(paginatedProducts);
   } catch (error) {
-    return res.status(500).json({ message: 'Internal server error' });
+    await handleError(error, res);
   }
 };
-
-
 
 const getProductDetails = async (req, res) => {
   const productId = req.params.productId;
 
-  const product = await Product.findByPk(productId, {
-    include: [
-      {
-        model: Variant,
+  try {
+    const product = await Product.findByPk(productId, {
+      include: [
+        {
+          model: Variant,
+          include: [
+            {
+              model: VariantLocation,
+              include: [
+                { model: Location },
+                { model: VariantSKURule },
+                { model: VariantIngredient, include: [{ model: IngredientSKURule }] },
+                { model: GroupTopon, include: [{ model: GroupToponsMid, include: [{ model: ToponSKURule }] }] },
+                { model: GroupOptions, include: [{ model: Option }] }
+              ]
+            }
+          ]
+        },
+        {
+          model: LinkedVariant, include: [{ model: VariantLocation, as: 'LinkVarLoc' }]
+        }
+      ]
+    }).catch((error) => {
+      throw error;
+    });
 
-        include: [
-          {
-            model: VariantLocation, include: [{ model: Location },
-            { model: VariantSKURule },
-            { model: VariantIngredient, include: [{ model: IngredientSKURule }] },
-            { model: GroupTopon, include: [{ model: GroupToponsMid, include: [{ model: ToponSKURule }] }] },
-            { model: GroupOptions, include: [{ model: Option }] }
+    if (!product) {
+      return res.status(400).json({ message: 'Product with id ' + productId + ' not found' });
+    }
 
-            ]
-          }
-        ]
-      },
-      {
-        model: LinkedVariant, include: [{ model: VariantLocation, as: 'LinkVarLoc', include },
-
-
-        ]
-      },
-
-    ]
+    return res.status(200).json(product);
+  } catch (error) {
+    await handleError(error, res);
   }
+};
 
-  );
-}
-
-
-
-
-module.exports = { list, getProductById, getProductVariants, getProductVariantLocation, getProductsAtLocation, createProduct, createBasicProduct }
+module.exports = { list, getProductById, getProductVariants, getProductVariantLocation, getProductsAtLocation, createProduct, createBasicProduct, getProductDetails };

@@ -15,7 +15,6 @@ router.post('/:orderId/reject', validateOrderId, validateResult, controller.reje
 
 router.post('/:orderId/accept', validateOrderId, validateResult, controller.acceptOrder);
 
-router.get('/location/:locationId', validateLocationId, validateResult, controller.listByLocation);
 
 
 

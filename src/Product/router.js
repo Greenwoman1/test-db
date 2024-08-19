@@ -20,7 +20,7 @@ router.get('/:productId', validateProductId, validateResult, productController.g
 router.get('/variants', validateLocationId, validateResult, productController.getProductsAtLocation);
 // router.get('/variants/?locationId', validateLocationId, validateResult, productController.getProductsAtLocation);
 
-router.get('/:productId/:locationId', validateProductId, validateLocationId, validateResult, productController.getProductVariantLocation);
+router.get('/:productId/variants', validateProductId, validateLocationId, validateResult, productController.getProductVariantLocation);
 // router.get('/:productId?locationId', validateProductId, validateLocationId, validateResult, productController.getProductVariantLocation);
 
 
