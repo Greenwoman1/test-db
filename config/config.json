@@ -1,24 +1,25 @@
 {
-  "development": {
-    "username": "user",
-    "password": "password",
-    "database": "postgres",
-    "host": "localhost",
-    "dialect": "postgres",
-    "port": 5432
-  },
-  "test": {
-    "username": "user",
-    "password": "password",
-    "database": "database_test",
-    "host": "localhost",
-    "dialect": "postgres",
-    "port": 5432
-  },
   "production": {
     "username": "user",
     "password": "password",
-    "database": "postgres",
+    "database": "kitchen",
+    "host": "localhost",
+    "dialect": "postgres",
+    "port": 5432,
+    "loging": false
+  },
+  "staging": {
+    "username": "user",
+    "password": "password",
+    "database": "staging",
+    "host": "localhost",
+    "dialect": "postgres",
+    "port": 5432
+  },
+  "development": {
+    "username": "user",
+    "password": "password",
+    "database": "development",
     "host": "localhost",
     "dialect": "postgres",
     "port": 5432

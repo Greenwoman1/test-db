@@ -3,7 +3,7 @@ const { getOrderDetails, getOrderSKURules, createOrderJson, updateSKU } = requir
 const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem, VariantPrice, Ingredient, Role, Permissions, UserRole, UserPermission, RolePermission } = require('./index');
 
 const { Op, fn, col, literal } = require('sequelize');
-const client = require('../clients/elastics');
+// const client = require('../clients/elastics');
 
 
 
@@ -2204,9 +2204,9 @@ const seedProducts = async () => {
   await Product.bulkCreate(filtered);
 
 
-  await client.bulk({
-    index: 'products',
-    body: filtered.flatMap(doc => [{ index: { _index: 'products' } }, doc])
-  });  
+  // await client.bulk({
+  //   index: 'products',
+  //   body: filtered.flatMap(doc => [{ index: { _index: 'products' } }, doc])
+  // });  
 }
   module.exports = { seed, seedRoles, seedProducts };

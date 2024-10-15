@@ -79,57 +79,57 @@ app.listen(PORT, async () => {
   try {
 
     await init();
-    await sequelize.sync({ force: false });
+    await sequelize.sync({ force: true });
 
 
   
 
-    async function createIndex() {
-      const indexName = 'products';
+    // async function createIndex() {
+    //   const indexName = 'products';
     
-      try {
-        // Check if the index already exists
-        const { body: exists } = await client.indices.exists({ index: indexName });
+    //   try {
+    //     // Check if the index already exists
+    //     const { body: exists } = await client.indices.exists({ index: indexName });
     
-        if (!exists) {
-          // Create the index with custom settings
-          await client.indices.create({
-            index: indexName,
-            body: {
-              settings: {
-                number_of_shards: 1,           // Number of primary shards
-                number_of_replicas: 1,         // Number of replica shards
-                analysis: {                    // Custom analysis settings (e.g., custom analyzers)
-                  analyzer: {
-                    // my_custom_analyzer: {
-                    //   type: 'custom',
-                    //   tokenizer: 'standard',
-                    //   filter: ['lowercase', 'asciifolding']
-                    // }
-                  }
-                }
-              },
-              mappings: {
-                "_source": { "enabled": true },
-                properties: {
-                  name: { type: 'text'/* , analyzer: 'my_custom_analyzer' */ }, // Using the custom analyzer
-                  description: { type: 'text' },
-                  type: { type: 'text' },
-                  CategoryId: { type: 'text' },
-                  LocationIds: { type: 'keyword' }  // Array of keyword types
-                }
-              }
-            }
-          });
+    //     if (!exists) {
+    //       // Create the index with custom settings
+    //       await client.indices.create({
+    //         index: indexName,
+    //         body: {
+    //           settings: {
+    //             number_of_shards: 1,           // Number of primary shards
+    //             number_of_replicas: 1,         // Number of replica shards
+    //             analysis: {                    // Custom analysis settings (e.g., custom analyzers)
+    //               analyzer: {
+    //                 // my_custom_analyzer: {
+    //                 //   type: 'custom',
+    //                 //   tokenizer: 'standard',
+    //                 //   filter: ['lowercase', 'asciifolding']
+    //                 // }
+    //               }
+    //             }
+    //           },
+    //           mappings: {
+    //             "_source": { "enabled": true },
+    //             properties: {
+    //               name: { type: 'text'/* , analyzer: 'my_custom_analyzer' */ }, // Using the custom analyzer
+    //               description: { type: 'text' },
+    //               type: { type: 'text' },
+    //               CategoryId: { type: 'text' },
+    //               LocationIds: { type: 'keyword' }  // Array of keyword types
+    //             }
+    //           }
+    //         }
+    //       });
     
-          console.log(`Index "${indexName}" created successfully.`);
-        } else {
-          console.log(`Index "${indexName}" already exists.`);
-        }
-      } catch (error) {
-        console.error('Error creating index:', error);
-      }
-    }
+    //       console.log(`Index "${indexName}" created successfully.`);
+    //     } else {
+    //       console.log(`Index "${indexName}" already exists.`);
+    //     }
+    //   } catch (error) {
+    //     console.error('Error creating index:', error);
+    //   }
+    // }
     
 
     /// DA NIJE NA SAVE 
