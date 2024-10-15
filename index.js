@@ -56,7 +56,6 @@ app.use(express.json());
 
 
 app.use('/api/v2', mainRouter);
-app.use(authentication); 
 
 /// app.use(/, router )
 
