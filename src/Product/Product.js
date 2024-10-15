@@ -48,18 +48,18 @@ class Product extends Model {
               });
             };
 
-            // Funkcija za indeksiranje dokumenta u Elasticsearch
-            const indexDocumentInElastic = async (index, id, body) => {
-              await client.index({
-                index,
-                id,
-                document: { ...body },
-              });
-            };
+            // // Funkcija za indeksiranje dokumenta u Elasticsearch
+            // const indexDocumentInElastic = async (index, id, body) => {
+            //   await client.index({
+            //     index,
+            //     id,
+            //     document: { ...body },
+            //   });
+            // };
 
-            // Preuzimanje i indeksiranje podataka proizvoda
-            const productData = await fetchProductDetails(product.id);
-            await indexDocumentInElastic('products', product.id, productData);
+            // // Preuzimanje i indeksiranje podataka proizvoda
+            // const productData = await fetchProductDetails(product.id);
+            // await indexDocumentInElastic('products', product.id, productData);
           },
         },
       }

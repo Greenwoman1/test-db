@@ -22,6 +22,7 @@ const cors = require('cors');
 
 const multer = require("multer");
 const client = require('./clients/elastics');
+const { authentication } = require('./src/Auth/utils');
 
 const app = express();
 app.use(cors());
@@ -55,6 +56,8 @@ app.use(express.json());
 
 
 app.use('/api/v2', mainRouter);
+app.use(authentication); 
+
 /// app.use(/, router )
 
 app.get('/redis-test', (req, res) => {
@@ -79,9 +82,9 @@ app.listen(PORT, async () => {
   try {
 
     await init();
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false });
 
-
+    
   
 
     // async function createIndex() {
@@ -143,14 +146,16 @@ app.listen(PORT, async () => {
 
     // await createIndex("products");
     
-    const info = await client.info();
     // console.log(info);
 
     // await createIndex("posts");
 // await seedProducts();
-//     await seed();
-//     await seedRoles();
+    // await seed();
+    // await seedRoles();
     // await test();
+
+    
+
     console.log('Database synchronized.');
   } catch (error) {
     console.error('Error while working with the database:', error);

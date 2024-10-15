@@ -15,7 +15,7 @@ class User extends Model {
         firstName: {
           type: DataTypes.STRING,
           allowNull: false,
-          unique: true, // Ensure uniqueness if needed
+          unique: true, 
         },
         lastName: {
           type: DataTypes.STRING,
@@ -29,7 +29,7 @@ class User extends Model {
         email: {
           type: DataTypes.STRING,
           allowNull: false,
-          unique: true, // Assuming email should be unique
+          unique: true, 
         },
         role: {
           type: DataTypes.STRING,

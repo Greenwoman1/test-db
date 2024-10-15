@@ -3,10 +3,11 @@ const router = express.Router();
 const productController = require('./productController');
 const { validateCreateProduct, validateResults, validateProductId, validateLocationId, validateUpdateProduct, validateUpdateProductCombo, validateCreateProductCombo } = require('./validateInput');
 const { validateProduct, validateResult } = require('./validateInput');
+const { authentication } = require('../Auth/utils');
 
 
 // router.get('/list', productController.list);
-router.get('/', productController.list);
+router.get('/', authentication, productController.list);
 
 router.post('/', validateProduct, validateResult, productController.createProduct);
 // nr treba hendlovat poseban create
