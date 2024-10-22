@@ -37,7 +37,6 @@ const getOrderDetailsById = async (req, res) => {
     };
 
     const result = await client.search(query);
-    console.log(result);
     if (result.hits.total.value === 0) {
       throw createError(`Order with ID (${orderId}) not found in Elasticsearch`, 404);
     }

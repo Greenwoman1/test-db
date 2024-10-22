@@ -5,22 +5,50 @@ const { Order, OrderItem, PriceHistory, Variant, User, Option, Topon, Role, Wait
 
 const createUser = async (req, res) => {
   try {
-    const { firstName, lastName, password } = req.body;
-    const newUser = await User.create({ firstName, lastName, password });
+
+    console.log(req.body);
+    const { firstName, lastName, password, email } = req.body;
+    console.log(firstName, lastName, password);
+    const newUser = await User.create({ firstName, lastName, password , email}).catch(err => console.log(err));
+    console.log(newUser);
     res.status(201).json(newUser);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 const getUsers = async (req, res) => {
   try {
-    const users = await User.findAll({
+    const { page = 1, limit = 10, firstName, lastName } = req.query;
+    console.log(page, limit, firstName, lastName);
+    const pageNumber = parseInt(page, 10) || 1;
+    const pageSize = parseInt(limit, 10) || 10;
+
+    const whereClause = {};
+    if (firstName) {
+      whereClause.firstName = firstName;
+    }
+    if (lastName) {
+      whereClause.lastName = lastName;
+    }
+  
+
+    const { count, rows } = await User.findAndCountAll({
+      where: whereClause,
       attributes: ['id', 'firstName', 'lastName'],
+      offset: (pageNumber - 1) * pageSize,
+      limit: pageSize,
       raw: true
     });
-    res.status(200).json(users);
-  } catch (error) {
+
+
+    res.status(200).json({
+      rows: rows,
+      totalRecords: count,
+      totalPages: Math.ceil(count / pageSize),
+      currentPage: pageNumber
+    });
+  }
+  catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
@@ -161,7 +189,7 @@ const getOrderDetailsForUser = async (req, res) => {
 const isAnyWaiterAvilable = async (req, res) => {
   try {
     const waiters = await User.findAndCountAll({
-      logging: console.log,
+      //logging: console.log,
       include: [
         {
           model: Role,
@@ -172,9 +200,9 @@ const isAnyWaiterAvilable = async (req, res) => {
           attributes: []
         },
         {
-         model: WaiterBreak,
-         attributes: [], 
-         required: false
+          model: WaiterBreak,
+          attributes: [],
+          required: false
         }
       ],
       group: ['User.id', 'WaiterBreaks.id'],

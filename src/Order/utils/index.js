@@ -209,7 +209,6 @@ const getOrderDetails = async (orderId, transaction) => {
     ]
   }, { transaction });
 
-  console.log(JSON.stringify(orderDetails, null, 2));
   return transformOrderDetails(orderDetails);
 };
 

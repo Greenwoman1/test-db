@@ -7,7 +7,6 @@ const { generateTokens } = require("./utils");
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ where: { email } });
     if (!user) {
         return res.status(400).json({ message: 'User not found' });
@@ -18,7 +17,7 @@ const login = async (req, res) => {
         return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const accessToken = jwt.sign({ id: user.id }, 'secret', { expiresIn: '1h' }); 
+    const accessToken = jwt.sign({ id: user.id }, 'secret', { expiresIn: '15s' }); 
     const refreshToken = jwt.sign({ id: user.id }, 'refreshSecret', { expiresIn: '7d' });
 
 
@@ -28,7 +27,31 @@ const login = async (req, res) => {
         sameSite: 'strict', 
     });
 
-    return res.status(200).json({ accessToken, message: 'Login successful' });
+    // const user: {
+    //   accessTokenExpDate: any;
+    //   refreshTokenExpDate: any;
+    //   accessToken: string;
+    //   refreshToken: string;
+    //   username: undefined;
+    //   id: string;
+    //   email: string;
+    //   firstName: string;
+    //   lastName: string;
+    //   role: number;}
+
+    const user1 = {
+        accessToken,
+        refreshToken,
+        username: user.firstName,
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: 'admin',
+    }
+
+
+    return res.status(200).json(user1);
 } catch (error) {
     res.status(500).json({ message: error.message });
 }
@@ -55,19 +78,21 @@ const register = async (req, res) => {
 }
 
 async function refresh(req, res) {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) return res.sendStatus(401);
 
   try {
-      const payload = jwt.verify(refreshToken, "refreshSecret");
+    const { refreshToken : token} = req.body;
+
+    if (!token) return res.sendStatus(401);
+      const payload = jwt.verify(token, "refreshSecret");
       const user = await User.findByPk(payload.id);
       if (!user) throw { name: "Invalid token" };
 
-      const { accessToken } = generateTokens(user);
-      res.json({ accessToken });
+      const { accessToken , refreshToken} = generateTokens(user);
+      res.status(200).json({ accessToken, refreshToken });
+
   } catch (error) {
-      res.status(403).json({ message: "Invalid refresh token" });
+    console.log(error)
+      res.status(403).json(error);
   }
 }
 module.exports = {

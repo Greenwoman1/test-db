@@ -188,7 +188,7 @@ const getVariantLocations = async (variantId) => {
 ///api 
 const getVariantOptionsAndTopons = async (variantId) => {
   const variant = await Variant.findByPk(variantId, {
-    logging: console.log,
+    //logging: console.log,
     include: [
       {
         model: VariantLocation,
@@ -253,7 +253,7 @@ const getVariantOptionsAndTopons = async (variantId) => {
 const getVariantLocationIngredient = async (variantLocationId) => {
 
   return await VariantLocation.findAll({
-    logging: console.log,
+    //logging: console.log,
     where: { id: variantLocationId },
     include: [{ model: VariantIngredient, include: [{ model: IngredientLocation, include: [{ model: Ingredient, as: 'InLoc' }] }] }]
   })
@@ -266,7 +266,7 @@ const getVariantLocationIngredient = async (variantLocationId) => {
 const getVariantLocationIngredientRules = async (variantLocationId) => {
 
   return await VariantLocation.findAll({
-    logging: console.log,
+    //logging: console.log,
     where: { id: variantLocationId },
     include: [{ model: VariantIngredient, include: [{ model: IngredientLocation, include: [{ model: Ingredient, as: 'InLoc' }] }, { model: IngredientSKURule }] }]
   })
@@ -284,7 +284,7 @@ const getVariantLocationIngredientRules = async (variantLocationId) => {
 const isToponAviableatLocation = async (toponId, locationId) => {
 
   return await ToponLocation.findOne({
-    logging: console.log,
+    //logging: console.log,
     where: { ToponId: toponId, LocationId: locationId }
 
   })
@@ -296,7 +296,7 @@ const isToponAviableatLocation = async (toponId, locationId) => {
 
 const getToponsVariantLocation = async (variantLocationId) => {
   const topons = await VariantLocation.findAll({
-    logging: console.log,
+    //logging: console.log,
     where: { id: variantLocationId },
     include: [
       {
@@ -363,7 +363,7 @@ const getVariantsAtLocation = async (locationId) => {
 
 const getAvailableVariantsManual = async () => {
   const availableVariants = await Variant.findAll({
-    logging: console.log,
+    //logging: console.log,
     attributes: [
       'id',
       'name',
@@ -450,7 +450,7 @@ const getAvailableVariantsManual = async () => {
 
 const getAviableVariants = async () => {
   const availableVariants = await Variant.findAll({
-    logging: console.log,
+    //logging: console.log,
     attributes: [
       'id',
       'name',
@@ -477,7 +477,7 @@ const getAviableVariants = async () => {
 
 const getAviableVariantsAtLocation = async (locationId) => {
   const availableVariants = await Variant.findAll({
-    logging: console.log,
+    //logging: console.log,
     attributes: ['name'],
     include: [
       {
@@ -565,7 +565,7 @@ const getProductsFromWarehouse = async (warehouseId) => {
 const getProductByIngredient = async (ingredientId) => {
 
   // const proizvodi = await Ingredient.findAll({
-  //   logging: console.log,
+  //   //logging: console.log,
   //   where: { id: ingredientId },
   //   // raw: true,
   //   attributes: [
@@ -600,7 +600,7 @@ const getProductByIngredient = async (ingredientId) => {
   // })
 
   const proizvodi = await Product.findAll({
-    logging: console.log,
+    //logging: console.log,
     attributes: [
       'id', 'name'
     ],
@@ -643,7 +643,7 @@ const getProductByIngredient = async (ingredientId) => {
 const getProductByTopon = async (toponId) => {
 
   const proizvodi = await Topon.findAll({
-    logging: console.log,
+    //logging: console.log,
     where: { id: toponId },
     attributes: [
 
@@ -725,7 +725,7 @@ const getToponsAtLocation = async (locationId) => {
 const getToponGroups = async (toponId) => {
 
   const topons = await Topon.findAll({
-    logging: console.log,
+    //logging: console.log,
     attributes: [
       [literal('"TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc"."id"'), 'id'],
       [literal('"TopLoc->GroupToponsMids->GroupTopon->VariantLocation->VarLoc"."name"'), 'name'],
@@ -773,7 +773,7 @@ const getVariantIngredient = async (variantId) => {
 
   const Ingredient = await Ingredient.findAll({
     raw: true,
-    logging: console.log,
+    //logging: console.log,
     // attributes: [[literal(), 'id'], [literal(), 'name']],
     attributes: ['id', 'name', [literal('"InLoc->VariantIngredient->VariantLocation->Location"."name"'), "VariantLocation"]],
     include: [{
@@ -907,7 +907,7 @@ const getProductRules = async (productId) => {
 
   const rules = await Product.findAll({
 
-    logging: console.log,
+    //logging: console.log,
 
     where: { id: productId },
     include: [{
@@ -1702,7 +1702,7 @@ const seed = async () => {
 
 
   // const orderItem = await VariantLocation.findOne({
-  //   // logging: console.log,
+  //   // //logging: console.log,
   //   where: { id: rucakStup.id },
   //   attributes: ['id'],
   //   include: [
@@ -1752,7 +1752,7 @@ const seed = async () => {
 
 
   const orderItem = await VariantLocation.findOne({
-    // logging: console.log,
+    // //logging: console.log,
     where: { id: rucakStup.id },
     attributes: ['id'],
     include: [
@@ -1796,7 +1796,7 @@ const seed = async () => {
 
 
   const var1 = await VariantLocation.findOne({
-    // logging: console.log,
+    // //logging: console.log,
     where: { id: vlStupMakijato.id },
     include: [
       {
@@ -1861,7 +1861,7 @@ const seed = async () => {
 
   //   const product = await Product.findByPk(id, {
 
-  //     logging: console.log,
+  //     //logging: console.log,
   //     attributes: [
 
   //       'type'

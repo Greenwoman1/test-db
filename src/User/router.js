@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('./userController');
+const multer = require('multer');
+const upload = multer();
 
-router.post('/', userController.createUser);
+router.post('/', upload.none(), userController.createUser);
 router.get('/', userController.getUsers);
 
 router.get('/orders/:userId', userController.getOrderDetailsForUser);

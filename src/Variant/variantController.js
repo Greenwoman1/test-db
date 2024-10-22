@@ -84,7 +84,7 @@ const getVariantLocationIngredient = async (req, res) => {
     await checkVariantLocationExists(variantLocationId);
 
     const ing = await VariantLocation.findAll({
-      logging: console.log,
+      //logging: console.log,
       where: { id: variantLocationId },
       include: [
         {
