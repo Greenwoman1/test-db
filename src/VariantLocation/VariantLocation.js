@@ -39,9 +39,11 @@ class VariantLocation extends Model {
     VariantLocation.belongsTo(models.Variant, { as: 'VarLoc', foreignKey: 'VariantId' });
 
 
-    VariantLocation.hasMany(models.GroupTopon)
-    VariantLocation.hasMany(models.GroupOptions)
+    VariantLocation.hasMany(models.GroupTopon, { as: 'GT'})
+    VariantLocation.hasMany(models.GroupOptions, { as: 'GO'});
     VariantLocation.hasMany(models.VariantIngredient, { as: 'VarLocIng', foreignKey: 'VariantLocationId' })
+
+    VariantLocation.hasMany(models.VariantPrice, { as : 'VarLocPrice', foreignKey: 'VariantLocationId' });
 
   }
 }

@@ -22,13 +22,53 @@ const createTopons = async (req, res) => {
 
 const getTopons = async (req, res) => {
   try {
+    console.log(req.params, req.query)
+
+    const { page = 1, limit = 1000000000 } = req.query
     const queryOptions = {
       attributes: ['id', 'name'],
     };
 
-    const paginatedTopons = await paginate(Topon, queryOptions);
 
-    res.status(200).json(paginatedTopons);
+    const toponLocations = await ToponLocation.findAndCountAll({
+      attributes: ['id', 'ToponId', 'LocationId'],
+      include: [
+        {
+          as: 'TopLoc',
+          model: Topon,
+          attributes: ['id', 'name'],
+        },
+        {
+          model: Location,
+          as: 'Location',
+          attributes: ['id', 'name'],
+          where: { id: req.query.locationId },
+        },
+      ],
+      limit: parseInt(limit, 10),
+      offset: parseInt((page - 1) * limit, 10),
+
+    });
+
+
+    const mappedRows = toponLocations.rows.map(row => ({
+      id: row.id,
+      name: row.TopLoc.name    
+    }));
+
+
+    const response = {
+      count: toponLocations.count,
+      rows: mappedRows,
+      totalPages: Math.ceil(toponLocations.count / limit),
+      currentPage: page
+    }
+
+    // console.log(JSON.stringify(toponLocations, null, 2))
+
+    // const paginatedTopons = await paginate(Topon, queryOptions);
+
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -1,10 +1,19 @@
+const paginate = require('../../helpers/paginate');
 const {Location} = require('../index');
 
 
 const getLocations = async (req, res) => {
   try {
-    const locations = await Location.findAll();
-    res.status(200).json(locations);
+
+
+  
+    const queryOptions = {
+      attributes: ['id', 'name'],
+    };
+
+    const paginatedLocations = await paginate(Location, queryOptions);
+
+    res.status(200).json(paginatedLocations);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

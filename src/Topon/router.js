@@ -1,9 +1,12 @@
+// toponsRouter.js
 const express = require('express');
 const router = express.Router();
 const toponsController = require('./toponController');
 
-router.post('/', toponsController.createTopons);
-router.get('/', toponsController.getTopons);
-router.get('/location/:locationId', toponsController.getToponsByLocation);
+module.exports = (io) => {
+  router.post('/', (req, res) => toponsController.createTopons(req, res, io));
+  router.get('/', (req, res) => toponsController.getTopons(req, res, io));
+  router.get('/location/:locationId', (req, res) => toponsController.getToponsByLocation(req, res, io));
 
-module.exports = router;
+  return router;
+};

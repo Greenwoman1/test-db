@@ -12,117 +12,128 @@ const validateProduct = [
   body('CategoryId')
     .isUUID(4).withMessage('Invalid CategoryId format'),
 
+  // Conditional logic for variants
   body('variants')
-    .isArray({ min: 1 }).withMessage('Variants must be a non-empty array'),
+    .optional({ nullable: true }).isArray({ min: 1 }).withMessage('Variants must be a non-empty array'),
   body('variants.*.name')
+    .if(body('variants').exists())
     .isString().withMessage('Variant name must be a string')
     .isLength({ min: 1, max: 64 }).withMessage('Variant name must be between 1 and 64 characters'),
 
   body('variants.*.locations')
+    .if(body('variants').exists())
     .isArray({ min: 1 }).withMessage('Locations must be a non-empty array'),
   body('variants.*.locations.*.LocationId')
+    .if(body('variants').exists())
     .isUUID(4).withMessage('Invalid LocationId format'),
   body('variants.*.locations.*.skuRules')
+    .if(body('variants').exists())
     .optional().isObject().withMessage('skuRules must be an object'),
 
   body('variants.*.locations.*.skuRules.name')
-    .if(body('variants.*.locations.*.skuRules').exists())
+    .if(body('variants').exists())
     .isString().withMessage('SKU name must be a string')
     .isLength({ min: 1, max: 64 }).withMessage('SKU name must be between 1 and 64 characters'),
 
   body('variants.*.locations.*.skuRules.unit')
-    .if(body('variants.*.locations.*.skuRules').exists())
-    .isInt({ min: 1 }).withMessage('Unit must be an integer greater than 0'),
+    .if(body('variants').exists())
+    .isInt({ min: 0 }).withMessage('Unit must be an integer greater than 0'),
 
   body('variants.*.locations.*.skuRules.quantity')
-    .if(body('variants.*.locations.*.skuRules').exists())
-    .isInt({ min: 1 }).withMessage('Quantity must be an integer greater than 0'),
+    .if(body('variants').exists())
+    .isInt({ min: 0 }).withMessage('Quantity must be an integer greater than 0'),
 
   body('variants.*.locations.*.skuRules.disabled')
-    .if(body('variants.*.locations.*.skuRules').exists())
+    .if(body('variants').exists())
     .isBoolean().withMessage('Disabled must be a boolean value'),
 
   body('variants.*.locations.*.skuRules.SKUId')
-    .if(body('variants.*.locations.*.skuRules').exists())
-    .isUUID(4).withMessage('Invalid SKUId format'),
+    .if(body('variants').exists())
+    .isUUID().withMessage('Invalid SKUId format'),
+
   // Ingredients validation
   body('variants.*.locations.*.ingredients')
+    .if(body('variants').exists())
     .optional().isArray({ min: 0 }).withMessage('Ingredients must be an array'),
 
   body('variants.*.locations.*.ingredients.*.id')
-    .if(body('variants.*.locations.*.ingredients').exists())
+    .if(body('variants').exists())
     .isUUID().withMessage('Invalid ingredient id format'),
 
   body('variants.*.locations.*.ingredients.*.quantity')
-    .if(body('variants.*.locations.*.ingredients').exists())
+    .if(body('variants').exists())
     .isInt({ min: 1 }).withMessage('Ingredient quantity must be an integer greater than 0'),
 
   body('variants.*.locations.*.ingredients.*.skuRules')
-    .if(body('variants.*.locations.*.ingredients').exists())
+    .if(body('variants').exists())
     .isObject().withMessage('Ingredient skuRules must be an object'),
 
   // Topons validation
   body('variants.*.locations.*.topons')
+    .if(body('variants').exists())
     .optional().isObject().withMessage('Topons must be an object'),
 
   body('variants.*.locations.*.topons.interfaceRules')
-    .if(body('variants.*.locations.*.topons').exists())
+    .if(body('variants').exists())
     .isString().withMessage('interfaceRules must be a string'),
 
   body('variants.*.locations.*.topons.topons')
-    .if(body('variants.*.locations.*.topons').exists())
+    .if(body('variants').exists())
     .isArray({ min: 0 }).withMessage('Topons must be an array'),
 
   body('variants.*.locations.*.topons.topons.*.ToponId')
-    .if(body('variants.*.locations.*.topons').exists())
+    .optional({ checkFalsy: true })
     .isUUID().withMessage('Invalid ToponId format'),
 
   body('variants.*.locations.*.topons.topons.*.minTopon')
-    .if(body('variants.*.locations.*.topons').exists())
+    .if(body('variants').exists())
     .isInt({ min: 0 }).withMessage('minTopon must be a non-negative integer'),
 
   body('variants.*.locations.*.topons.topons.*.maxTopon')
-    .if(body('variants.*.locations.*.topons').exists())
+    .if(body('variants').exists())
     .isInt({ min: 0 }).withMessage('maxTopon must be a non-negative integer'),
 
   body('variants.*.locations.*.topons.topons.*.skuRules')
-    .if(body('variants.*.locations.*.topons').exists())
+    .if(body('variants').exists())
     .isObject().withMessage('Topon skuRules must be an object'),
 
   // Options validation
   body('variants.*.locations.*.options')
+    .if(body('variants').exists())
     .optional().isArray({ min: 0 }).withMessage('Options must be an array'),
 
   body('variants.*.locations.*.options.*.name')
-    .if(body('variants.*.locations.*.options').exists())
+    .if(body('variants').exists())
     .isString().withMessage('Option name must be a string')
     .isLength({ min: 1, max: 64 }).withMessage('Option name must be between 1 and 64 characters'),
 
   body('variants.*.locations.*.options.*.rules')
-    .if(body('variants.*.locations.*.options').exists())
+    .if(body('variants').exists())
     .isString().withMessage('Option rules must be a string'),
 
-  body('variants.*.locations.*.options.*.options')
-    .if(body('variants.*.locations.*.options').exists())
-    .isArray().withMessage('Options must be an array of UUIDs'),
+  // body('variants.*.locations.*.options.*.options')
+  //   .if(body('variants').exists())
+  //   .isArray().withMessage('Options must be an array of UUIDs'),
 
-  body('variants.*.locations.*.options.*.options.*')
-    .if(body('variants.*.locations.*.options').exists())
-    .isString().withMessage('Invalid optionId format'),
+  // body('variants.*.locations.*.options.*.options.*')
+  //   .if(body('variants').exists())
+  //   .isString().withMessage('Invalid optionId format'),
 
   // ComboItems validation
   body('variants.*.locations.*.comboItems')
+    .if(body('variants').exists())
     .optional().isArray({ min: 0 }).withMessage('ComboItems must be an array'),
 
   body('variants.*.locations.*.comboItems.*.VariantLocationId')
-    .if(body('variants.*.locations.*.comboItems').exists())
+    .if(body('variants').exists())
     .isUUID(4).withMessage('Invalid VariantLocationId format'),
 
   body('variants.*.locations.*.comboItems.*.quantity')
-    .if(body('variants.*.locations.*.comboItems').exists())
+    .if(body('variants').exists())
     .isInt({ min: 1 }).withMessage('ComboItem quantity must be an integer greater than 0'),
-
 ];
+
+
 
 
 const validateProductId = [
@@ -142,6 +153,7 @@ const validateLocationId = [
 const validateResult = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log(errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
   next();

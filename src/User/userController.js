@@ -1,16 +1,20 @@
 
 
 const { literal } = require('sequelize');
-const { Order, OrderItem, PriceHistory, Variant, User, Option, Topon, Role, WaiterBreak } = require('../.');
+const { Order, OrderItem, PriceHistory, Variant, User, Option, Topon, Role, WaiterBreak, UserLocation } = require('../.');
 
 const createUser = async (req, res) => {
   try {
 
     console.log(req.body);
-    const { firstName, lastName, password, email } = req.body;
+    const { firstName, lastName, password, email , role, location } = req.body;
     console.log(firstName, lastName, password);
-    const newUser = await User.create({ firstName, lastName, password , email}).catch(err => console.log(err));
-    console.log(newUser);
+    const newUser = await User.create({ firstName, lastName, password , email, role}).catch(err => console.log(err));
+    if(location){
+      console.log(location);
+      await UserLocation.create({LocationId: location, UserId: newUser.id, department: '0', office: '0'});
+    }
+
     res.status(201).json(newUser);
   } catch (error) {
     res.status(500).json({ message: error.message });

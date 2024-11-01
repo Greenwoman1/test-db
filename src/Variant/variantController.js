@@ -47,6 +47,7 @@ const getVariantAddons = async (req, res) => {
       include: [
         {
           model: GroupOptions,
+          as: 'GO',
           required: false,
           attributes: ['name', 'rules'],
           include: [{ model: Option, attributes: ['name'] }]

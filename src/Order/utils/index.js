@@ -11,13 +11,15 @@ const { Order, OrderItem, PriceHistory, ProductT, ProductO, OrderItemCombo, Topo
 
 const getSingleItemTotalPrice = async (item) => {
   const v = await VariantLocation.findByPk(item.vlId);
-  const variantPrice = await VariantPrice.getPriceByDate(v.VariantId);
+  const variantPrice = await VariantPrice.getPriceByDate(v.id);
   let itemTotalPrice = variantPrice * item.quantity;
 
   for (const topon of item.topons) {
     const t = await GroupToponsMid.findByPk(topon.toponId);
-    const tl = await ToponLocation.findByPk(t.ToponLocationId);
-    const toponPrice = await ToponPrice.getPriceByDate(tl.ToponId);
+    console.log(t);
+    const tl = await ToponLocation.findByPk(t.TLocId);
+    console.log(tl);
+    const toponPrice = await ToponPrice.getPriceByDate(tl.id);
     itemTotalPrice += toponPrice * topon.quantity * item.quantity;
   }
 
@@ -28,14 +30,14 @@ const getSingleItemTotalPrice = async (item) => {
 const getComboItemTotalPrice = async (item) => {
   let comboTotalPrice = 0;
   const p = await Product.findByPk(item.productId);
-  const productPrice = await VariantPrice.getPriceByDate(p.VariantId);
+  const productPrice = await VariantPrice.getPriceByDate(p.id);
   comboTotalPrice += productPrice;
 
   for (const comboVariant of item.comboVariants) {
     for (const topon of comboVariant.topons) {
       const t = await GroupToponsMid.findByPk(topon.toponId);
       const tl = await ToponLocation.findByPk(t.ToponLocationId);
-      const toponPrice = await ToponPrice.getPriceByDate(tl.ToponId);
+      const toponPrice = await ToponPrice.getPriceByDate(tl.ToponLocationId);
       comboTotalPrice += toponPrice * topon.quantity;
     }
   }
@@ -62,19 +64,19 @@ const getOrderTotalPrice = async (orderJson) => {
 const createOrderItem = async (item, order, transaction) => {
   const OI = await OrderItem.create({
     OrderId: order.id,
-    VariantLocationId: item.vlId,
+    VariantLocationId: item.variant.id,
     ProductId: item.productId,
     quantity: item.quantity
   }, { transaction });
 
-  if (item.type === 'single') {
-    await getSingleIngredients(item.vlId, OI.id, transaction);
-  } else if (item.type === 'combo') {
-    await getComboIngredients(item.vlId, OI.id, transaction);
-  }
+  // if (item.type === 'single') {
+  //   await getSingleIngredients(item.vlId, OI.id, transaction);
+  // } else if (item.type === 'combo') {
+  //   await getComboIngredients(item.vlId, OI.id, transaction);
+  // }
 
   await getSingleOptions(item.options, OI.id, transaction);
-  await getComboOptions(item.topons, OI.id, transaction);
+  // await getComboOptions(item.topons, OI.id, transaction);
 };
 
 // Create order JSON
@@ -92,7 +94,7 @@ const createOrderJson = async (order, transaction) => {
 
     return o;
   } catch (error) {
-    console.error('Error creating order JSON:', error.message);
+    console.error(error);
     throw error;
   }
 };
@@ -103,6 +105,8 @@ const getSingleIngredients = async (vlId, orderItemId, transaction) => {
     where: { id: vlId },
     include: [{ model: VariantIngredient, as: 'VarLocIng' }]
   }, { transaction });
+
+  console.log(JSON.stringify(variantLocation, null, 2));
 
   const ingredientPromises = variantLocation.VarLocIng.map(ingredient =>
     OrderItemIngredient.create({
@@ -150,10 +154,11 @@ const getComboIngredients = async (vlId, orderItemId, transaction) => {
 
 // Get single options
 const getSingleOptions = async (options, orderItemId, transaction) => {
+  if(!options) return;
   const optionPromises = options.map(option =>
     OrderItemOption.create({
       OrderItemId: orderItemId,
-      OptionId: option
+      OptionId: option.id
     }, { transaction })
   );
 
@@ -162,10 +167,11 @@ const getSingleOptions = async (options, orderItemId, transaction) => {
 
 // Get combo options
 const getComboOptions = async (topons, orderItemId, transaction) => {
+  if(!topons) return;
   const toponPromises = topons.map(topon =>
     OrderItemTopons.create({
       OrderItemId: orderItemId,
-      GroupToponsMidId: topon.toponId,
+      GroupToponsMidId: topon.id,
       quantity: topon.quantity
     }, { transaction })
   );
@@ -197,7 +203,7 @@ const getOrderDetails = async (orderId, transaction) => {
           {
             model: OrderItemTopons,
             attributes: ['id', 'quantity'],
-            include: [{ model: GroupToponsMid, attributes: ['id'], include: [{ model: ToponLocation, attributes: ['id'] }] }]
+            include: [{ model: GroupToponsMid, attributes: ['id'], include: [{ model: ToponLocation, as: 'TLoc', attributes: ['id'] }] }]
           },
           {
             model: OrderItemIngredient,
@@ -346,7 +352,7 @@ const fetchToponSKURules = async (id, t) => {
 
 const mapSKUData = (items) => {
   const result = [];
-
+  console.log(JSON.stringify(items, null, 2));
   items.forEach(item => {
     const productQuantity = item.quantity;
 
@@ -364,14 +370,14 @@ const mapSKUData = (items) => {
       });
     }
 
-    if (item.data.VarLocRule) {
+    if (item?.data?.VarLocRule) {
       result.push({
         SKUID: item.data.VarLocRule.SKUId,
         quantity: productQuantity * item.data.VarLocRule.quantity
       });
     }
 
-    if (item.data.VarLocIng) {
+    if (item?.data?.VarLocIng) {
       item.data.VarLocIng.forEach(ingredient => {
         if (ingredient.VarIngRule) {
           result.push({
@@ -382,7 +388,8 @@ const mapSKUData = (items) => {
       });
     }
 
-    if (item.data.VarLoc) {
+    /// handle combo items
+    if (item?.data?.VarLoc) {
       item.data.VarLoc.LinkVar.forEach(linkVar => {
         if (linkVar.LinkVarLoc.VarLocRule) {
           result.push({

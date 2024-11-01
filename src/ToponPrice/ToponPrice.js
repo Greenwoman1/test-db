@@ -28,14 +28,14 @@ class ToponPrice extends Model {
   }
 
   static associateModel(models) {
-    ToponPrice.belongsTo(models.Topon);
+    ToponPrice.belongsTo(models.ToponLocation, {as : 'TopLocPrice', foreignKey: 'ToponLocationId'});
 
 
   }
   static async getPriceByDate(itemId, date = new Date()) {
     const price = await ToponPrice.findOne({
       where: {
-        ToponId: itemId,
+        ToponLocationId: itemId,
         createdAt: {
           [Op.lte]: date
         }
@@ -43,7 +43,7 @@ class ToponPrice extends Model {
       order: [['createdAt', 'DESC']]
     });
 
-    return price ? price.price : null;
+    return price ? price.price : 0;
   }
 }
 

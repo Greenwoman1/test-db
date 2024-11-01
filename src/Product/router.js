@@ -1,29 +1,45 @@
 const express = require('express');
-const router = express.Router();
+const multer = require('multer');
 const productController = require('./productController');
-const { validateCreateProduct, validateResults, validateProductId, validateLocationId, validateUpdateProduct, validateUpdateProductCombo, validateCreateProductCombo } = require('./validateInput');
-const { validateProduct, validateResult } = require('./validateInput');
+const {
+  validateCreateProduct,
+  validateResults,
+  validateProductId,
+  validateLocationId,
+  validateUpdateProduct,
+  validateUpdateProductCombo,
+  validateCreateProductCombo,
+  validateProduct,
+  validateResult
+} = require('./validateInput');
 const { authentication } = require('../Auth/utils');
 
+const upload = multer();
 
-// router.get('/list', productController.list);
-router.get('/', authentication, productController.list);
+module.exports = (io) => {
+  const router = express.Router();
 
-router.post('/', validateProduct, validateResult, productController.createProduct);
-// nr treba hendlovat poseban create
-// router.post('/create', productController.createBasicProduct)
+  router.get('/', authentication, (req, res) => productController.list(req, res, io));
 
-router.get('/:productId/variants', validateProductId, validateResult, productController.getProductVariants);
+  router.post('/', validateProduct, validateResult, (req, res) => productController.createProduct(req, res, io));
 
-router.get('/:productId', validateProductId, validateResult, productController.getProductById);
+  router.get('/menu', (req, res) => productController.getMenu(req, res, io));
 
-// router.get('/location/:locationId', validateLocationId, validateResult, productController.getProductsAtLocation);
-router.get('/variants', validateLocationId, validateResult, productController.getProductsAtLocation);
-// router.get('/variants/?locationId', validateLocationId, validateResult, productController.getProductsAtLocation);
+  router.get('/:productId/variants', validateProductId, validateResult, (req, res) => 
+    productController.getProductVariants(req, res, io)
+  );
 
-router.get('/:productId/variants', validateProductId, validateLocationId, validateResult, productController.getProductVariantLocation);
-// router.get('/:productId?locationId', validateProductId, validateLocationId, validateResult, productController.getProductVariantLocation);
+  router.get('/:productId', validateProductId, validateResult, (req, res) => 
+    productController.getProductById(req, res, io)
+  );
 
+  router.get('/variants', validateLocationId, validateResult, (req, res) => 
+    productController.getProductsAtLocation(req, res, io)
+  );
 
+  router.get('/:productId/variants', validateProductId, validateLocationId, validateResult, (req, res) => 
+    productController.getProductVariantLocation(req, res, io)
+  );
 
-module.exports = router;
+  return router;
+};

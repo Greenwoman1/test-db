@@ -1,21 +1,17 @@
 const express = require('express');
-const router = express.Router();
+const { validateOrder, validateResult, validateOrderId } = require('./validateOrder');
 const controller = require('./controller');
-const { validateOrder, validateResult, validateOrderId, validateLocationId } = require('./validateOrder');
 
-router.get('/', controller.getOrders);
+module.exports = (io) => {
+  const router = express.Router();
 
-router.get('/:orderId', validateOrderId, validateResult, controller.getOrderDetailsById);
+  router.get('/', (req, res) => controller.getOrders(req, res, io));
+  router.get('/:orderId', validateOrderId, validateResult, (req, res) => controller.getOrderDetailsById(req, res, io));
+  
+  router.post('/', /* validateOrder, validateResult, */ (req, res) => controller.createOrder(req, res, io));
+  router.post('/:orderId/process', validateOrderId, validateResult, (req, res) => controller.processOrder(req, res, io));
+  router.post('/:orderId/reject', validateOrderId, validateResult, (req, res) => controller.rejectOrder(req, res, io));
+  router.post('/:orderId/accept', validateOrderId, validateResult, (req, res) => controller.acceptOrder(req, res, io));
 
-router.post('/', validateOrder, validateResult, controller.createOrder);
-
-router.post('/:orderId/proccess', validateOrderId, validateResult, controller.processOrder);
-
-router.post('/:orderId/reject', validateOrderId, validateResult, controller.rejectOrder);
-
-router.post('/:orderId/accept', validateOrderId, validateResult, controller.acceptOrder);
-
-
-
-
-module.exports = router;
+  return router;
+};

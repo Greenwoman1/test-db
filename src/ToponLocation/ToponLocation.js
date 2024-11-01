@@ -24,9 +24,11 @@ class ToponLocation extends Model {
 
   static associateModel(models) {
 
-    ToponLocation.hasMany(models.GroupToponsMid, { as: 'GTop', foreignKey: 'ToponLocationId' });
+    ToponLocation.hasMany(models.GroupToponsMid, { as: 'TLoc', foreignKey: 'ToponLocationId' });
     ToponLocation.belongsTo(models.Topon, { as: 'TopLoc', foreignKey: 'ToponId' });
     ToponLocation.belongsTo(models.Location);
+    ToponLocation.hasMany(models.ToponPrice, { as: 'TopLocPrice', foreignKey: 'ToponLocationId' });
+
   }
 }
 

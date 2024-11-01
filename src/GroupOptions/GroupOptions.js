@@ -25,13 +25,8 @@ class GroupOption extends Model {
         },
         rules: {
           type: DataTypes.STRING(64),
-          allowNull: false,
-          validate: {
-            notEmpty: {
-              msg: 'Rules cannot be empty'
-            }
+          allowNull: true,
            
-          }
         }
       },
       {
@@ -44,7 +39,7 @@ class GroupOption extends Model {
   }
 
   static associateModel(models) {
-    GroupOption.belongsTo(models.VariantLocation);
+    GroupOption.belongsTo(models.VariantLocation, { as: 'GO' });
     GroupOption.hasMany(models.Option);
   }
 }

@@ -8,7 +8,6 @@ class Variant extends Model {
     Variant.belongsToMany(models.Location, { through: 'VariantLocation' });
     Variant.hasMany(models.VariantLocation, { as: 'VarLoc', foreignKey: 'VariantId' });
     Variant.hasMany(models.LinkedVariant, { foreignKey: 'VariantId', as: 'LinkVar' });
-    Variant.hasMany(models.VariantPrice, { foreignKey: 'VariantId' }); // Ensure VariantPrice has the correct foreign key
   }
 
   static initModel() {

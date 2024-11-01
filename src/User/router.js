@@ -1,20 +1,21 @@
 const express = require('express');
-const router = express.Router();
-const userController = require('./userController');
 const multer = require('multer');
+const userController = require('./userController');
+
 const upload = multer();
 
-router.post('/', upload.none(), userController.createUser);
-router.get('/', userController.getUsers);
+module.exports = (io) => {
+  const router = express.Router();
 
-router.get('/orders/:userId', userController.getOrderDetailsForUser);
-router.get('/waitersAvilable', userController.isAnyWaiterAvilable);
+  router.post('/', upload.none(), (req, res) => userController.createUser(req, res, io));
+  router.get('/', (req, res) => userController.getUsers(req, res));
 
+  router.get('/orders/:userId', (req, res) => userController.getOrderDetailsForUser(req, res, io));
+  router.get('/waitersAvilable', (req, res) => userController.isAnyWaiterAvilable(req, res, io));
 
+  router.get('/:id', (req, res) => userController.getUserById(req, res));
+  router.put('/:id', (req, res) => userController.updateUser(req, res, io));
+  router.delete('/:id', (req, res) => userController.deleteUser(req, res, io));
 
-router.get('/:id', userController.getUserById);
-router.put('/:id', userController.updateUser);
-router.delete('/:id', userController.deleteUser);
-
-
-module.exports = router;
+  return router;
+};

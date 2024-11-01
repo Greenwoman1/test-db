@@ -48,10 +48,7 @@ class Balance extends Model {
             isDecimal: {
               msg: 'Amount must be a decimal value'
             },
-            min: {
-              args: [0],
-              msg: 'Amount must be a positive number'
-            }
+     
           }
         },
         comment: {

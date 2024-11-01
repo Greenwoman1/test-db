@@ -1,6 +1,6 @@
 const { name } = require('ejs');
 const { getOrderDetails, getOrderSKURules, createOrderJson, updateSKU } = require('./Order/utils');
-const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem, VariantPrice, Ingredient, Role, Permissions, UserRole, UserPermission, RolePermission } = require('./index');
+const { Product, Variant, Topon, GroupOption, Option, GroupRule, SKU, SKURule, Location, ComboVariants, GroupOptions, GroupTopons, PriceHistory, Order, ProductO, ProductT, OrderItemCombo, User, Balance, WarehouseLocation, Warehouse, VariantSKURule, VariantLocation, VariantIngredient, GroupTopon, GroupToponsMid, LinkedVariant, ToponSKURule, ToponLocation, IngredientLocation, UserPayment, UserLocation, OrderItemOption, OrderItemTopons, Category, IngredientSKURule, OrderItem, VariantPrice, Ingredient, Role, Permissions, UserRole, UserPermission, RolePermission, ToponPrice } = require('./index');
 
 const { Op, fn, col, literal } = require('sequelize');
 // const client = require('../clients/elastics');
@@ -86,12 +86,27 @@ const createTopons = async (names) => {
 
 
 const addToponToLocations = async (topons, location) => {
-  const locations = topons.map(topon => {
-    return ToponLocation.create({ ToponId: topon.id, LocationId: location.id });
-  })
+  const defaultPrice = 100;
 
-  return Promise.all(locations);
-}
+  const locations = await Promise.all(
+    topons.map(async (topon) => {
+      const toponLocation = await ToponLocation.create({
+        ToponId: topon.id,
+        LocationId: location.id,
+      });
+
+      await ToponPrice.create({
+        ToponLocationId: toponLocation.id,
+        price: defaultPrice,
+      });
+
+      return toponLocation;
+    })
+  );
+
+  return locations;
+};
+
 
 
 const createGroup = async (name, variantLocation) => {
@@ -100,7 +115,7 @@ const createGroup = async (name, variantLocation) => {
 
 const addToponToVariantLocation = async (group, toponLocation, sku) => {
 
-  const gtm = await GroupToponsMid.create({ ToponLocationId: toponLocation.id, GroupToponId: group.id, min: 0, max: 10, default: 0, disabled: false });
+  const gtm = await GroupToponsMid.create({ TLocId: toponLocation.id, GroupToponId: group.id, min: 0, max: 10, default: 0, disabled: false });
   const sr = await ToponSKURule.create({ GroupToponMidId: gtm.id, SKUId: sku.id, unit: 'g', quantity: 1, disabled: false, name: sku.name });
 
 
@@ -197,6 +212,7 @@ const getVariantOptionsAndTopons = async (variantId) => {
         include: [
           {
             model: GroupOptions,
+            as: 'GO',
             required: false,
             attributes: [['name', 'on'], ['rules', 'r']],
             include: [
@@ -208,14 +224,17 @@ const getVariantOptionsAndTopons = async (variantId) => {
           },
           {
             model: GroupTopon,
+            as: 'GT',
             required: false,
             attributes: ['id'],
             include: [
               {
                 model: GroupToponsMid,
+                as: 'GTM',
                 attributes: ['id'],
                 include: [
                   {
+                    as: 'TLoc',
                     model: ToponLocation,
                     attributes: ['id'],
                     include: [
@@ -304,7 +323,7 @@ const getToponsVariantLocation = async (variantLocationId) => {
         include: [
           {
             model: GroupToponsMid,
-            include: [{ model: ToponLocation, include: [{ model: Topon, as: 'TopLoc' }] }]
+            include: [{ model: ToponLocation, as: 'TLoc', include: [{ model: Topon, as: 'TopLoc' }] }]
 
           }
         ]
@@ -1072,7 +1091,7 @@ const createProdct = async (settings) => {
           for (const t of topons) {
             console.log(minTopon, maxTopon)
             
-            const gtmid = await GroupToponsMid.create({ GroupToponId: gt.id, ToponLocationId: t.ToponId, min: minTopon || 0, max: maxTopon || 0, default: 0, disabled: false })
+            const gtmid = await GroupToponsMid.create({ GroupToponId: gt.id, TLocId: t.ToponId, min: minTopon || 0, max: maxTopon || 0, default: 0, disabled: false })
 
             const { name, unit, quantity, disabled, SKUId } = t.skuRules
 
@@ -1811,10 +1830,6 @@ const seed = async () => {
 
 
   // console.log(JSON.stringify(var1, null, 2))
-
-  await VariantPrice.create({ price: 1000, VariantId: var1.VariantId, date: new Date() });
-
-  const price1 = await VariantPrice.getPriceByDate(var1.VariantId);
 
   const products = await Product.findAll({
     attributes: ['id', 'name'],

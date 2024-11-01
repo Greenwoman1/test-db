@@ -31,8 +31,8 @@ class GroupTopon extends Model {
   }
 
   static associateModel(models) {
-    GroupTopon.belongsTo(models.VariantLocation);
-    GroupTopon.hasMany(models.GroupToponsMid);
+    GroupTopon.belongsTo(models.VariantLocation, { as: 'GT' });
+    GroupTopon.hasMany(models.GroupToponsMid, { as: 'GTM'});
   }
 }
 

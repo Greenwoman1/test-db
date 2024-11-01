@@ -1,3 +1,4 @@
+const paginate = require('../../helpers/paginate');
 const SKU = require('./SKU');
 
 const createSKU = async (req, res) => {
@@ -12,8 +13,14 @@ const createSKU = async (req, res) => {
 
 const getSKUs = async (req, res) => {
     try {
-        const skus = await SKU.findAll();
-        res.status(200).json(skus);
+ 
+      const queryOptions = {
+        attributes: ['id', 'name'],
+      };
+  
+      const paginatedSKUs = await paginate(SKU, queryOptions);
+  
+      res.status(200).json(paginatedSKUs);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

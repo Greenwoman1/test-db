@@ -74,8 +74,8 @@ class GroupToponsMid extends Model {
 
   static associateModel(models) {
     GroupToponsMid.hasOne(models.ToponSKURule, { as: 'TSRule', foreignKey: 'GroupToponMidId' });
-    GroupToponsMid.belongsTo(models.GroupTopon, { as: 'GTop', foreignKey: 'GroupToponId' });
-    GroupToponsMid.belongsTo(models.ToponLocation);
+    GroupToponsMid.belongsTo(models.GroupTopon, { as: 'GTM', foreignKey: 'GroupToponId' });
+    GroupToponsMid.belongsTo(models.ToponLocation , { as: 'TLoc'});
     GroupToponsMid.hasMany(models.OrderItemTopons);
   }
 }

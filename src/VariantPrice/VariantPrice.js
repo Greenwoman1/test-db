@@ -28,14 +28,14 @@ class VariantPrice extends Model {
   }
 
   static associateModel(models) {
-    VariantPrice.belongsTo(models.Variant);
+    VariantPrice.belongsTo(models.VariantLocation, {as : 'VarLocPrice', foreignKey: 'VariantLocationId'});
 
 
   }
   static async getPriceByDate(itemId, date = new Date()) {
     const price = await VariantPrice.findOne({
       where: {
-        VariantId: itemId,
+        VariantLocationId: itemId,
         createdAt: {
           [Op.lte]: date
         }
@@ -43,7 +43,7 @@ class VariantPrice extends Model {
       order: [['createdAt', 'DESC']]
     });
 
-    return price ? price.price : null;
+    return price ? price.price : 0;
   }
 }
 

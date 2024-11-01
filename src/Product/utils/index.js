@@ -7,9 +7,13 @@ const {
 
 const createProductHelper = async (settings, t) => {
   const { name, type, variants, description, CategoryId } = settings;
+
+  console.log(JSON.stringify(settings, null, 2));
   try {
     const product = await Product.create({ name, type, description, CategoryId }, { transaction: t });
-    await createVariants(variants, product.id, t);
+    if (variants) {
+      await createVariants(variants, product.id, t);
+    }
     return product;
   } catch (error) {
     console.error('Error creating product:', error);
@@ -97,7 +101,7 @@ const handleTopons = async (variantLocationId, topons, trans) => {
     await Promise.all(innerTopons.map(async (t) => {
       const gtmid = await GroupToponsMid.create({
         GroupToponId: gt.id,
-        ToponLocationId: t.ToponId,
+        TLocId: t.ToponId,
         min: t.minTopon,
         max: t.maxTopon,
         default: 0,
@@ -116,6 +120,7 @@ const handleTopons = async (variantLocationId, topons, trans) => {
 const handleOptions = async (variantLocationId, options, t) => {
   try {
     await Promise.all(options.map(async (opt) => {
+      console.log(opt);
       const go = await GroupOptions.create({ VariantLocationId: variantLocationId, name: opt.name, rules: opt.rules }, { transaction: t });
 
       await Promise.all(opt.options.map(o =>
