@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "seedDev": "npx sequelize-cli db:seed:all",
     "dev": "nodemon index.js",
-    "build": ""
+    "build": "node build.js",
+    "start": "nodemon index.js"
   },
   "repository": {
     "type": "git",
