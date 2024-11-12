@@ -1,0 +1,24 @@
+# IDE
+.
+
+# Environment files
+.env
+
+# Certs
+certs/
+
+# Private
+local/
+
+# Git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Configs
+eslint.config.js
+prettier.config.js
+tsconfig-base.json
+tsconfig.json
