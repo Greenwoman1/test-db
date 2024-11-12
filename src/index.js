@@ -11,8 +11,7 @@ const Order = require('./Order/Order');
 const ToponPrice = require('./ToponPrice/ToponPrice');
 const VariantPrice = require('./VariantPrice/VariantPrice');
 const UserLocation = require('./UserLocation/UserLocation');
-const Balance = require('./Balance/balance');
-
+const Balance = require ('./Balance/Balance');
 const VariantSKURule = require('./VariantSKURule/VariantSKURule');
 const Ingredient = require('./Ingredient/Ingredient');
 const Warehouse = require('./Warehouse/Warehouse');
