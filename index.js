@@ -64,7 +64,7 @@ server.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   try {
     await init();
-    await sequelize.sync({ force: false });
+    await sequelize.sync({ force: true });
     const { Client } = require('@elastic/elasticsearch');
     const client = new Client({ node: 'http://localhost:9200' });
     
