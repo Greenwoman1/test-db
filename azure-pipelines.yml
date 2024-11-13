@@ -23,7 +23,7 @@ stages:
         command: build
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
         tags: |
-          sarakitchen.azurecr.io/test-db-backend:$(tag)
+          saraKitchen.azurecr.io/test-db-backend:$(tag)
 
     # Step 2: Push Docker image to Azure Container Registry
     - task: Docker@2
@@ -31,6 +31,6 @@ stages:
       inputs:
         command: push
         containerRegistry: 'saraKitchen' # Service connection name
-        repository: 'sarakitchen.azurecr.io/test-db-backend'
+        repository: 'saraKitchen.azurecr.io/test-db-backend'
         tags: |
           $(tag)
