@@ -64,7 +64,7 @@ server.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   try {
     await init();
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false });
     const { Client } = require('@elastic/elasticsearch');
     const client = new Client({ node: 'http://localhost:9200' });
     
@@ -129,8 +129,8 @@ server.listen(PORT, async () => {
     // client.indices.create({ index: 'products' });
     // client.indices.create({ index: 'users' });
 
-    // await seedProducts();
-    // await seed();
+      // await seedProducts();
+      // await seed();
     // await seedRoles();
     console.log('Database synchronized.');
   } catch (error) {
