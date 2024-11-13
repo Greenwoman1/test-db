@@ -2,8 +2,8 @@ const Redis = require('ioredis');
 const { promisify } = require('util');
 
 const redisClient = new Redis({
-  host: 'redis',  // Ime servisa u docker-compose.yml
-  port: 6379,     // Port na kojem Redis radi unutar kontejnera
+  host: process.env.REDIS_HOST || 'localhost',  
+  port: process.env.REDIS_PORT || 6390,     
 });
 redisClient.on('connect', () => {
   console.log('Connected to Redis');
