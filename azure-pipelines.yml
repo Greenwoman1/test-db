@@ -28,8 +28,12 @@ stages:
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
         tags: |
           $(tag)
-    
-    # Step 2: Push Docker image to Azure Container Registry
+
+    # Step 2: List Docker images
+    - script: docker images
+      displayName: 'List Docker Images'
+
+    # Step 3: Push Docker image to Azure Container Registry
     - task: Docker@2
       displayName: Push Docker image to ACR
       inputs:
