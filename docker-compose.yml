@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  backend:
+    image: backend-image  # Ime Docker imidža za tvoj backend (ako koristiš build, zameni sa build)
+    container_name: backend-container
+    build: .
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}  # Promenljiva koja se može postaviti za različita okruženja
+      DATABASE_URL: postgres://user:password@postgres-db:5432/mydb
+    ports:
+      - "3001:3001"  # Port na kojem će biti dostupan tvoj backend
+    volumes:
+      - .:/app  # Da bi promene u tvom kodu bile odražene unutar kontejnera
+    depends_on:
+      - postgres  # Ovaj servis zavisi od baze podataka
+
+  postgres-db:
+    image: postgres:latest  # Koristi zvanični imidž za PostgreSQL
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"  # Port na kojem će biti dostupna baza podataka
+    volumes:
+      - postgres-data:/var/lib/postgresql/data  # Volumen za čuvanje podataka baze
+
+volumes:
+  postgres-data:  # Definicija volumena za čuvanje podataka baze
