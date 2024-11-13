@@ -35,6 +35,6 @@ stages:
       inputs:
         command: push
         containerRegistry: 'saraKitchen' # Service connection name
-        repository: 'sarakitchen.azurecr.io/backend' # ACR registry URL and image name
+        repository: 'sarakitchen.azurecr.io/test-db-backend' # ACR registry URL and image name
         tags: |
           $(tag)
