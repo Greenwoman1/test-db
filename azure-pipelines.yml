@@ -1,7 +1,3 @@
-# Docker
-# Build a Docker image and push it to Azure Container Registry
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-
 trigger:
 - sara
 
@@ -13,39 +9,24 @@ variables:
 
 stages:
 - stage: Build
-  displayName: Build image
+  displayName: Build and Push image
   jobs:
   - job: Build
     displayName: Build and Push Docker image
     pool:
       vmImage: ubuntu-latest
     steps:
-    # Step 1: Build Docker image
+    # Jedan korak za build i push
     - task: Docker@2
-      displayName: Build Docker image
+      displayName: Build and Push Docker image to ACR
       inputs:
-        command: build
-        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+        containerRegistry: 'saraKitchen'  # Service connection name
+        repository: 'repo'  # Naziv repozitorijuma bez URL-a
+        command: 'buildAndPush'
+        Dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
         tags: |
           $(tag)
     
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'saraKitchen'
-        repository: 'repo'
-        command: 'buildAndPush'
-        Dockerfile: '**/Dockerfile'
-
-    # Step 2: List Docker images
+    # Opcionalno: Listanje Docker imidža za proveru
     - script: docker images
       displayName: 'List Docker Images'
-
-    # Step 3: Push Docker image to Azure Container Registry
-    - task: Docker@2
-      displayName: Push Docker image to ACR
-      inputs:
-        command: push
-        containerRegistry: 'saraKitchen' # Service connection name
-        repository: 'sarakitchen.azurecr.io/repo' # ACR registry URL and image name
-        tags: |
-          $(tag)
