@@ -11,10 +11,11 @@
     "username": "staging_user",
     "password": "staging_password",
     "database": "staging_db",
-    "host": "localhost",
-    "port": 5433,
+    "host": "postgres-staging", 
+    "port": 5432,
     "dialect": "postgres"
   },
+  
   "production": {
     "username": "prod_user",
     "password": "prod_password",

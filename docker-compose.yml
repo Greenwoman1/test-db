@@ -1,31 +1,80 @@
 version: '3'
-
 services:
   backend:
-    image: backend-image  # Ime Docker imidža za tvoj backend (ako koristiš build, zameni sa build)
-    container_name: backend-container
     build: .
+    container_name: backend
     environment:
-      NODE_ENV: ${NODE_ENV:-development}  # Promenljiva koja se može postaviti za različita okruženja
-      DATABASE_URL: postgres://user:password@postgres-db:5432/mydb
-    ports:
-      - "3001:3001"  # Port na kojem će biti dostupan tvoj backend
-    volumes:
-      - .:/app  # Da bi promene u tvom kodu bile odražene unutar kontejnera
+      - REDIS_HOST=redis       # Ime Redis servisa unutar Compose-a
+      - REDIS_PORT=6379       # Port na kojem Redis radi unutar kontejnera
+      - NODE_ENV=staging      # Promeni na "production" ili "development" po potrebi
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=5432
     depends_on:
-      - postgres  # Ovaj servis zavisi od baze podataka
-
-  postgres-db:
-    image: postgres:latest  # Koristi zvanični imidž za PostgreSQL
-    container_name: postgres-db
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
+      - postgres-staging      # Postavi odgovarajući servis
+      - redis                 # Redis servis mora biti pokrenut pre backenda
     ports:
-      - "5432:5432"  # Port na kojem će biti dostupna baza podataka
+      - "3002:3002"
+    networks:
+      - app-network
+
+  redis:
+    image: redis
+    container_name: kitchen-redis
+    ports:
+      - "6391:6379"  # Redis je mapiran na 6390 na računaru
+    networks:
+      - app-network
+
+  postgres-development:
+    image: postgres
+    container_name: postgres-development
+    environment:
+      POSTGRES_DB: development_db
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data  # Volumen za čuvanje podataka baze
+      - dev_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  postgres-staging:
+    image: postgres
+    container_name: postgres-staging
+    environment:
+      POSTGRES_DB: staging_db
+      POSTGRES_USER: staging_user
+      POSTGRES_PASSWORD: staging_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - staging_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  postgres-production:
+    image: postgres
+    container_name: postgres-production
+    environment:
+      POSTGRES_DB: production_db
+      POSTGRES_USER: prod_user
+      POSTGRES_PASSWORD: prod_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - prod_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
 volumes:
-  postgres-data:  # Definicija volumena za čuvanje podataka baze
+  dev_data:
+  staging_data:
+  prod_data:
+
+networks:
+  app-network:
+    driver: bridge
