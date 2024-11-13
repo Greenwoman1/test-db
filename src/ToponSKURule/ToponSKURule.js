@@ -1,6 +1,5 @@
 const { DataTypes, Model, UUID, UUIDV4 } = require('sequelize');
 const sequelize = require('../../clients/sequelize');
-const { getSKUById } = require('../SKU/skuController');
 const SKU = require('../SKU/SKU');
 
 class ToponSKURule extends Model {
