@@ -1,8 +1,7 @@
 // skuRouter.js
 const express = require('express');
 const router = express.Router();
-const skuController = require('./skuController');
-
+const skuController = require('./controller');
 module.exports = (io) => {
   // POST /sku
   router.post('/', (req, res) => skuController.createSKU(req, res, io));
