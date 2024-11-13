@@ -28,6 +28,13 @@ stages:
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
         tags: |
           $(tag)
+    
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'saraKitchen'
+        repository: 'repo'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
 
     # Step 2: List Docker images
     - script: docker images
